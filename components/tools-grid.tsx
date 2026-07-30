@@ -39,11 +39,7 @@ export function ToolsGrid() {
                     viewport={{ once: true }}
                     className="mb-12 text-center"
                 >
-<<<<<<< HEAD
                     <span className="inline-flex rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-600">
-=======
-                    <span className="inline-flex rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
->>>>>>> origin/main
                         PDF Toolkit
                     </span>
 

@@ -72,7 +72,6 @@ export default function CategoryFilter({
                         ${activeCategory === category
 
                             ? `
-<<<<<<< HEAD
                                 bg-indigo-600
                                 text-white
                                 border-indigo-600
@@ -85,22 +84,6 @@ export default function CategoryFilter({
                                 border-[var(--card-border)]
                                 hover:border-indigo-600
                                 hover:text-indigo-600
-=======
-                                bg-[var(--primary)]
-                                text-white
-                                border-[var(--primary)]
-                                shadow-lg
-                            `
-
-                            :
-
-                            `
-                                bg-[var(--card)]
-                                text-muted
-                                border-[var(--card-border)]
-                                hover:border-[var(--primary)]
-                                hover:text-[var(--primary)]
->>>>>>> origin/main
                             `
                         }
                     `}
@@ -120,11 +103,7 @@ export default function CategoryFilter({
                                     absolute
                                     inset-0
                                     -z-10
-<<<<<<< HEAD
                                     bg-indigo-600
-=======
-                                    bg-[var(--primary)]
->>>>>>> origin/main
                                 "
 
                             />

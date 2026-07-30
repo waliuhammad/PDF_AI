@@ -1,11 +1,7 @@
 "use client";
 
 import Link from "next/link";
-<<<<<<< HEAD
 import { useState, useEffect } from "react";
-=======
-import { useState } from "react";
->>>>>>> origin/main
 import { Menu, X, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -19,7 +15,6 @@ const navLinks = [
 
 export function Navbar() {
     const [open, setOpen] = useState(false);
-<<<<<<< HEAD
     const [activeHash, setActiveHash] = useState("#tools");
 
     useEffect(() => {
@@ -33,8 +28,6 @@ export function Navbar() {
 
         return () => window.removeEventListener("hashchange", updateHash);
     }, []);
-=======
->>>>>>> origin/main
 
     return (
         <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
@@ -62,7 +55,6 @@ export function Navbar() {
 
                 {/* Desktop Navigation */}
                 <nav className="hidden items-center gap-8 lg:flex">
-<<<<<<< HEAD
                     {navLinks.map((item) => {
                         const active = activeHash === item.href;
 
@@ -93,22 +85,10 @@ export function Navbar() {
                             </Link>
                         );
                     })}
-=======
-                    {navLinks.map((item) => (
-                        <Link
-                            key={item.name}
-                            href={item.href}
-                            className="text-sm font-medium text-muted transition hover:text-fg"
-                        >
-                            {item.name}
-                        </Link>
-                    ))}
->>>>>>> origin/main
                 </nav>
 
                 {/* Desktop Actions */}
                 <div className="hidden items-center gap-3 lg:flex">
-<<<<<<< HEAD
                     <button
                         className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${
                             activeHash === "#login"
@@ -121,13 +101,6 @@ export function Navbar() {
                     </button>
 
                     <button className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700">
-=======
-                    <button className="rounded-xl border border-border px-4 py-2 text-sm font-medium transition hover:border-primary hover:text-primary">
-                        Sign In
-                    </button>
-
-                    <button className="rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:opacity-90">
->>>>>>> origin/main
                         Start Free
                     </button>
                 </div>
@@ -153,7 +126,6 @@ export function Navbar() {
                     >
                         <div className="space-y-2 px-6 py-6">
 
-<<<<<<< HEAD
                             {navLinks.map((item) => {
                                 const active = activeHash === item.href;
 
@@ -189,25 +161,6 @@ export function Navbar() {
                                 </button>
 
                                 <button className="rounded-xl bg-indigo-600 py-3 font-semibold text-white transition hover:bg-indigo-700">
-=======
-                            {navLinks.map((item) => (
-                                <Link
-                                    key={item.name}
-                                    href={item.href}
-                                    onClick={() => setOpen(false)}
-                                    className="block rounded-xl px-4 py-3 text-muted transition hover:bg-primary/10 hover:text-primary"
-                                >
-                                    {item.name}
-                                </Link>
-                            ))}
-
-                            <div className="mt-4 flex flex-col gap-3">
-                                <button className="rounded-xl border border-border py-3 font-medium">
-                                    Sign In
-                                </button>
-
-                                <button className="rounded-xl bg-primary py-3 font-semibold text-primary-foreground">
->>>>>>> origin/main
                                     Start Free
                                 </button>
                             </div>

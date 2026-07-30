@@ -44,11 +44,7 @@ export function HowItWorks() {
             id="how-it-works"
             className="
                 px-6
-<<<<<<< HEAD
                 py-20
-=======
-                py-24
->>>>>>> origin/main
                 bg-[var(--background-secondary)]
             "
         >
@@ -60,11 +56,7 @@ export function HowItWorks() {
 
                 <div className="
                     text-center
-<<<<<<< HEAD
                     mb-12
-=======
-                    mb-16
->>>>>>> origin/main
                 ">
 
 
@@ -119,13 +111,9 @@ export function HowItWorks() {
                         }}
 
                         className="
-<<<<<<< HEAD
                             mt-3
                             text-sm
                             md:text-base
-=======
-                            mt-4
->>>>>>> origin/main
                             text-muted
                             max-w-xl
                             mx-auto
@@ -149,11 +137,7 @@ export function HowItWorks() {
                     grid
                     grid-cols-1
                     md:grid-cols-3
-<<<<<<< HEAD
                     gap-6
-=======
-                    gap-8
->>>>>>> origin/main
                 ">
 
 
@@ -183,28 +167,16 @@ export function HowItWorks() {
                             }}
 
                             whileHover={{
-<<<<<<< HEAD
                                 y: -6
-=======
-                                y: -8
->>>>>>> origin/main
                             }}
 
                             className="
                                 relative
-<<<<<<< HEAD
                                 rounded-2xl
                                 border
                                 border-[var(--card-border)]
                                 bg-[var(--card)]
                                 p-7
-=======
-                                rounded-3xl
-                                border
-                                border-[var(--card-border)]
-                                bg-[var(--card)]
-                                p-8
->>>>>>> origin/main
                                 text-center
                                 transition
                             "
@@ -215,11 +187,7 @@ export function HowItWorks() {
                             {/* Number */}
 
                             <div className="
-<<<<<<< HEAD
                                 text-5xl
-=======
-                                text-6xl
->>>>>>> origin/main
                                 font-bold
                                 text-[var(--primary)]/10
                             ">
@@ -233,7 +201,6 @@ export function HowItWorks() {
 
                             <div className="
                                 mx-auto
-<<<<<<< HEAD
                                 -mt-7
                                 mb-4
                                 flex
@@ -242,25 +209,11 @@ export function HowItWorks() {
                                 items-center
                                 justify-center
                                 rounded-xl
-=======
-                                -mt-8
-                                mb-5
-                                flex
-                                h-16
-                                w-16
-                                items-center
-                                justify-center
-                                rounded-2xl
->>>>>>> origin/main
                                 bg-[var(--primary)]/10
                             ">
 
                                 <step.icon
-<<<<<<< HEAD
                                     size={26}
-=======
-                                    size={28}
->>>>>>> origin/main
                                     className="
                                         text-[var(--primary)]
                                     "
@@ -277,11 +230,7 @@ export function HowItWorks() {
                                 text-lg
                                 font-semibold
                                 text-fg
-<<<<<<< HEAD
                                 mb-2
-=======
-                                mb-3
->>>>>>> origin/main
                             ">
 
                                 {step.title}
