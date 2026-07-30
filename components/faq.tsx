@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
+<<<<<<< HEAD
 interface FAQItem {
     category: string;
     question: string;
@@ -11,6 +12,9 @@ interface FAQItem {
 }
 
 const faqs: FAQItem[] = [
+=======
+const faqs = [
+>>>>>>> origin/main
     {
         category: "General",
         question: "What is PDF AI?",
@@ -41,6 +45,7 @@ export default function FAQ() {
     const [open, setOpen] = useState<number | null>(0);
 
     return (
+<<<<<<< HEAD
         <section className="px-6 py-16 bg-[var(--background-secondary)]">
             <div className="mx-auto max-w-3xl">
                 <div className="text-center mb-10">
@@ -53,10 +58,25 @@ export default function FAQ() {
                     </h2>
 
                     <p className="mt-2 text-sm text-muted">
+=======
+        <section className="px-6 py-24 bg-[var(--background-secondary)]">
+            <div className="mx-auto max-w-4xl">
+                <div className="text-center mb-14">
+                    <span className="inline-flex rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
+                        Frequently Asked Questions
+                    </span>
+
+                    <h2 className="mt-6 text-4xl font-bold text-fg">
+                        Everything you need to know
+                    </h2>
+
+                    <p className="mt-4 text-muted">
+>>>>>>> origin/main
                         Can't find your answer? Contact our support team anytime.
                     </p>
                 </div>
 
+<<<<<<< HEAD
                 <div className="space-y-3.5">
                     {faqs.map((faq: FAQItem, index: number) => (
                         <motion.div
@@ -74,15 +94,39 @@ export default function FAQ() {
                                     </span>
 
                                     <h3 className="mt-1 text-base font-semibold text-fg">
+=======
+                <div className="space-y-5">
+                    {faqs.map((faq, index) => (
+                        <motion.div
+                            key={faq.question}
+                            layout
+                            className="rounded-3xl border border-border bg-card overflow-hidden"
+                        >
+                            <button
+                                onClick={() => setOpen(open === index ? null : index)}
+                                className="flex w-full items-center justify-between p-6 text-left"
+                            >
+                                <div>
+                                    <span className="text-xs font-medium text-primary">
+                                        {faq.category}
+                                    </span>
+
+                                    <h3 className="mt-2 text-lg font-semibold text-fg">
+>>>>>>> origin/main
                                         {faq.question}
                                     </h3>
                                 </div>
 
                                 <motion.div
                                     animate={{ rotate: open === index ? 180 : 0 }}
+<<<<<<< HEAD
                                     className="text-muted shrink-0 ml-4"
                                 >
                                     <ChevronDown size={18} />
+=======
+                                >
+                                    <ChevronDown />
+>>>>>>> origin/main
                                 </motion.div>
                             </button>
 
@@ -92,9 +136,14 @@ export default function FAQ() {
                                         initial={{ height: 0, opacity: 0 }}
                                         animate={{ height: "auto", opacity: 1 }}
                                         exit={{ height: 0, opacity: 0 }}
+<<<<<<< HEAD
                                         transition={{ duration: 0.2 }}
                                     >
                                         <div className="border-t border-border px-5 pb-5 pt-3 text-xs leading-relaxed text-muted">
+=======
+                                    >
+                                        <div className="border-t border-border px-6 pb-6 pt-5 text-muted">
+>>>>>>> origin/main
                                             {faq.answer}
                                         </div>
                                     </motion.div>

@@ -14,6 +14,7 @@ import {
 interface Company {
     name: string;
     icon: IconType;
+<<<<<<< HEAD
     iconColor: string;
     renderName: () => React.ReactNode;
 }
@@ -84,12 +85,30 @@ const companies: Company[] = [
             </span>
         ),
     },
+=======
+}
+
+const companies: Company[] = [
+    { name: "Google", icon: SiGoogle },
+    { name: "GitHub", icon: SiGithub },
+    { name: "Figma", icon: SiFigma },
+
+    { name: "Notion", icon: SiNotion },
+
+    { name: "Zoom", icon: SiZoom },
+    { name: "Atlassian", icon: SiAtlassian },
+>>>>>>> origin/main
 ];
 
 export function TrustedBy() {
     return (
+<<<<<<< HEAD
         <section className="border-y border-border/50 bg-background min-h-screen flex flex-col justify-center py-16">
             <div className="mx-auto max-w-7xl px-6 w-full">
+=======
+        <section className="border-y border-border/50 bg-background py-12">
+            <div className="mx-auto max-w-7xl px-6">
+>>>>>>> origin/main
 
                 {/* Heading */}
                 <motion.div
@@ -98,6 +117,7 @@ export function TrustedBy() {
                     viewport={{ once: true }}
                     className="text-center"
                 >
+<<<<<<< HEAD
                     <span className="inline-flex rounded-full bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary">
                         Trusted Worldwide
                     </span>
@@ -107,12 +127,24 @@ export function TrustedBy() {
                     </h2>
 
                     <p className="mx-auto mt-2 max-w-xl text-sm text-muted">
+=======
+                    <span className="inline-flex rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary">
+                        Trusted Worldwide
+                    </span>
+
+                    <h2 className="mt-4 text-2xl font-bold text-fg md:text-3xl">
+                        Trusted by teams across the world
+                    </h2>
+
+                    <p className="mx-auto mt-3 max-w-2xl text-muted">
+>>>>>>> origin/main
                         Professionals, startups and enterprises rely on PDF AI every day
                         to manage millions of documents securely.
                     </p>
                 </motion.div>
 
                 {/* Company Logos */}
+<<<<<<< HEAD
                 <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
                     {companies.map((company, index) => {
                         const Icon = company.icon;
@@ -167,6 +199,12 @@ export function TrustedBy() {
                             );
                         }
 
+=======
+                <div className="mt-10 grid grid-cols-2 gap-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                    {companies.map((company, index) => {
+                        const Icon = company.icon;
+
+>>>>>>> origin/main
                         return (
                             <motion.div
                                 key={company.name}
@@ -174,6 +212,7 @@ export function TrustedBy() {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: index * 0.05 }}
+<<<<<<< HEAD
                                 whileHover={{ y: -3, scale: 1.02 }}
                                 className="group flex h-20 items-center justify-center gap-3 rounded-2xl border border-border bg-card px-4 transition-all hover:border-primary/40 hover:shadow-md"
                             >
@@ -184,30 +223,54 @@ export function TrustedBy() {
                                 <div className="text-sm">
                                     {company.renderName()}
                                 </div>
+=======
+                                whileHover={{ y: -4, scale: 1.03 }}
+                                className="group flex h-20 items-center justify-center rounded-2xl border border-border bg-card transition-all hover:border-primary/40 hover:shadow-lg"
+                            >
+                                <Icon
+                                    size={34}
+                                    className="text-muted transition-colors duration-300 group-hover:text-primary"
+                                />
+>>>>>>> origin/main
                             </motion.div>
                         );
                     })}
                 </div>
 
                 {/* Stats */}
+<<<<<<< HEAD
                 <div className="mt-10 grid gap-6 rounded-3xl border border-border bg-card p-8 md:grid-cols-3">
                     <div className="text-center">
                         <h3 className="text-3xl font-bold text-primary">50K+</h3>
                         <p className="mt-1.5 text-xs text-muted">
+=======
+                <div className="mt-10 grid gap-6 rounded-3xl border border-border bg-card p-6 md:grid-cols-3">
+                    <div className="text-center">
+                        <h3 className="text-3xl font-bold text-primary">50K+</h3>
+                        <p className="mt-1 text-sm text-muted">
+>>>>>>> origin/main
                             Active Users
                         </p>
                     </div>
 
                     <div className="text-center">
                         <h3 className="text-3xl font-bold text-primary">10M+</h3>
+<<<<<<< HEAD
                         <p className="mt-1.5 text-xs text-muted">
+=======
+                        <p className="mt-1 text-sm text-muted">
+>>>>>>> origin/main
                             PDFs Processed
                         </p>
                     </div>
 
                     <div className="text-center">
                         <h3 className="text-3xl font-bold text-primary">150+</h3>
+<<<<<<< HEAD
                         <p className="mt-1.5 text-xs text-muted">
+=======
+                        <p className="mt-1 text-sm text-muted">
+>>>>>>> origin/main
                             Countries Served
                         </p>
                     </div>
