@@ -41,7 +41,7 @@ export default function FAQ() {
     const [open, setOpen] = useState<number | null>(0);
 
     return (
-        <section className="px-6 py-16 bg-[var(--background-secondary)]">
+      <section id="faq" className="px-6 py-16 bg-[var(--background-secondary)]">
             <div className="mx-auto max-w-3xl">
                 <div className="text-center mb-10">
                     <span className="inline-flex rounded-full bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary">

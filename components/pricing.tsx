@@ -58,7 +58,7 @@ export default function Pricing() {
 
     return (
 
-        <section className="px-6 py-22">
+       <section id="pricing" className="px-6 py-22">
 
             <div className="max-w-6xl mx-auto">
 

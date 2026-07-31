@@ -32,7 +32,7 @@ const testimonials = [
 
 export default function Testimonials() {
     return (
-        <section className="relative overflow-hidden px-6 py-16 bg-[var(--background-secondary)]">
+        <section id="testimonials" className="relative overflow-hidden px-6 py-16 bg-[var(--background-secondary)]">
 
             {/* Background Glow */}
             <div className="absolute left-1/2 top-16 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
