@@ -47,7 +47,7 @@ export default function PdfToExcelPage() {
                     onDragLeave={() => setIsDragging(false)}
                     onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFile(e.dataTransfer.files); }}
                     onClick={() => inputRef.current?.click()}
-                    className={`cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-colors ${isDragging ? "border-[var(--primary)] bg-red-50" : "border-card bg-white"
+                    className={`cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-colors ${isDragging ? "border-[var(--primary)] bg-red-50" : "border-card bg-card"
                         }`}
                 >
                     <input ref={inputRef} type="file" accept="application/pdf" hidden onChange={(e) => handleFile(e.target.files)} />
@@ -57,7 +57,7 @@ export default function PdfToExcelPage() {
                 </div>
             ) : (
                 <>
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-card">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-card">
                         <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
                             <FileSpreadsheet size={16} className="text-[var(--primary)]" />
                         </div>

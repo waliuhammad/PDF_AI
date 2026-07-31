@@ -49,7 +49,7 @@ export default function SignPdfPage() {
                     onDragLeave={() => setIsDragging(false)}
                     onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFile(e.dataTransfer.files); }}
                     onClick={() => inputRef.current?.click()}
-                    className={`cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-colors ${isDragging ? "border-[var(--primary)] bg-red-50" : "border-card bg-white"
+                    className={`cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-colors ${isDragging ? "border-[var(--primary)] bg-red-50" : "border-card bg-card "
                         }`}
                 >
                     <input ref={inputRef} type="file" accept="application/pdf" hidden onChange={(e) => handleFile(e.target.files)} />
@@ -59,7 +59,7 @@ export default function SignPdfPage() {
                 </div>
             ) : (
                 <>
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-card">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-card  border border-card">
                         <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
                             <FileText size={16} className="text-[var(--primary)]" />
                         </div>
@@ -73,7 +73,7 @@ export default function SignPdfPage() {
                     </div>
 
                     {/* Page preview with signature placed bottom-right */}
-                    <div className="mt-6 relative rounded-2xl border border-card bg-white p-6 h-64 overflow-hidden">
+                    <div className="mt-6 relative rounded-2xl border border-card bg-card  p-6 h-64 overflow-hidden">
                         <div className="space-y-2">
                             <div className="h-2.5 w-4/5 rounded bg-[var(--background-secondary)]" />
                             <div className="h-2.5 w-full rounded bg-[var(--background-secondary)]" />
@@ -91,7 +91,7 @@ export default function SignPdfPage() {
                     </div>
 
                     {/* Options */}
-                    <div className="mt-6 p-5 rounded-2xl bg-white border border-card space-y-4">
+                    <div className="mt-6 p-5 rounded-2xl bg-card  border border-card space-y-4">
                         <div className="flex gap-2">
                             <button
                                 onClick={() => setMode("type")}
@@ -117,7 +117,7 @@ export default function SignPdfPage() {
                                     value={signatureText}
                                     onChange={(e) => setSignatureText(e.target.value)}
                                     placeholder="e.g. Wali Muhammad"
-                                    className="w-full px-3 py-2 rounded-lg border border-card text-fg text-sm bg-white focus:outline-none focus:border-[var(--primary)]"
+                                    className="w-full px-3 py-2 rounded-lg border border-card text-fg text-sm bg-card  focus:outline-none focus:border-[var(--primary)]"
                                 />
                             </div>
                         ) : (

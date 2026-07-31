@@ -87,7 +87,7 @@ export default function MergePdfPage() {
                 onDragLeave={() => setIsDragging(false)}
                 onDrop={handleDrop}
                 onClick={() => inputRef.current?.click()}
-                className={`cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-colors ${isDragging ? "border-[var(--primary)] bg-red-50" : "border-card bg-white"
+                className={`cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-colors ${isDragging ? "border-[var(--primary)] bg-red-50" : "border-card bg-card"
                     }`}
             >
                 <input
@@ -114,7 +114,7 @@ export default function MergePdfPage() {
                             onDragStart={() => handleDragStart(index)}
                             onDragEnter={() => handleDragEnter(index)}
                             onDragEnd={() => (dragItemIndex.current = null)}
-                            className="flex items-center gap-3 p-3 rounded-xl bg-white border border-card cursor-grab active:cursor-grabbing"
+                            className="flex items-center gap-3 p-3 rounded-xl bg-card border border-card cursor-grab active:cursor-grabbing"
                         >
                             <GripVertical size={16} className="text-muted shrink-0" />
                             <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">

@@ -52,7 +52,7 @@ export default function RotatePdfPage() {
                     onDragLeave={() => setIsDragging(false)}
                     onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFile(e.dataTransfer.files); }}
                     onClick={() => inputRef.current?.click()}
-                    className={`cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-colors ${isDragging ? "border-[var(--primary)] bg-red-50" : "border-card bg-white"
+                    className={`cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-colors ${isDragging ? "border-[var(--primary)] bg-red-50" : "border-card bg-card"
                         }`}
                 >
                     <input ref={inputRef} type="file" accept="application/pdf" hidden onChange={(e) => handleFile(e.target.files)} />
@@ -62,7 +62,7 @@ export default function RotatePdfPage() {
                 </div>
             ) : (
                 <>
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-card">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-card">
                         <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
                             <FileText size={16} className="text-[var(--primary)]" />
                         </div>
@@ -76,7 +76,7 @@ export default function RotatePdfPage() {
                     </div>
 
                     {/* Rotation preview */}
-                    <div className="mt-6 rounded-2xl border border-card bg-white p-10 flex items-center justify-center h-56">
+                    <div className="mt-6 rounded-2xl border border-card bg-card p-10 flex items-center justify-center h-56">
                         <div
                             className="w-28 h-36 rounded-md border-2 border-[var(--primary)] bg-red-50 flex items-center justify-center transition-transform duration-300"
                             style={{ transform: `rotate(${rotation}deg)` }}

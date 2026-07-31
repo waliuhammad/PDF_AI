@@ -68,7 +68,7 @@ export default function SplitPdfPage() {
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
             {/* Left sidebar — vertical list on desktop, horizontal scroll strip on tablet/mobile */}
             {file && (
-                <aside className="w-full lg:w-80 shrink-0 rounded-2xl bg-white border border-card p-4 lg:sticky lg:top-6">
+                <aside className="w-full lg:w-80 shrink-0 rounded-2xl bg-card  border border-card p-4 lg:sticky lg:top-6">
                     <p className="text-sm font-semibold text-fg truncate mb-1">{file.name}</p>
                     <p className="text-xs text-muted mb-4">
                         {splitMode === "range" ? "Tap/click pages to set range" : `${MOCK_PAGE_COUNT} pages`}
@@ -90,7 +90,7 @@ export default function SplitPdfPage() {
                                         ? "border-[var(--primary)] bg-red-50"
                                         : inRange
                                             ? "border-[var(--primary)]/40 bg-red-50/50"
-                                            : "border-card bg-white hover:border-[var(--primary)]/40"
+                                            : "border-card bg-card  hover:border-[var(--primary)]/40"
                                         }`}
                                 >
                                     <div className="flex items-center justify-between mb-3">
@@ -133,7 +133,7 @@ export default function SplitPdfPage() {
                         onDragLeave={() => setIsDragging(false)}
                         onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFile(e.dataTransfer.files); }}
                         onClick={() => inputRef.current?.click()}
-                        className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 sm:p-10 text-center transition-colors ${isDragging ? "border-[var(--primary)] bg-red-50" : "border-card bg-white"
+                        className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 sm:p-10 text-center transition-colors ${isDragging ? "border-[var(--primary)] bg-red-50" : "border-card bg-card "
                             }`}
                     >
                         <input ref={inputRef} type="file" accept="application/pdf" hidden onChange={(e) => handleFile(e.target.files)} />
@@ -144,7 +144,7 @@ export default function SplitPdfPage() {
                 ) : (
                     <>
                         {/* Selected file */}
-                        <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-card">
+                        <div className="flex items-center gap-3 p-3 rounded-xl bg-card  border border-card">
                             <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
                                 <FileText size={16} className="text-[var(--primary)]" />
                             </div>
@@ -158,7 +158,7 @@ export default function SplitPdfPage() {
                         </div>
 
                         {/* Split options */}
-                        <div className="mt-6 p-4 sm:p-5 rounded-2xl bg-white border border-card">
+                        <div className="mt-6 p-4 sm:p-5 rounded-2xl bg-card  border border-card">
                             <p className="text-sm font-medium text-fg mb-4">Split method</p>
 
                             <div className="flex flex-col sm:flex-row gap-2 mb-5">
@@ -187,7 +187,7 @@ export default function SplitPdfPage() {
                                             min="1"
                                             value={fromPage}
                                             onChange={(e) => { setFromPage(e.target.value); setSelectingFrom(false); }}
-                                            className="w-full px-3 py-2 rounded-lg border border-card text-fg text-sm bg-white focus:outline-none focus:border-[var(--primary)]"
+                                            className="w-full px-3 py-2 rounded-lg border border-card text-fg text-sm bg-card  focus:outline-none focus:border-[var(--primary)]"
                                         />
                                     </div>
                                     <div className="flex-1">
@@ -197,7 +197,7 @@ export default function SplitPdfPage() {
                                             min="1"
                                             value={toPage}
                                             onChange={(e) => { setToPage(e.target.value); setSelectingFrom(true); }}
-                                            className="w-full px-3 py-2 rounded-lg border border-card text-fg text-sm bg-white focus:outline-none focus:border-[var(--primary)]"
+                                            className="w-full px-3 py-2 rounded-lg border border-card text-fg text-sm bg-card  focus:outline-none focus:border-[var(--primary)]"
                                         />
                                     </div>
                                 </div>
@@ -209,7 +209,7 @@ export default function SplitPdfPage() {
                                         min="1"
                                         value={everyN}
                                         onChange={(e) => setEveryN(e.target.value)}
-                                        className="w-full px-3 py-2 rounded-lg border border-card text-fg text-sm bg-white focus:outline-none focus:border-[var(--primary)]"
+                                        className="w-full px-3 py-2 rounded-lg border border-card text-fg text-sm bg-card  focus:outline-none focus:border-[var(--primary)]"
                                     />
                                 </div>
                             )}
@@ -229,7 +229,7 @@ export default function SplitPdfPage() {
 
                         {/* Preview method — choose which part to download */}
                         {done && (
-                            <div className="mt-6 p-4 sm:p-5 rounded-2xl bg-white border border-card">
+                            <div className="mt-6 p-4 sm:p-5 rounded-2xl bg-card  border border-card">
                                 <p className="text-sm font-medium text-fg mb-4">Preview method</p>
 
                                 <div className="flex flex-col sm:flex-row gap-2 mb-5">

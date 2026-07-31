@@ -51,7 +51,7 @@ export default function DashboardPage() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Recent PDFs */}
-                <div className="lg:col-span-2 bg-white border border-card rounded-2xl p-6">
+                <div className="lg:col-span-2 bg-card border border-card rounded-2xl p-6">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-lg font-semibold text-fg">Recent Documents</h2>
                         <a href="/documents" className="text-sm text-[var(--primary)] font-medium hover:underline">
@@ -84,7 +84,7 @@ export default function DashboardPage() {
                 {/* Right column */}
                 <div className="space-y-6">
                     {/* Storage Usage */}
-                    <div className="bg-white border border-card rounded-2xl p-6">
+                    <div className="bg-card border border-card rounded-2xl p-6">
                         <h2 className="text-lg font-semibold text-fg mb-4">Storage Usage</h2>
                         <div className="w-full h-2 rounded-full bg-[var(--background-secondary)] overflow-hidden mb-2">
                             <div
@@ -98,7 +98,7 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Quick Actions */}
-                    <div className="bg-white border border-card rounded-2xl p-6">
+                    <div className="bg-card border border-card rounded-2xl p-6">
                         <h2 className="text-lg font-semibold text-fg mb-4">Quick Actions</h2>
                         <div className="space-y-2">
                             {quickActions.map((action) => (
@@ -117,7 +117,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Recent Chats */}
-            <div className="mt-6 bg-white border border-card rounded-2xl p-6">
+            <div className="mt-6 bg-card border border-card rounded-2xl p-6">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold text-fg">Recent Chats</h2>
                     <a href="/chats" className="text-sm text-[var(--primary)] font-medium hover:underline">

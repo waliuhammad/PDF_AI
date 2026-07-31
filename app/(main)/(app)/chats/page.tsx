@@ -57,7 +57,7 @@ export default function ChatsPage() {
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search chats..."
-                    className="w-full sm:w-80 pl-10 pr-4 py-2.5 rounded-xl border border-card text-fg placeholder:text-muted text-sm focus:outline-none focus:border-[var(--primary)] transition-colors bg-white"
+                    className="w-full sm:w-80 pl-10 pr-4 py-2.5 rounded-xl border border-card text-fg placeholder:text-muted text-sm focus:outline-none focus:border-[var(--primary)] transition-colors bg-card"
                 />
             </div>
 
@@ -66,7 +66,7 @@ export default function ChatsPage() {
                     <p className="text-muted text-sm">No chats found.</p>
                 </div>
             ) : (
-                <div className="bg-white border border-card rounded-2xl p-2">
+                <div className="bg-card border border-card rounded-2xl p-2">
                     {filteredChats.map((chat) => (
                         <ChatListItem
                             key={chat.id}

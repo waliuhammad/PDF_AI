@@ -25,7 +25,7 @@ export function DocumentCard({
     const [menuOpen, setMenuOpen] = useState(false);
 
     return (
-        <div className="relative bg-white border border-card rounded-2xl p-4 hover:border-[var(--primary)] transition-colors group">
+        <div className="relative bg-card  border border-card rounded-2xl p-4 hover:border-[var(--primary)] transition-colors group">
             <div className="flex items-start justify-between mb-3">
                 <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center">
                     <FileText size={22} className="text-[var(--primary)]" />
@@ -46,7 +46,7 @@ export function DocumentCard({
                             <MoreVertical size={16} />
                         </button>
                         {menuOpen && (
-                            <div className="absolute right-0 top-8 z-10 w-36 bg-white border border-card rounded-xl shadow-lg py-1">
+                            <div className="absolute right-0 top-8 z-10 w-36 bg-card  border border-card rounded-xl shadow-lg py-1">
                                 <button
                                     onClick={() => { onRename?.(); setMenuOpen(false); }}
                                     className="w-full text-left px-3 py-2 text-sm text-fg hover:bg-[var(--background-secondary)]"

@@ -56,7 +56,7 @@ export default function PdfToImagePage() {
                     onDragLeave={() => setIsDragging(false)}
                     onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFile(e.dataTransfer.files); }}
                     onClick={() => inputRef.current?.click()}
-                    className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 sm:p-10 text-center transition-colors ${isDragging ? "border-[var(--primary)] bg-red-50" : "border-card bg-white"
+                    className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 sm:p-10 text-center transition-colors ${isDragging ? "border-[var(--primary)] bg-red-50" : "border-card bg-card"
                         }`}
                 >
                     <input ref={inputRef} type="file" accept="application/pdf" hidden onChange={(e) => handleFile(e.target.files)} />
@@ -66,7 +66,7 @@ export default function PdfToImagePage() {
                 </div>
             ) : (
                 <>
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-card">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-card">
                         <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
                             <FileText size={16} className="text-[var(--primary)]" />
                         </div>
@@ -92,7 +92,7 @@ export default function PdfToImagePage() {
                                         <button
                                             key={f.id}
                                             onClick={() => setFormat(f.id)}
-                                            className={`text-left p-3 sm:p-4 rounded-xl border transition-colors ${format === f.id ? "border-[var(--primary)] bg-red-50" : "border-card bg-white"
+                                            className={`text-left p-3 sm:p-4 rounded-xl border transition-colors ${format === f.id ? "border-[var(--primary)] bg-red-50" : "border-card bg-card"
                                                 }`}
                                         >
                                             <div className="flex items-center justify-between mb-1">
@@ -124,7 +124,7 @@ export default function PdfToImagePage() {
 
                     {result && (
                         <div className="mt-6 text-center">
-                            <div className="rounded-xl border border-card bg-white p-4 sm:p-6 mb-6">
+                            <div className="rounded-xl border border-card bg-card p-4 sm:p-6 mb-6">
                                 <p className="text-sm text-fg">
                                     <span className="font-semibold">{result.imageCount}</span> pages converted to{" "}
                                     <span className="font-semibold uppercase">{result.format}</span>

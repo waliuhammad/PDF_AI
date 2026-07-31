@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Menu, X, FileText } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { ThemeToggle } from "./theme-toggle";
 
 const navLinks = [
     { name: "Tools", href: "#tools" },
@@ -65,7 +66,7 @@ export function Navbar() {
                                 onClick={() => setActiveHash(item.href)}
                                 className={`relative pb-1 text-sm font-medium transition ${
                                     active
-                                        ? "text-indigo-600"
+                                        ? "text-primary"
                                         : "text-muted hover:text-fg"
                                 }`}
                             >
@@ -74,7 +75,7 @@ export function Navbar() {
                                 {active && (
                                     <motion.span
                                         layoutId="navbar-underline"
-                                        className="absolute -bottom-1 left-0 h-[2px] w-full rounded-full bg-indigo-600"
+                                        className="absolute -bottom-1 left-0 h-[2px] w-full rounded-full bg-primary"
                                         transition={{
                                             type: "spring",
                                             stiffness: 500,
@@ -89,18 +90,19 @@ export function Navbar() {
 
                 {/* Desktop Actions */}
                 <div className="hidden items-center gap-3 lg:flex">
+                    <ThemeToggle />
                     <button
                         className={`rounded-xl border px-4 py-2 text-sm font-medium transition ${
                             activeHash === "#login"
-                                ? "border-indigo-600 text-indigo-600"
-                                : "border-border hover:border-indigo-600 hover:text-indigo-600"
+                                ? "border-primary text-primary"
+                                : "border-border hover:border-primary hover:text-primary"
                         }`}
                         onClick={() => setActiveHash("#login")}
                     >
                         Login
                     </button>
 
-                    <button className="rounded-xl bg-indigo-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700">
+                    <button className="rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90">
                         Start Free
                     </button>
                 </div>
@@ -139,7 +141,7 @@ export function Navbar() {
                                         }}
                                         className={`block rounded-xl px-4 py-3 transition ${
                                             active
-                                                ? "bg-indigo-50 text-indigo-600"
+                                                ? "bg-primary/10 text-primary"
                                                 : "text-muted hover:bg-primary/10 hover:text-primary"
                                         }`}
                                     >
@@ -148,11 +150,16 @@ export function Navbar() {
                                 );
                             })}
 
-                            <div className="mt-4 flex flex-col gap-3">
+                            <div className="mt-4 flex items-center justify-between">
+                                <span className="text-sm text-muted">Appearance</span>
+                                <ThemeToggle />
+                            </div>
+
+                            <div className="mt-3 flex flex-col gap-3">
                                 <button
                                     className={`rounded-xl border py-3 font-medium transition ${
                                         activeHash === "#login"
-                                            ? "border-indigo-600 text-indigo-600"
+                                            ? "border-primary text-primary"
                                             : "border-border"
                                     }`}
                                     onClick={() => setActiveHash("#login")}
@@ -160,7 +167,7 @@ export function Navbar() {
                                     Login
                                 </button>
 
-                                <button className="rounded-xl bg-indigo-600 py-3 font-semibold text-white transition hover:bg-indigo-700">
+                                <button className="rounded-xl bg-primary py-3 font-semibold text-primary-foreground transition hover:bg-primary/90">
                                     Start Free
                                 </button>
                             </div>

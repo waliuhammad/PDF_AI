@@ -9,7 +9,7 @@ interface StatCardProps {
 
 export function StatCard({ label, value, icon: Icon, trend }: StatCardProps) {
     return (
-        <div className="bg-white border border-card rounded-2xl p-5">
+        <div className="bg-card  border border-card rounded-2xl p-5">
             <div className="flex items-center justify-between mb-3">
                 <div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center">
                     <Icon size={18} className="text-[var(--primary)]" />

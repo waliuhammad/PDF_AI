@@ -16,7 +16,7 @@ export default function LoginPage() {
 
     return (
         <main className="min-h-screen flex items-center justify-center px-6 bg-[var(--background-secondary)]">
-            <div className="w-full max-w-md p-8 rounded-2xl bg-white border border-card shadow-sm">
+            <div className="w-full max-w-md p-8 rounded-2xl bg-card  border border-card shadow-sm">
                 <Link href="/" className="flex items-center gap-2 text-xl font-bold text-fg mb-8">
                     <FileText className="text-[var(--primary)]" size={22} />
                     PDF<span className="text-[var(--primary)]">AI</span>
@@ -36,7 +36,7 @@ export default function LoginPage() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="you@example.com"
-                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
+                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-card  border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
                             />
                         </div>
                     </div>
@@ -56,7 +56,7 @@ export default function LoginPage() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
-                                className="w-full pl-10 pr-10 py-3 rounded-xl bg-white border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
+                                className="w-full pl-10 pr-10 py-3 rounded-xl bg-card  border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
                             />
                             <button
                                 type="button"

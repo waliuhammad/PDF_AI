@@ -58,7 +58,7 @@ export default function WatermarkPdfPage() {
             {/* Dev-only plan switch — remove once real subscription state is wired up */}
             <div className="mb-6 flex items-center justify-center gap-2 text-xs">
                 <span className="text-muted">Testing as:</span>
-                <div className="inline-flex rounded-full border border-card bg-white p-1">
+                <div className="inline-flex rounded-full border border-card bg-card  p-1">
                     <button
                         onClick={() => setPlanTier("free")}
                         className={`px-3 py-1 rounded-full transition-colors ${planTier === "free" ? "bg-[var(--primary)] text-white" : "text-muted"
@@ -90,7 +90,7 @@ export default function WatermarkPdfPage() {
                     onDragLeave={() => setIsDragging(false)}
                     onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFile(e.dataTransfer.files); }}
                     onClick={() => inputRef.current?.click()}
-                    className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 sm:p-10 text-center transition-colors ${isDragging ? "border-[var(--primary)] bg-red-50" : "border-card bg-white"
+                    className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 sm:p-10 text-center transition-colors ${isDragging ? "border-[var(--primary)] bg-red-50" : "border-card bg-card "
                         }`}
                 >
                     <input ref={inputRef} type="file" accept="application/pdf" hidden onChange={(e) => handleFile(e.target.files)} />
@@ -100,7 +100,7 @@ export default function WatermarkPdfPage() {
                 </div>
             ) : (
                 <>
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-card">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-card  border border-card">
                         <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
                             <FileText size={16} className="text-[var(--primary)]" />
                         </div>
@@ -117,7 +117,7 @@ export default function WatermarkPdfPage() {
                     </div>
 
                     {/* Watermark preview */}
-                    <div className="mt-6 relative rounded-2xl border border-card bg-white p-6 sm:p-10 h-48 flex flex-col items-center justify-center gap-2 overflow-hidden">
+                    <div className="mt-6 relative rounded-2xl border border-cardbg-card  p-6 sm:p-10 h-48 flex flex-col items-center justify-center gap-2 overflow-hidden">
                         {activeWatermarks.length === 0 ? (
                             <span className="text-sm text-muted">No watermark selected</span>
                         ) : (
@@ -134,7 +134,7 @@ export default function WatermarkPdfPage() {
                     </div>
 
                     {/* Options */}
-                    <div className="mt-6 p-4 sm:p-5 rounded-2xl bg-white border border-card space-y-5">
+                    <div className="mt-6 p-4 sm:p-5 rounded-2xl bg-card  border border-card space-y-5">
                         {/* Company watermark row */}
                         <div className="flex items-center justify-between gap-3">
                             <div className="min-w-0">
@@ -150,7 +150,7 @@ export default function WatermarkPdfPage() {
                                         }`}
                                 >
                                     <span
-                                        className={`absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-transform duration-200 ${includeCompanyWatermark ? "translate-x-5" : "translate-x-0"
+                                        className={`absolute left-0.5 top-0.5 w-5 h-5 rounded-full bg-card  shadow-sm transition-transform duration-200 ${includeCompanyWatermark ? "translate-x-5" : "translate-x-0"
                                             }`}
                                     />
                                 </button>
@@ -172,7 +172,7 @@ export default function WatermarkPdfPage() {
                                         value={customText}
                                         onChange={(e) => setCustomText(e.target.value)}
                                         placeholder="e.g. DRAFT, ACME CORP"
-                                        className="w-full px-3 py-2 rounded-lg border border-card text-fg text-sm bg-white focus:outline-none focus:border-[var(--primary)]"
+                                        className="w-full px-3 py-2 rounded-lg border border-card text-fg text-sm bg-card  focus:outline-none focus:border-[var(--primary)]"
                                     />
                                 </div>
                                 <div>
@@ -189,8 +189,8 @@ export default function WatermarkPdfPage() {
                             </div>
                         ) : (
                             <div className="pt-5 border-t border-card">
-                                <div className="rounded-xl bg-bg p-4 flex items-start gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-white border border-card flex items-center justify-center shrink-0">
+                                <div className="rounded-xl bg-card  p-4 flex items-start gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-card  border border-card flex items-center justify-center shrink-0">
                                         <Crown size={14} className="text-[var(--primary)]" />
                                     </div>
                                     <div className="min-w-0">

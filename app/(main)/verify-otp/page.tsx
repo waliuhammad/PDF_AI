@@ -34,7 +34,7 @@ export default function VerifyOtpPage() {
 
     return (
         <main className="min-h-screen flex items-center justify-center px-6 bg-[var(--background-secondary)]">
-            <div className="w-full max-w-md p-8 rounded-2xl bg-white border border-card shadow-sm text-center">
+            <div className="w-full max-w-md p-8 rounded-2xl bg-card  border border-card shadow-sm text-center">
                 <Link href="/" className="flex items-center justify-center gap-2 text-xl font-bold text-fg mb-8">
                     <FileText className="text-[var(--primary)]" size={22} />
                     PDF<span className="text-[var(--primary)]">AI</span>
@@ -57,7 +57,7 @@ export default function VerifyOtpPage() {
                                 value={digit}
                                 onChange={(e) => handleChange(index, e.target.value)}
                                 onKeyDown={(e) => handleKeyDown(index, e)}
-                                className="w-12 h-14 text-center text-xl font-semibold rounded-xl border border-card text-fg bg-white focus:outline-none focus:border-[var(--primary)] transition-colors"
+                                className="w-12 h-14 text-center text-xl font-semibold rounded-xl border border-card text-fg bg-card  focus:outline-none focus:border-[var(--primary)] transition-colors"
                             />
                         ))}
                     </div>

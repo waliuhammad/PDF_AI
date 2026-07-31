@@ -118,12 +118,12 @@ export default function DocumentsPage() {
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Search documents..."
-                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-card text-fg placeholder:text-muted text-sm focus:outline-none focus:border-[var(--primary)] transition-colors bg-white"
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-card text-fg placeholder:text-muted text-sm focus:outline-none focus:border-[var(--primary)] transition-colors bg-card"
                     />
                 </div>
 
                 {/* Filter tabs */}
-                <div className="flex items-center gap-1 p-1 rounded-xl border border-card bg-white">
+                <div className="flex items-center gap-1 p-1 rounded-xl border border-card bg-card">
                     <button
                         onClick={() => setFilter("all")}
                         className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${filter === "all" ? "bg-[var(--primary)] text-white" : "text-muted"
@@ -144,13 +144,13 @@ export default function DocumentsPage() {
                 <div className="relative">
                     <button
                         onClick={() => setSortOpen(!sortOpen)}
-                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-card text-sm text-fg bg-white whitespace-nowrap"
+                        className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-card text-sm text-fg bg-card whitespace-nowrap"
                     >
                         {sortLabels[sort]}
                         <ChevronDown size={14} className={`transition-transform ${sortOpen ? "rotate-180" : ""}`} />
                     </button>
                     {sortOpen && (
-                        <div className="absolute right-0 top-12 z-10 w-40 bg-white border border-card rounded-xl shadow-lg py-1">
+                        <div className="absolute right-0 top-12 z-10 w-40 bg-card border border-card rounded-xl shadow-lg py-1">
                             {(Object.keys(sortLabels) as SortOption[]).map((option) => (
                                 <button
                                     key={option}
@@ -165,7 +165,7 @@ export default function DocumentsPage() {
                 </div>
 
                 {/* View toggle */}
-                <div className="flex items-center gap-1 p-1 rounded-xl border border-card bg-white">
+                <div className="flex items-center gap-1 p-1 rounded-xl border border-card bg-card">
                     <button
                         onClick={() => setView("grid")}
                         className={`p-2 rounded-lg transition-colors ${view === "grid" ? "bg-[var(--primary)] text-white" : "text-muted"}`}
@@ -202,7 +202,7 @@ export default function DocumentsPage() {
                     ))}
                 </div>
             ) : (
-                <div className="bg-white border border-card rounded-2xl p-2">
+                <div className="bg-card border border-card rounded-2xl p-2">
                     {filteredDocs.map((doc) => (
                         <DocumentRow
                             key={doc.id}

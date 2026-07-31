@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useTheme } from "next-themes";
 import { SettingsTabs, SettingsTab } from "@/components/settings/settings-tabs";
 import { Sun, Moon, Monitor } from "lucide-react";
 
@@ -8,7 +9,9 @@ export default function SettingsPage() {
     const [tab, setTab] = useState<SettingsTab>("profile");
     const [name, setName] = useState("John Doe");
     const [email, setEmail] = useState("john@example.com");
-    const [theme, setTheme] = useState<"light" | "dark" | "system">("light");
+    const { theme, setTheme } = useTheme();
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => setMounted(true), []);
     const [language, setLanguage] = useState("en");
     const [notifications, setNotifications] = useState({ email: true, product: true, marketing: false });
 
@@ -22,7 +25,7 @@ export default function SettingsPage() {
             <div className="flex flex-col md:flex-row gap-6">
                 <SettingsTabs active={tab} onChange={setTab} />
 
-                <div className="flex-1 bg-white border border-card rounded-2xl p-6">
+                <div className="flex-1 bg-card border border-card rounded-2xl p-6">
                     {tab === "profile" && (
                         <div className="space-y-4 max-w-md">
                             <h2 className="text-lg font-semibold text-fg mb-4">Profile</h2>
@@ -92,7 +95,7 @@ export default function SettingsPage() {
                                             }`}
                                     >
                                         <span
-                                            className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white transition-transform ${notifications[item.key as keyof typeof notifications] ? "translate-x-5" : "translate-x-0"
+                                            className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-card transition-transform ${notifications[item.key as keyof typeof notifications] ? "translate-x-5" : "translate-x-0"
                                                 }`}
                                         />
                                     </button>

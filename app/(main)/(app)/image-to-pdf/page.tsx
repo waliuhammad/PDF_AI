@@ -76,7 +76,7 @@ export default function ImageToPdfPage() {
                 onDragLeave={() => setIsDragging(false)}
                 onDrop={(e) => { e.preventDefault(); setIsDragging(false); addFiles(e.dataTransfer.files); }}
                 onClick={() => inputRef.current?.click()}
-                className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 sm:p-10 text-center transition-colors ${isDragging ? "border-[var(--primary)] bg-red-50" : "border-card bg-white"
+                className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 sm:p-10 text-center transition-colors ${isDragging ? "border-[var(--primary)] bg-red-50" : "border-card bg-card"
                     }`}
             >
                 <input ref={inputRef} type="file" accept="image/*" multiple hidden onChange={(e) => addFiles(e.target.files)} />
@@ -94,7 +94,7 @@ export default function ImageToPdfPage() {
                             onDragStart={() => handleDragStart(index)}
                             onDragEnter={() => handleDragEnter(index)}
                             onDragEnd={() => (dragItemIndex.current = null)}
-                            className="relative group rounded-xl overflow-hidden border border-card bg-white cursor-grab active:cursor-grabbing"
+                            className="relative group rounded-xl overflow-hidden border border-card bg-card cursor-grab active:cursor-grabbing"
                         >
                             <img src={img.preview} alt={img.name} className="w-full h-24 object-cover" />
                             <div className="absolute top-1 left-1 bg-black/50 rounded p-0.5">

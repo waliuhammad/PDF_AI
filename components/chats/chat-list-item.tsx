@@ -39,7 +39,7 @@ export function ChatListItem({ title, pdfName, lastMessage, date, onDelete, onCl
                         <MoreVertical size={16} />
                     </button>
                     {menuOpen && (
-                        <div className="absolute right-0 top-8 z-10 w-32 bg-white border border-card rounded-xl shadow-lg py-1">
+                        <div className="absolute right-0 top-8 z-10 w-32 bg-card  border border-card rounded-xl shadow-lg py-1">
                             <button
                                 onClick={(e) => { e.stopPropagation(); onDelete?.(); setMenuOpen(false); }}
                                 className="w-full flex items-center gap-2 text-left px-3 py-2 text-sm text-red-600 hover:bg-[var(--background-secondary)]"

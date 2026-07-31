@@ -61,7 +61,7 @@ export default function UnlockPdfPage() {
                     onDragLeave={() => setIsDragging(false)}
                     onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFile(e.dataTransfer.files); }}
                     onClick={() => inputRef.current?.click()}
-                    className={`cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-colors ${isDragging ? "border-[var(--primary)] bg-red-50" : "border-card bg-white"
+                    className={`cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-colors ${isDragging ? "border-[var(--primary)] bg-red-50" : "border-card bg-card "
                         }`}
                 >
                     <input ref={inputRef} type="file" accept="application/pdf" hidden onChange={(e) => handleFile(e.target.files)} />
@@ -71,7 +71,7 @@ export default function UnlockPdfPage() {
                 </div>
             ) : (
                 <>
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-card">
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-card  border border-card">
                         <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
                             <FileText size={16} className="text-[var(--primary)]" />
                         </div>
@@ -84,7 +84,7 @@ export default function UnlockPdfPage() {
                         </button>
                     </div>
 
-                    <div className="mt-6 p-5 rounded-2xl bg-white border border-card">
+                    <div className="mt-6 p-5 rounded-2xl bg-card  border border-card">
                         <label className="text-xs text-muted block mb-1">Current password</label>
                         <div className="relative">
                             <input
@@ -92,7 +92,7 @@ export default function UnlockPdfPage() {
                                 value={password}
                                 onChange={(e) => { setPassword(e.target.value); setError(false); }}
                                 placeholder="Enter the PDF's password"
-                                className={`w-full px-3 py-2 pr-10 rounded-lg border text-fg text-sm bg-white focus:outline-none ${error ? "border-[var(--primary)]" : "border-card focus:border-[var(--primary)]"
+                                className={`w-full px-3 py-2 pr-10 rounded-lg border text-fg text-sm bg-card  focus:outline-none ${error ? "border-[var(--primary)]" : "border-card focus:border-[var(--primary)]"
                                     }`}
                             />
                             <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted">
