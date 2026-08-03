@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { onAuthStateChanged, type User } from "firebase/auth";
 import {
     LayoutDashboard,
     FileText,
@@ -16,6 +17,9 @@ import {
     ChevronLeft,
     ChevronRight,
 } from "lucide-react";
+import { auth } from "@/lib/firebase/client";
+import { logout } from "@/lib/firebase/auth";
+import { getUserProfile, type UserProfile } from "@/lib/firebase/users";
 
 const navItems = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -27,8 +31,39 @@ const navItems = [
 
 export function Sidebar() {
     const pathname = usePathname();
+    const router = useRouter();
     const [open, setOpen] = useState(false); // Mobile drawer state
     const [collapsed, setCollapsed] = useState(false); // Desktop sidebar collapse state
+    const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
+    const [profile, setProfile] = useState<UserProfile | null>(null);
+    const [loggingOut, setLoggingOut] = useState(false);
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            setFirebaseUser(user);
+            if (user) {
+                const fetchedProfile = await getUserProfile(user.uid);
+                setProfile(fetchedProfile);
+            } else {
+                setProfile(null);
+            }
+        });
+        return () => unsubscribe();
+    }, []);
+
+    const handleLogout = async () => {
+        setLoggingOut(true);
+        try {
+            await logout();
+            router.push("/login");
+        } finally {
+            setLoggingOut(false);
+        }
+    };
+
+    const displayName = profile?.fullName || firebaseUser?.displayName || firebaseUser?.email?.split("@")[0] || "Guest";
+    const displayEmail = firebaseUser?.email || "";
+    const initial = displayName.charAt(0).toUpperCase();
 
     const content = (isMobile = false) => (
         <>
@@ -50,8 +85,25 @@ export function Sidebar() {
                 )}
             </div>
 
+            {/* User info */}
+            {firebaseUser && (
+                <div
+                    className={`flex items-center gap-2.5 px-2 py-2 mb-2 rounded-xl bg-[#1f2230]/5 border border-[#1f2230]/10 ${collapsed && !isMobile ? "justify-center px-0" : ""
+                        }`}
+                >
+                    <div className="w-8 h-8 rounded-full bg-[#1f2230] text-white flex items-center justify-center text-sm font-semibold shrink-0">
+                        {initial}
+                    </div>
+                    {(!collapsed || isMobile) && (
+                        <div className="min-w-0">
+                            <p className="text-sm font-medium text-[#1e202d] truncate">{displayName}</p>
+                            <p className="text-xs text-[#1e202d]/60 truncate">{displayEmail}</p>
+                        </div>
+                    )}
+                </div>
+            )}
+
             <nav className="flex-1 space-y-2 overflow-hidden">
-                {/* Main Navigation */}
                 <div className="space-y-1">
                     {navItems.map((item) => {
                         const active = pathname === item.href;
@@ -62,11 +114,10 @@ export function Sidebar() {
                                 href={item.href}
                                 onClick={() => isMobile && setOpen(false)}
                                 title={collapsed && !isMobile ? item.label : undefined}
-                                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-base font-medium transition-all ${
-                                    active
-                                        ? "bg-[#1f2230] text-white shadow-md"
-                                        : "text-[#1e202d] hover:bg-[#1f2230] hover:text-white"
-                                } ${collapsed && !isMobile ? "justify-center px-2" : ""}`}
+                                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-base font-medium transition-all ${active
+                                    ? "bg-[#1f2230] text-white shadow-md"
+                                    : "text-[#1e202d] hover:bg-[#1f2230] hover:text-white"
+                                    } ${collapsed && !isMobile ? "justify-center px-2" : ""}`}
                             >
                                 <item.icon size={18} className="shrink-0" />
                                 {(!collapsed || isMobile) && <span className="truncate">{item.label}</span>}
@@ -94,20 +145,20 @@ export function Sidebar() {
             )}
 
             <button
+                onClick={handleLogout}
+                disabled={loggingOut}
                 title={collapsed && !isMobile ? "Log out" : undefined}
-                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-base font-medium text-[#1e202d] hover:bg-[#1f2230] hover:text-white transition-all ${
-                    collapsed && !isMobile ? "justify-center px-2" : ""
-                }`}
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-base font-medium text-[#1e202d] hover:bg-[#1f2230] hover:text-white transition-all disabled:opacity-60 ${collapsed && !isMobile ? "justify-center px-2" : ""
+                    }`}
             >
                 <LogOut size={18} className="shrink-0" />
-                {(!collapsed || isMobile) && <span>Log out</span>}
+                {(!collapsed || isMobile) && <span>{loggingOut ? "Logging out..." : "Log out"}</span>}
             </button>
         </>
     );
 
     return (
         <>
-            {/* Mobile top bar with hamburger */}
             <div className="md:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-white">
                 <Link href="/" className="text-xl font-bold text-[#1e202d]">
                     PDF<span>AI</span>
@@ -117,16 +168,13 @@ export function Sidebar() {
                 </button>
             </div>
 
-            {/* Desktop sidebar with white background and exact target color for hover state */}
             <aside
-                className={`hidden md:flex h-screen sticky top-0 flex-col border-r border-slate-200 bg-white py-3 shrink-0 transition-all duration-300 shadow-sm overflow-hidden ${
-                    collapsed ? "w-20 px-3" : "w-64 px-3.5"
-                }`}
+                className={`hidden md:flex h-screen sticky top-0 flex-col border-r border-slate-200 bg-white py-3 shrink-0 transition-all duration-300 shadow-sm overflow-hidden ${collapsed ? "w-20 px-3" : "w-64 px-3.5"
+                    }`}
             >
                 {content(false)}
             </aside>
 
-            {/* Mobile drawer */}
             {open && (
                 <div className="md:hidden fixed inset-0 z-50 flex">
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" onClick={() => setOpen(false)} />

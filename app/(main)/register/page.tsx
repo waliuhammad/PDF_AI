@@ -1,30 +1,99 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Mail, Lock, User, Eye, EyeOff, FileText } from "lucide-react";
+import { Mail, Lock, User, Eye, EyeOff, FileText, Phone } from "lucide-react";
+import { registerWithEmail, signInWithGoogle, signInWithFacebook, signInWithApple } from "@/lib/firebase/auth";
+import { COUNTRY_CODES } from "@/lib/countryCodes";
 
 export default function RegisterPage() {
+    const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [dialCode, setDialCode] = useState(COUNTRY_CODES[0].dialCode);
+    const [phoneNumber, setPhoneNumber] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Backend integration comes later
+        setError(null);
+        setLoading(true);
+        try {
+            await registerWithEmail({ fullName: name, email, password, phoneDialCode: dialCode, phoneNumber });
+            router.push("/dashboard");
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSocial = async (provider: "google" | "facebook" | "apple") => {
+        setError(null);
+        setLoading(true);
+        try {
+            if (provider === "google") await signInWithGoogle();
+            if (provider === "facebook") await signInWithFacebook();
+            if (provider === "apple") await signInWithApple();
+            router.push("/dashboard");
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Sign-in failed. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
-        <main className="min-h-screen flex items-center justify-center px-6 bg-[var(--background-secondary)]">
-            <div className="w-full max-w-md p-8 rounded-2xl bg-card  border border-card shadow-sm">
-                <Link href="/" className="flex items-center gap-2 text-xl font-bold text-fg mb-8">
+        <main className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-10 bg-[var(--background-secondary)]">
+            <div className="w-full max-w-md p-6 sm:p-8 rounded-2xl bg-card border border-card shadow-sm">
+                <Link href="/" className="flex items-center gap-2 text-xl font-bold text-fg mb-6 sm:mb-8">
                     <FileText className="text-[var(--primary)]" size={22} />
                     PDF<span className="text-[var(--primary)]">AI</span>
                 </Link>
 
-                <h1 className="text-2xl font-bold text-fg mb-2">Create your account</h1>
-                <p className="text-muted text-sm mb-8">Start using every PDF tool for free</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-fg mb-2">Create your account</h1>
+                <p className="text-muted text-sm mb-6 sm:mb-8">Start using every PDF tool for free</p>
+
+                <div className="grid grid-cols-3 gap-2 mb-6">
+                    <button
+                        type="button"
+                        onClick={() => handleSocial("google")}
+                        disabled={loading}
+                        className="flex items-center justify-center py-2.5 rounded-xl border border-card text-sm font-medium text-fg hover:bg-bg transition-colors disabled:opacity-60"
+                    >
+                        Google
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => handleSocial("facebook")}
+                        disabled={loading}
+                        className="flex items-center justify-center py-2.5 rounded-xl border border-card text-sm font-medium text-fg hover:bg-bg transition-colors disabled:opacity-60"
+                    >
+                        Facebook
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => handleSocial("apple")}
+                        disabled={loading}
+                        className="flex items-center justify-center py-2.5 rounded-xl border border-card text-sm font-medium text-fg hover:bg-bg transition-colors disabled:opacity-60"
+                    >
+                        Apple
+                    </button>
+                </div>
+
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="flex-1 h-px bg-card" />
+                    <span className="text-xs text-muted">or sign up with email</span>
+                    <div className="flex-1 h-px bg-card" />
+                </div>
+
+                {error && (
+                    <div className="mb-4 px-3 py-2 rounded-lg bg-red-50 text-[var(--primary)] text-xs">{error}</div>
+                )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
@@ -37,7 +106,7 @@ export default function RegisterPage() {
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder="Your name"
-                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-card  border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
+                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-card border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
                             />
                         </div>
                     </div>
@@ -52,8 +121,36 @@ export default function RegisterPage() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="you@example.com"
-                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-card  border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
+                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-card border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
                             />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="text-sm text-fg mb-1 block">Phone number</label>
+                        <div className="flex gap-2">
+                            <select
+                                value={dialCode}
+                                onChange={(e) => setDialCode(e.target.value)}
+                                className="w-24 sm:w-28 shrink-0 py-3 px-2 rounded-xl bg-card border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
+                            >
+                                {COUNTRY_CODES.map((c) => (
+                                    <option key={`${c.code}-${c.dialCode}`} value={c.dialCode}>
+                                        {c.dialCode} {c.code}
+                                    </option>
+                                ))}
+                            </select>
+                            <div className="relative flex-1">
+                                <Phone size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+                                <input
+                                    type="tel"
+                                    required
+                                    value={phoneNumber}
+                                    onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ""))}
+                                    placeholder="300 1234567"
+                                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-card border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
+                                />
+                            </div>
                         </div>
                     </div>
 
@@ -64,10 +161,11 @@ export default function RegisterPage() {
                             <input
                                 type={showPassword ? "text" : "password"}
                                 required
+                                minLength={6}
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Create a password"
-                                className="w-full pl-10 pr-10 py-3 rounded-xl bg-card  border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
+                                className="w-full pl-10 pr-10 py-3 rounded-xl bg-card border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
                             />
                             <button
                                 type="button"
@@ -81,9 +179,10 @@ export default function RegisterPage() {
 
                     <button
                         type="submit"
-                        className="w-full py-3 rounded-xl bg-[var(--primary)] text-white font-medium hover:bg-[var(--primary-hover)] transition-colors"
+                        disabled={loading}
+                        className="w-full py-3 rounded-xl bg-[var(--primary)] text-white font-medium hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-60"
                     >
-                        Create Account
+                        {loading ? "Creating account..." : "Create Account"}
                     </button>
                 </form>
 

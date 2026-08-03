@@ -1,21 +1,22 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { onAuthStateChanged, type User } from "firebase/auth";
 import { motion } from "framer-motion";
 import {
     FileText,
     MessageSquare,
     HardDrive,
-<<<<<<< HEAD
     Clock,
     Upload,
-    Plus,
-=======
     Wrench,
     Cpu,
->>>>>>> 0635d89 ( commit message here)
     MoreVertical,
 } from "lucide-react";
 import { StatCard } from "@/components/dashboard/stat-card";
+import { auth } from "@/lib/firebase/client";
+import { getUserProfile, type UserProfile } from "@/lib/firebase/users";
 
 const recentPdfs = [
     { name: "Research Paper - Neural Networks.pdf", size: "2.4 MB", date: "2 hours ago" },
@@ -29,42 +30,67 @@ const recentChats = [
 ];
 
 const quickActions = [
-<<<<<<< HEAD
     { label: "Upload PDF", icon: Upload, href: "/documents" },
-    { label: "New Chat", icon: MessageSquare, href: "/chats" },
-    { label: "New Folder", icon: Plus, href: "/documents" },
-=======
     { label: "Tools", icon: Wrench, href: "/tools" },
     { label: "New Chat", icon: MessageSquare, href: "/chats" },
     { label: "AI Tools", icon: Cpu, href: "/ai-tools" },
->>>>>>> 0635d89 ( commit message here)
 ];
 
 export default function DashboardPage() {
-    const storageUsed = 3.2; // GB
+    const router = useRouter();
+    const [authChecked, setAuthChecked] = useState(false);
+    const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
+    const [profile, setProfile] = useState<UserProfile | null>(null);
+
+    const storageUsed = 3.2; // GB — mock until real usage tracking is wired up
     const storageTotal = 10; // GB
     const storagePercent = (storageUsed / storageTotal) * 100;
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                router.push("/login");
+                return;
+            }
+            setFirebaseUser(user);
+            const fetchedProfile = await getUserProfile(user.uid);
+            setProfile(fetchedProfile);
+            setAuthChecked(true);
+        });
+        return () => unsubscribe();
+    }, [router]);
+
+    if (!authChecked) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <p className="text-sm text-muted">Loading your dashboard...</p>
+            </div>
+        );
+    }
+
+    const displayName = profile?.fullName || firebaseUser?.displayName || firebaseUser?.email?.split("@")[0] || "there";
+    const planLabel = profile?.plan === "paid" ? "Paid Plan" : "Free Plan";
 
     return (
         <div>
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
-                <h1 className="text-2xl font-bold text-fg">Welcome back 👋</h1>
-                <p className="text-muted text-sm mt-1">Here's what's happening with your documents.</p>
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div>
+                        <h1 className="text-2xl font-bold text-fg">Welcome back, {displayName} 👋</h1>
+                        <p className="text-muted text-sm mt-1">Here's what's happening with your documents.</p>
+                    </div>
+                    <span className="text-xs font-medium px-3 py-1.5 rounded-full bg-red-50 text-[var(--primary)] shrink-0">
+                        {planLabel}
+                    </span>
+                </div>
             </motion.div>
 
             {/* Stats */}
-<<<<<<< HEAD
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <StatCard label="Total Documents" value="24" icon={FileText} trend="+3 this week" />
                 <StatCard label="Total Chats" value="58" icon={MessageSquare} trend="+12 this week" />
                 <StatCard label="Storage Used" value="3.2 GB" icon={HardDrive} />
                 <StatCard label="Hours Saved" value="41h" icon={Clock} trend="+6h this week" />
-=======
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                <StatCard label="Total Documents" value="24" icon={FileText} trend="+3 this week" />
-                <StatCard label="Total Chats" value="58" icon={MessageSquare} trend="+12 this week" />
-                <StatCard label="Storage Used" value="3.2 GB" icon={HardDrive} />
->>>>>>> 0635d89 ( commit message here)
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -119,16 +145,20 @@ export default function DashboardPage() {
                     <div className="bg-card border border-card rounded-2xl p-6">
                         <h2 className="text-lg font-semibold text-fg mb-4">Quick Actions</h2>
                         <div className="space-y-2">
-                            {quickActions.map((action) => (
-                                <a
-                                    key={action.label}
-                                    href={action.href}
-                                    className="flex items-center gap-3 p-3 rounded-xl border border-card hover:border-[var(--primary)] transition-colors"
-                                >
-                                    <action.icon size={16} className="text-[var(--primary)]" />
-                                    <span className="text-sm font-medium text-fg">{action.label}</span>
-                                </a>
-                            ))}
+                            {quickActions.map((action) => {
+                                const Icon = action.icon;
+
+                                return (
+                                    <a
+                                        key={action.label}
+                                        href={action.href}
+                                        className="flex items-center gap-3 p-3 rounded-xl border border-card hover:border-[var(--primary)] transition-colors"
+                                    >
+                                        <Icon size={16} className="text-[var(--primary)]" />
+                                        <span className="text-sm font-medium text-fg">{action.label}</span>
+                                    </a>
+                                );
+                            })}
                         </div>
                     </div>
                 </div>
@@ -162,10 +192,6 @@ export default function DashboardPage() {
                     ))}
                 </div>
             </div>
-<<<<<<< HEAD
         </div >
-=======
-        </div>
->>>>>>> 0635d89 ( commit message here)
     );
 }

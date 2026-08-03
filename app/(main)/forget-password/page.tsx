@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Mail, ArrowLeft } from "lucide-react";
+import { sendResetEmail } from "@/lib/firebase/auth";
 
 export default function ForgotPasswordPage() {
-    const router = useRouter();
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -19,32 +18,29 @@ export default function ForgotPasswordPage() {
         setLoading(true);
 
         try {
-            // TODO: replace with actual API call
-            // await fetch("/api/auth/forgot-password", { method: "POST", body: JSON.stringify({ email }) });
-            await new Promise((r) => setTimeout(r, 1000));
+            await sendResetEmail(email);
             setSent(true);
-            setTimeout(() => router.push(`/verify-otp?email=${encodeURIComponent(email)}&purpose=reset`), 1200);
         } catch (err) {
-            setError("Something went wrong. Please try again.");
+            setError("Something went wrong. Please check the email and try again.");
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center px-6 bg-[var(--background-secondary)]">
+        <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 bg-[var(--background-secondary)]">
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-md bg-card  border border-card rounded-2xl p-8"
+                className="w-full max-w-md bg-card border border-card rounded-2xl p-6 sm:p-8"
             >
                 <Link href="/login" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg mb-6 transition-colors">
                     <ArrowLeft size={16} /> Back to login
                 </Link>
 
                 <div className="text-center mb-8">
-                    <h1 className="text-2xl font-bold text-fg">Forgot password?</h1>
-                    <p className="text-muted text-sm mt-1">Enter your email and we&apos;ll send you a verification code</p>
+                    <h1 className="text-xl sm:text-2xl font-bold text-fg">Forgot password?</h1>
+                    <p className="text-muted text-sm mt-1">Enter your email and we&apos;ll send you a reset link</p>
                 </div>
 
                 {error && (
@@ -53,8 +49,10 @@ export default function ForgotPasswordPage() {
 
                 {sent ? (
                     <div className="text-center py-4">
-                        <p className="text-fg font-medium">Code sent!</p>
-                        <p className="text-muted text-sm mt-1">Redirecting you to verification...</p>
+                        <p className="text-fg font-medium">Check your inbox!</p>
+                        <p className="text-muted text-sm mt-1">
+                            We've sent a password reset link to <span className="text-fg">{email}</span>. Click it to set a new password.
+                        </p>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -78,7 +76,7 @@ export default function ForgotPasswordPage() {
                             disabled={loading}
                             className="w-full py-3 rounded-full bg-[var(--primary)] text-white font-medium hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-60"
                         >
-                            {loading ? "Sending..." : "Send Code"}
+                            {loading ? "Sending..." : "Send Reset Link"}
                         </button>
                     </form>
                 )}
