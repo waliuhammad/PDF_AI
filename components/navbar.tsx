@@ -7,10 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ThemeToggle } from "./theme-toggle";
 
 const navLinks = [
-<<<<<<< HEAD
-=======
   { name: "Home", href: "#" },
->>>>>>> 0635d89 ( commit message here)
   { name: "Tools", href: "#tools" },
   { name: "How it Works", href: "#how-it-works" },
   { name: "Pricing", href: "#pricing" },
@@ -20,20 +17,6 @@ const navLinks = [
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
-<<<<<<< HEAD
-  const [activeHash, setActiveHash] = useState("#tools");
-
-  useEffect(() => {
-    const updateHash = () => {
-      setActiveHash(window.location.hash || "#tools");
-    };
-
-    updateHash();
-
-    window.addEventListener("hashchange", updateHash);
-
-    return () => window.removeEventListener("hashchange", updateHash);
-=======
   const [activeHash, setActiveHash] = useState("");
 
   useEffect(() => {
@@ -69,13 +52,11 @@ export function Navbar() {
       window.removeEventListener("hashchange", handleHashChange);
       observer.disconnect();
     };
->>>>>>> 0635d89 ( commit message here)
   }, []);
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
-
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
@@ -83,13 +64,8 @@ export function Navbar() {
           </div>
 
           <div>
-            <h2 className="text-lg font-bold text-fg">
-              PDF AI
-            </h2>
-
-            <p className="text-xs text-muted">
-              Smart PDF Workspace
-            </p>
+            <h2 className="text-lg font-bold text-fg">PDF AI</h2>
+            <p className="text-xs text-muted">Smart PDF Workspace</p>
           </div>
         </Link>
 
@@ -104,9 +80,7 @@ export function Navbar() {
                 href={item.href}
                 onClick={() => setActiveHash(item.href)}
                 className={`relative pb-1 text-sm font-medium transition ${
-                  active
-                    ? "text-primary"
-                    : "text-muted hover:text-fg"
+                  active ? "text-primary" : "text-muted hover:text-fg"
                 }`}
               >
                 {item.name}
@@ -129,7 +103,6 @@ export function Navbar() {
 
         {/* Desktop Actions */}
         <div className="hidden items-center gap-3 lg:flex">
-
           <ThemeToggle />
 
           <Link
@@ -145,7 +118,6 @@ export function Navbar() {
           >
             Start Free
           </Link>
-
         </div>
 
         {/* Mobile Menu Button */}
@@ -155,7 +127,6 @@ export function Navbar() {
         >
           {open ? <X size={24} /> : <Menu size={24} />}
         </button>
-
       </div>
 
       {/* Mobile Menu */}
@@ -169,7 +140,6 @@ export function Navbar() {
             className="border-t border-border bg-background lg:hidden"
           >
             <div className="space-y-2 px-6 py-6">
-
               {navLinks.map((item) => {
                 const active = activeHash === item.href;
 
@@ -193,15 +163,11 @@ export function Navbar() {
               })}
 
               <div className="mt-4 flex items-center justify-between">
-                <span className="text-sm text-muted">
-                  Appearance
-                </span>
-
+                <span className="text-sm text-muted">Appearance</span>
                 <ThemeToggle />
               </div>
 
               <div className="mt-3 flex flex-col gap-3">
-
                 <Link
                   href="/login"
                   onClick={() => setOpen(false)}
@@ -217,9 +183,7 @@ export function Navbar() {
                 >
                   Start Free
                 </Link>
-
               </div>
-
             </div>
           </motion.div>
         )}

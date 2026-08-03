@@ -26,16 +26,16 @@ export async function POST(req: NextRequest) {
       const start = Math.max(0, fromPage - 1);
       const end = Math.min(totalPages - 1, toPage - 1);
 
-      if (downloadChoice === "split") {
-        for (let i = start; i <= end; i++) {
-          targetIndices.push(i);
-        }
-      } else {
-        // Remaining pages
+      if (downloadChoice === "remaining") {
         for (let i = 0; i < totalPages; i++) {
           if (i < start || i > end) {
             targetIndices.push(i);
           }
+        }
+      } else {
+        // Default to split / extracted segment
+        for (let i = start; i <= end; i++) {
+          targetIndices.push(i);
         }
       }
     } else if (splitMode === "every") {
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
     if (targetIndices.length === 0) {
       return NextResponse.json(
-        { error: "No remaining pages left to extract. Select a smaller range." },
+        { error: "No pages left to extract. Select a smaller range." },
         { status: 400 }
       );
     }
@@ -58,11 +58,13 @@ export async function POST(req: NextRequest) {
 
     const pdfBytes = await newDoc.save();
 
+    const filename = downloadChoice === "remaining" ? "remaining-pages.pdf" : "split-document.pdf";
+
     return new NextResponse(Buffer.from(pdfBytes), {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": 'attachment; filename="split-document.pdf"',
+        "Content-Disposition": `attachment; filename="${filename}"`,
       },
     });
   } catch (error: any) {
