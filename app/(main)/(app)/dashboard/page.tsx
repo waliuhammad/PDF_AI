@@ -5,9 +5,14 @@ import {
     FileText,
     MessageSquare,
     HardDrive,
+<<<<<<< HEAD
     Clock,
     Upload,
     Plus,
+=======
+    Wrench,
+    Cpu,
+>>>>>>> 0635d89 ( commit message here)
     MoreVertical,
 } from "lucide-react";
 import { StatCard } from "@/components/dashboard/stat-card";
@@ -24,9 +29,15 @@ const recentChats = [
 ];
 
 const quickActions = [
+<<<<<<< HEAD
     { label: "Upload PDF", icon: Upload, href: "/documents" },
     { label: "New Chat", icon: MessageSquare, href: "/chats" },
     { label: "New Folder", icon: Plus, href: "/documents" },
+=======
+    { label: "Tools", icon: Wrench, href: "/tools" },
+    { label: "New Chat", icon: MessageSquare, href: "/chats" },
+    { label: "AI Tools", icon: Cpu, href: "/ai-tools" },
+>>>>>>> 0635d89 ( commit message here)
 ];
 
 export default function DashboardPage() {
@@ -42,11 +53,18 @@ export default function DashboardPage() {
             </motion.div>
 
             {/* Stats */}
+<<<<<<< HEAD
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 <StatCard label="Total Documents" value="24" icon={FileText} trend="+3 this week" />
                 <StatCard label="Total Chats" value="58" icon={MessageSquare} trend="+12 this week" />
                 <StatCard label="Storage Used" value="3.2 GB" icon={HardDrive} />
                 <StatCard label="Hours Saved" value="41h" icon={Clock} trend="+6h this week" />
+=======
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+                <StatCard label="Total Documents" value="24" icon={FileText} trend="+3 this week" />
+                <StatCard label="Total Chats" value="58" icon={MessageSquare} trend="+12 this week" />
+                <StatCard label="Storage Used" value="3.2 GB" icon={HardDrive} />
+>>>>>>> 0635d89 ( commit message here)
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -144,6 +162,10 @@ export default function DashboardPage() {
                     ))}
                 </div>
             </div>
+<<<<<<< HEAD
         </div >
+=======
+        </div>
+>>>>>>> 0635d89 ( commit message here)
     );
 }

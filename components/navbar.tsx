@@ -7,6 +7,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ThemeToggle } from "./theme-toggle";
 
 const navLinks = [
+<<<<<<< HEAD
+=======
+  { name: "Home", href: "#" },
+>>>>>>> 0635d89 ( commit message here)
   { name: "Tools", href: "#tools" },
   { name: "How it Works", href: "#how-it-works" },
   { name: "Pricing", href: "#pricing" },
@@ -16,6 +20,7 @@ const navLinks = [
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
+<<<<<<< HEAD
   const [activeHash, setActiveHash] = useState("#tools");
 
   useEffect(() => {
@@ -28,6 +33,43 @@ export function Navbar() {
     window.addEventListener("hashchange", updateHash);
 
     return () => window.removeEventListener("hashchange", updateHash);
+=======
+  const [activeHash, setActiveHash] = useState("");
+
+  useEffect(() => {
+    setActiveHash(window.location.hash || "#");
+
+    const handleHashChange = () => {
+      setActiveHash(window.location.hash || "#");
+    };
+
+    window.addEventListener("hashchange", handleHashChange);
+
+    const sections = navLinks
+      .filter((link) => link.href !== "#")
+      .map((link) => document.querySelector(link.href))
+      .filter(Boolean);
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveHash(`#${entry.target.id}`);
+          }
+        });
+      },
+      { threshold: 0.4 }
+    );
+
+    sections.forEach((section) => {
+      if (section) observer.observe(section);
+    });
+
+    return () => {
+      window.removeEventListener("hashchange", handleHashChange);
+      observer.disconnect();
+    };
+>>>>>>> 0635d89 ( commit message here)
   }, []);
 
   return (
