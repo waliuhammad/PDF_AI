@@ -1,36 +1,163 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PDFAI
 
-## Getting Started
+A PDF toolkit with AI features: convert, edit, organise and secure PDFs, plus
+chat-with-your-document and AI summaries.
 
-First, run the development server:
+Built with Next.js 16 (App Router), React 19, Tailwind v4, and Firebase.
+
+---
+
+## Quick start
 
 ```bash
+npm install
+cp .env.example .env.local   # then fill in the values — see below
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+> **Heads up:** several features need external services configured before they
+> do anything. The app runs without them and degrades with a clear message
+> rather than crashing — see [What needs configuring](#what-needs-configuring).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Scripts
 
-## Learn More
+| Command | What it does |
+|---|---|
+| `npm run dev` | Dev server |
+| `npm run build` | Production build (also typechecks) |
+| `npm start` | Serve a production build |
+| `npm run typecheck` | TypeScript only, no build |
+| `npm run lint` | ESLint |
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## What needs configuring
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Firebase (required)
 
-## Deploy on Vercel
+Powers sign-in, the document library, and chats. Fill the `NEXT_PUBLIC_FIREBASE_*`
+values in `.env.local` from your Firebase project settings.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**The security rules must also be published**, or every read and write is
+rejected and you'll see permission errors throughout the app:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Firestore Database → Rules** → paste [`firestore.rules`](firestore.rules) → Publish
+- **Storage → Rules** → paste [`storage.rules`](storage.rules) → Publish
+
+The rules are version-controlled here so they're reviewable alongside the code
+that depends on them. Notably, the `plan` field is **not** client-writable —
+otherwise anyone could grant themselves a paid subscription from the browser
+console.
+
+### Anthropic (optional — enables the AI features)
+
+```
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+Powers chat-with-PDF and AI summaries. **Server-side only** — it is deliberately
+not prefixed with `NEXT_PUBLIC_`, which would ship your key to every visitor.
+Without it, the AI routes return HTTP 501 and the rest of the app works
+normally.
+
+### ConvertAPI (optional — enables three tools)
+
+```
+CONVERTAPI_SECRET=...
+```
+
+Required by `pdf-to-word`, `word-to-pdf` and `rotate-pdf`. Without it those
+three return an error; every other tool is unaffected.
+
+---
+
+## How it's organised
+
+```
+app/
+  (main)/
+    login, register, …          auth screens
+    about, contact, blog, …     public content pages
+    (app)/                      signed-in shell (sidebar)
+      merge-pdf, split-pdf, …   the PDF tools — usable without an account
+      tools/                    the tool hub
+      (protected)/              requires sign-in
+        dashboard, documents, chats, settings
+  api/
+    merge-pdf, split-pdf, …     server-side PDF processing
+    ai/{chat,summarize,upload}  Claude-backed AI routes
+lib/
+  firebase/                     auth, documents, chats — the data layer
+  anthropic.ts                  server-only AI client
+  ai.ts                         client-side AI calls
+```
+
+**Route groups in parentheses don't appear in the URL.** `(protected)` exists
+purely to scope the auth guard: the PDF tools sit outside it so anonymous
+visitors arriving from the marketing pages can still use them.
+
+### Where data lives
+
+```
+users/{uid}                              profile
+users/{uid}/documents/{docId}            document metadata
+users/{uid}/chats/{chatId}               conversation
+users/{uid}/chats/{chatId}/messages/{id} messages
+
+Storage:  users/{uid}/{docId}/{filename}
+```
+
+Everything nests under `users/{uid}`, so ownership is structural — a rule can't
+accidentally expose another user's data.
+
+---
+
+## Contributing
+
+Never commit directly to `main`.
+
+```bash
+git checkout main
+git pull origin main          # always start from the latest main
+git checkout -b feat/my-thing
+
+# … work, then:
+git add .
+git commit -m "Clear description"
+git push -u origin feat/my-thing
+```
+
+Then open a pull request.
+
+**Never use `git push --force` on a shared branch.** If your push is rejected,
+someone else pushed first — the fix is `git pull --rebase origin main`, then
+push again. Force-pushing has already destroyed work on this repo once.
+
+Before merging, check it builds:
+
+```bash
+npm run typecheck && npm run build
+```
+
+CI runs both on every pull request, and rejects committed conflict markers.
+
+---
+
+## Known gaps
+
+Things that are deliberately unfinished, so nobody rediscovers them the hard way:
+
+- **No authentication on the API routes.** Every `/api/*` route is open,
+  including the AI ones — which cost money per call. Needs verified Firebase ID
+  tokens before this goes anywhere public.
+- **No billing.** The Pricing page and the `plan` field exist, but nothing moves
+  a user between plans and no limits are enforced.
+- **`/ocr`** is listed as a tool but has no page — it renders as a
+  non-clickable "Soon" card rather than a broken link.
+- **`verify-otp` and the contact form** are complete UIs that say plainly they
+  aren't connected yet.
+- **Privacy, Terms and Security** are structural skeletons behind a visible
+  "not legal advice" notice. They need real copy before launch.
+- **No tests.**
