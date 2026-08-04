@@ -1,0 +1,41 @@
+rules_version = '2';
+
+// Everything a user owns nests under users/{uid}, so ownership is structural
+// rather than something each rule has to re-derive.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+
+      // A new account may only ever start on the free plan.
+      allow create: if isOwner(uid)
+                    && request.resource.data.plan == 'free';
+
+      // plan is billing state. It must never be client-writable, or anyone
+      // could grant themselves a paid subscription from the browser console.
+      allow update: if isOwner(uid)
+                    && request.resource.data.plan == resource.data.plan;
+
+      allow delete: if false;
+
+      match /documents/{docId} {
+        allow read, write: if isOwner(uid);
+      }
+
+      match /chats/{chatId} {
+        allow read, write: if isOwner(uid);
+
+        match /messages/{messageId} {
+          allow read, write: if isOwner(uid);
+        }
+      }
+    }
+
+    // Anything not matched above is denied by default.
+  }
+}
