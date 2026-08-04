@@ -346,13 +346,13 @@ export default function EditPdfPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto w-full text-slate-200">
+    <div className="max-w-6xl mx-auto w-full text-fg">
       <div className="text-center mb-6">
         <div className="w-12 h-12 mx-auto rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-3 shadow-lg shadow-indigo-500/5">
           <Edit3 className="text-indigo-400" size={24} />
         </div>
-        <h1 className="text-xl lg:text-2xl font-bold text-white tracking-tight">Pro Interactive PDF Editor</h1>
-        <p className="text-slate-400 text-sm mt-1">Click anywhere on page to place text, or drag existing overlays.</p>
+        <h1 className="text-xl lg:text-2xl font-bold text-fg tracking-tight">Pro Interactive PDF Editor</h1>
+        <p className="text-muted text-sm mt-1">Click anywhere on page to place text, or drag existing overlays.</p>
       </div>
 
       {!fileDetails ? (
@@ -364,38 +364,38 @@ export default function EditPdfPage() {
           className={`cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-all ${
             isDraggingFile 
               ? "border-indigo-500 bg-indigo-500/10" 
-              : "border-slate-800 bg-[#121622] hover:border-slate-700 shadow-xl"
+              : "border-card bg-card hover:border-[var(--primary)] shadow-xl"
           }`}
         >
           <input ref={inputRef} type="file" accept="application/pdf" hidden onChange={(e) => handleFile(e.target.files)} />
           <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center mx-auto mb-3 border border-indigo-500/20">
             <Upload className="text-indigo-400" size={22} />
           </div>
-          <p className="text-white font-medium text-sm">Click to upload or drag & drop</p>
-          <p className="text-slate-500 text-xs mt-1">PDF documents up to 50MB</p>
+          <p className="text-fg font-medium text-sm">Click to upload or drag & drop</p>
+          <p className="text-muted text-xs mt-1">PDF documents up to 50MB</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1 space-y-4">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#121622] border border-slate-800 shadow-lg">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-card shadow-lg">
               <div className="w-9 h-9 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
                 <FileText size={16} className="text-indigo-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white text-sm truncate font-medium">{fileDetails.name}</p>
-                <p className="text-slate-400 text-xs">{fileDetails.size} • {pageCount} pages</p>
+                <p className="text-fg text-sm truncate font-medium">{fileDetails.name}</p>
+                <p className="text-muted text-xs">{fileDetails.size} • {pageCount} pages</p>
               </div>
-              <button onClick={() => { setFileDetails(null); setRawFile(null); setAnnotations([]); setPdfDocProxy(null); }} className="text-slate-400 hover:text-white transition-colors">
+              <button onClick={() => { setFileDetails(null); setRawFile(null); setAnnotations([]); setPdfDocProxy(null); }} className="text-muted hover:text-fg transition-colors">
                 <X size={16} />
               </button>
             </div>
 
-            <div className="p-1.5 rounded-xl bg-[#121622] border border-slate-800 flex gap-1 shadow-lg">
+            <div className="p-1.5 rounded-xl bg-card border border-card flex gap-1 shadow-lg">
               <button
                 type="button"
                 onClick={() => setActiveTool("replace")}
                 className={`flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
-                  activeTool === "replace" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                  activeTool === "replace" ? "bg-indigo-600 text-fg shadow-md shadow-indigo-600/20" : "text-muted hover:text-fg hover:bg-[var(--background-secondary)]"
                 }`}
               >
                 <Eraser size={13} /> Edit/Replace
@@ -404,7 +404,7 @@ export default function EditPdfPage() {
                 type="button"
                 onClick={() => setActiveTool("text")}
                 className={`flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
-                  activeTool === "text" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                  activeTool === "text" ? "bg-indigo-600 text-fg shadow-md shadow-indigo-600/20" : "text-muted hover:text-fg hover:bg-[var(--background-secondary)]"
                 }`}
               >
                 <Type size={13} /> Add Text
@@ -413,7 +413,7 @@ export default function EditPdfPage() {
                 type="button"
                 onClick={() => setActiveTool("draw")}
                 className={`flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
-                  activeTool === "draw" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                  activeTool === "draw" ? "bg-indigo-600 text-fg shadow-md shadow-indigo-600/20" : "text-muted hover:text-fg hover:bg-[var(--background-secondary)]"
                 }`}
               >
                 <Pencil size={13} /> Draw
@@ -421,9 +421,9 @@ export default function EditPdfPage() {
             </div>
 
             {(activeTool === "replace" || activeTool === "text") && (
-              <div className="p-4 rounded-2xl bg-[#121622] border border-slate-800 space-y-3 shadow-lg">
+              <div className="p-4 rounded-2xl bg-card border border-card space-y-3 shadow-lg">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-white">Text Properties</p>
+                  <p className="text-xs font-semibold text-fg">Text Properties</p>
                   {selectedTextAnn && (
                     <span className="text-[10px] text-indigo-400 font-semibold flex items-center gap-1 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">
                       <Move size={10} /> Active Selected
@@ -432,7 +432,7 @@ export default function EditPdfPage() {
                 </div>
 
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">Text Content</label>
+                  <label className="text-xs text-muted block mb-1">Text Content</label>
                   <input
                     type="text"
                     value={
@@ -452,14 +452,14 @@ export default function EditPdfPage() {
                       }
                     }}
                     placeholder="Write text here..."
-                    className="w-full p-2.5 rounded-xl border border-slate-800 bg-[#0b0f19] text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                    className="w-full p-2.5 rounded-xl border border-card bg-background text-fg text-sm focus:outline-none focus:border-indigo-500 transition-colors"
                   />
                 </div>
 
                 {activeTool === "replace" && (
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-xs text-slate-400 block mb-1">Whiteout Width</label>
+                      <label className="text-xs text-muted block mb-1">Whiteout Width</label>
                       <input
                         type="number"
                         value={
@@ -472,11 +472,11 @@ export default function EditPdfPage() {
                           setReplaceWidth(val);
                           updateSelectedAnnotation("width", val);
                         }}
-                        className="w-full p-2 rounded-xl border border-slate-800 bg-[#0b0f19] text-white text-xs focus:outline-none focus:border-indigo-500"
+                        className="w-full p-2 rounded-xl border border-card bg-background text-fg text-xs focus:outline-none focus:border-indigo-500"
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-slate-400 block mb-1">Whiteout Height</label>
+                      <label className="text-xs text-muted block mb-1">Whiteout Height</label>
                       <input
                         type="number"
                         value={
@@ -489,7 +489,7 @@ export default function EditPdfPage() {
                           setReplaceHeight(val);
                           updateSelectedAnnotation("height", val);
                         }}
-                        className="w-full p-2 rounded-xl border border-slate-800 bg-[#0b0f19] text-white text-xs focus:outline-none focus:border-indigo-500"
+                        className="w-full p-2 rounded-xl border border-card bg-background text-fg text-xs focus:outline-none focus:border-indigo-500"
                       />
                     </div>
                   </div>
@@ -506,7 +506,7 @@ export default function EditPdfPage() {
                     className={`p-2 rounded-lg border text-xs font-semibold flex items-center justify-center flex-1 transition-all ${
                       (selectedTextAnn ? selectedTextAnn.isBold : isBold)
                         ? "border-indigo-500 bg-indigo-500/20 text-indigo-300"
-                        : "border-slate-800 bg-[#0b0f19] text-slate-400 hover:border-slate-700"
+                        : "border-card bg-background text-muted hover:border-[var(--primary)]"
                     }`}
                   >
                     <Bold size={14} />
@@ -521,7 +521,7 @@ export default function EditPdfPage() {
                     className={`p-2 rounded-lg border text-xs font-semibold flex items-center justify-center flex-1 transition-all ${
                       (selectedTextAnn ? selectedTextAnn.isItalic : isItalic)
                         ? "border-indigo-500 bg-indigo-500/20 text-indigo-300"
-                        : "border-slate-800 bg-[#0b0f19] text-slate-400 hover:border-slate-700"
+                        : "border-card bg-background text-muted hover:border-[var(--primary)]"
                     }`}
                   >
                     <Italic size={14} />
@@ -533,12 +533,12 @@ export default function EditPdfPage() {
                       setTextColor(e.target.value);
                       updateSelectedAnnotation("color", e.target.value);
                     }}
-                    className="h-8 w-12 rounded-lg border border-slate-800 cursor-pointer bg-[#0b0f19] p-0.5"
+                    className="h-8 w-12 rounded-lg border border-card cursor-pointer bg-background p-0.5"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">
+                  <label className="text-xs text-muted block mb-1">
                     Font Size: {selectedTextAnn ? selectedTextAnn.fontSize : fontSize}px
                   </label>
                   <input
@@ -551,42 +551,42 @@ export default function EditPdfPage() {
                       setFontSize(val);
                       updateSelectedAnnotation("fontSize", val);
                     }}
-                    className="w-full accent-indigo-500 cursor-pointer bg-slate-800 rounded-lg h-2"
+                    className="w-full accent-indigo-500 cursor-pointer bg-[var(--background-secondary)] rounded-lg h-2"
                   />
                 </div>
               </div>
             )}
 
             {activeTool === "draw" && (
-              <div className="p-4 rounded-2xl bg-[#121622] border border-slate-800 space-y-3 shadow-lg">
-                <p className="text-xs font-semibold text-white">Drawing Properties</p>
+              <div className="p-4 rounded-2xl bg-card border border-card space-y-3 shadow-lg">
+                <p className="text-xs font-semibold text-fg">Drawing Properties</p>
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">Color</label>
+                  <label className="text-xs text-muted block mb-1">Color</label>
                   <input
                     type="color"
                     value={drawColor}
                     onChange={(e) => setDrawColor(e.target.value)}
-                    className="w-full h-9 rounded-xl border border-slate-800 cursor-pointer bg-[#0b0f19] p-1"
+                    className="w-full h-9 rounded-xl border border-card cursor-pointer bg-background p-1"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">Stroke Width: {strokeWidth}px</label>
+                  <label className="text-xs text-muted block mb-1">Stroke Width: {strokeWidth}px</label>
                   <input
                     type="range"
                     min="1"
                     max="16"
                     value={strokeWidth}
                     onChange={(e) => setStrokeWidth(Number(e.target.value))}
-                    className="w-full accent-indigo-500 cursor-pointer bg-slate-800 rounded-lg h-2"
+                    className="w-full accent-indigo-500 cursor-pointer bg-[var(--background-secondary)] rounded-lg h-2"
                   />
                 </div>
               </div>
             )}
 
-            <div className="p-4 rounded-2xl bg-[#121622] border border-slate-800 space-y-2 shadow-lg">
-              <p className="text-xs font-semibold text-white">Active Modifications ({annotations.length})</p>
+            <div className="p-4 rounded-2xl bg-card border border-card space-y-2 shadow-lg">
+              <p className="text-xs font-semibold text-fg">Active Modifications ({annotations.length})</p>
               {annotations.length === 0 ? (
-                <p className="text-xs text-slate-500">No edits made yet.</p>
+                <p className="text-xs text-muted">No edits made yet.</p>
               ) : (
                 <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                   {annotations.map((ann) => (
@@ -596,7 +596,7 @@ export default function EditPdfPage() {
                       className={`flex items-center justify-between p-2 rounded-lg text-xs cursor-pointer transition-colors ${
                         selectedAnnotationId === ann.id 
                           ? "bg-indigo-600/20 border border-indigo-500/50 text-indigo-200" 
-                          : "bg-[#0b0f19] border border-slate-800/60 text-slate-300 hover:border-slate-700"
+                          : "bg-background border border-card text-fg hover:border-[var(--primary)]"
                       }`}
                     >
                       <span className="truncate pr-2 font-medium">
@@ -621,7 +621,7 @@ export default function EditPdfPage() {
               type="button"
               onClick={executeSave}
               disabled={processing}
-              className="w-full py-3 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-500 disabled:opacity-60 flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 transition-all cursor-pointer"
+              className="w-full py-3 rounded-xl bg-indigo-600 text-fg font-medium hover:bg-indigo-500 disabled:opacity-60 flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 transition-all cursor-pointer"
             >
               {processing ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
               {processing ? "Saving Changes..." : "Download Edited PDF"}
@@ -629,31 +629,31 @@ export default function EditPdfPage() {
           </div>
 
           <div className="lg:col-span-2 space-y-4">
-            <div className="p-4 rounded-2xl bg-[#121622] border border-slate-800 shadow-xl">
+            <div className="p-4 rounded-2xl bg-card border border-card shadow-xl">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     disabled={selectedPageIndex === 0}
                     onClick={() => setSelectedPageIndex((p) => p - 1)}
-                    className="p-1.5 rounded-lg bg-[#0b0f19] border border-slate-800 text-slate-300 disabled:opacity-40 hover:border-slate-700 transition-colors"
+                    className="p-1.5 rounded-lg bg-background border border-card text-fg disabled:opacity-40 hover:border-[var(--primary)] transition-colors"
                   >
                     <ChevronLeft size={16} />
                   </button>
-                  <span className="text-xs font-semibold text-white">
+                  <span className="text-xs font-semibold text-fg">
                     Page {selectedPageIndex + 1} of {pageCount}
                   </span>
                   <button
                     type="button"
                     disabled={selectedPageIndex >= pageCount - 1}
                     onClick={() => setSelectedPageIndex((p) => p + 1)}
-                    className="p-1.5 rounded-lg bg-[#0b0f19] border border-slate-800 text-slate-300 disabled:opacity-40 hover:border-slate-700 transition-colors"
+                    className="p-1.5 rounded-lg bg-background border border-card text-fg disabled:opacity-40 hover:border-[var(--primary)] transition-colors"
                   >
                     <ChevronRight size={16} />
                   </button>
                 </div>
 
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-muted">
                   Active Tool: <strong className="text-indigo-400 capitalize">{activeTool}</strong>
                 </span>
               </div>
@@ -663,7 +663,7 @@ export default function EditPdfPage() {
                 onMouseDown={startDrawing}
                 onMouseMove={onMouseMoveContainer}
                 onMouseUp={onMouseUpContainer}
-                className={`relative w-full flex justify-center bg-[#080b12] rounded-xl border border-slate-800/80 overflow-auto p-4 select-none shadow-inner ${
+                className={`relative w-full flex justify-center bg-background rounded-xl border border-card overflow-auto p-4 select-none shadow-inner ${
                   activeTool === "replace" || activeTool === "text" ? "cursor-crosshair" : activeTool === "draw" ? "cursor-crosshair" : "cursor-default"
                 }`}
                 style={{ minHeight: "500px" }}
@@ -684,7 +684,7 @@ export default function EditPdfPage() {
                             key={repAnn.id}
                             onMouseDown={(e) => startDragAnnotation(e, repAnn.id, repAnn.x, repAnn.y)}
                             className={`absolute bg-white flex items-center px-1 cursor-grab active:cursor-grabbing transition-shadow rounded-sm ${
-                              isSelected ? "ring-2 ring-indigo-500 shadow-xl" : "border border-dashed border-slate-400 hover:border-indigo-500"
+                              isSelected ? "ring-2 ring-indigo-500 shadow-xl" : "border border-dashed border-card hover:border-indigo-500"
                             }`}
                             style={{
                               top: `${repAnn.y}px`,

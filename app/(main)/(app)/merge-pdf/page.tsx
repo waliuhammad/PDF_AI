@@ -322,7 +322,7 @@ export default function MergePdfPage() {
                       <Loader2 className="animate-spin text-muted" size={28} />
                     )}
                     
-                    <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-white text-[11px] font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 pointer-events-none">
+                    <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md text-fg text-[11px] font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 pointer-events-none">
                       <Maximize2 size={12} /> High-Vis Page View
                     </div>
                   </div>
@@ -346,7 +346,7 @@ export default function MergePdfPage() {
                     type="button"
                     disabled={activePreviewIndex === 0}
                     onClick={() => setActivePreviewIndex((prev) => Math.max(0, prev - 1))}
-                    className="w-12 h-12 rounded-full bg-card border border-card shadow-lg flex items-center justify-center text-fg disabled:opacity-20 pointer-events-auto hover:bg-blue-600 hover:text-white transition-all active:scale-95"
+                    className="w-12 h-12 rounded-full bg-card border border-card shadow-lg flex items-center justify-center text-fg disabled:opacity-20 pointer-events-auto hover:bg-blue-600 hover:text-fg transition-all active:scale-95"
                     title="Previous Page"
                   >
                     <ChevronLeft size={22} />
@@ -355,7 +355,7 @@ export default function MergePdfPage() {
                     type="button"
                     disabled={activePreviewIndex === pagesList.length - 1}
                     onClick={() => setActivePreviewIndex((prev) => Math.min(pagesList.length - 1, prev + 1))}
-                    className="w-12 h-12 rounded-full bg-card border border-card shadow-lg flex items-center justify-center text-fg disabled:opacity-20 pointer-events-auto hover:bg-blue-600 hover:text-white transition-all active:scale-95"
+                    className="w-12 h-12 rounded-full bg-card border border-card shadow-lg flex items-center justify-center text-fg disabled:opacity-20 pointer-events-auto hover:bg-blue-600 hover:text-fg transition-all active:scale-95"
                     title="Next Page"
                   >
                     <ChevronRight size={22} />
@@ -451,7 +451,7 @@ export default function MergePdfPage() {
               type="button"
               onClick={executeMerge}
               disabled={processing || pagesList.length < 2}
-              className="flex-1 py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base shadow-lg shadow-blue-600/25 disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all"
+              className="flex-1 py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-fg font-bold text-base shadow-lg shadow-blue-600/25 disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all"
             >
               {processing ? <Loader2 className="animate-spin" size={20} /> : <Download size={20} />}
               {processing ? "Merging PDFs..." : `Merge & Download Final PDF (${pagesList.length} Pages)`}

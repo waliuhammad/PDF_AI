@@ -111,7 +111,7 @@ export default function SummarizePdfPage() {
                             <button
                                 onClick={handleSummarize}
                                 disabled={processing}
-                                className="px-8 py-3 rounded-full bg-[var(--primary)] text-white font-medium hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-60"
+                                className="px-8 py-3 rounded-full bg-[var(--primary)] text-fg font-medium hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-60"
                             >
                                 {processing ? "Summarizing..." : "Summarize with AI"}
                             </button>

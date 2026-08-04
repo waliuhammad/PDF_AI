@@ -93,8 +93,8 @@ export default function ProtectPDFPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#070b14] text-slate-100 flex flex-col items-center justify-center p-6">
-      <div className="max-w-xl w-full bg-[#111827] border border-slate-800/80 rounded-3xl p-8 shadow-2xl space-y-6">
+    <div className="min-h-screen bg-background text-fg flex flex-col items-center justify-center p-6">
+      <div className="max-w-xl w-full bg-card border border-card rounded-3xl p-8 shadow-2xl space-y-6">
         
         {/* Header Badge & Title */}
         <div className="text-center space-y-3">
@@ -102,15 +102,15 @@ export default function ProtectPDFPage() {
             <span>✨</span>
             <span>Professional PDF Toolkit</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Protect PDF</h1>
-          <p className="text-slate-400 text-sm">
+          <h1 className="text-3xl font-bold tracking-tight text-fg">Protect PDF</h1>
+          <p className="text-muted text-sm">
             Encrypt your PDF document with a secure password protection.
           </p>
         </div>
 
         <form onSubmit={handleProtect} className="space-y-6">
           {/* Drag & Drop File Upload Box */}
-          <div className="border-2 border-dashed border-cyan-500/40 hover:border-cyan-500 transition-colors rounded-2xl p-6 text-center bg-[#0d1322]/80 relative group">
+          <div className="border-2 border-dashed border-cyan-500/40 hover:border-cyan-500 transition-colors rounded-2xl p-6 text-center bg-card relative group">
             <input
               type="file"
               accept=".pdf"
@@ -125,10 +125,10 @@ export default function ProtectPDFPage() {
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-semibold text-slate-200">
+                <p className="text-sm font-semibold text-fg">
                   {file ? file.name : "Click to upload or drag & drop"}
                 </p>
-                <p className="text-xs text-slate-400 mt-1">PDF documents up to 50MB</p>
+                <p className="text-xs text-muted mt-1">PDF documents up to 50MB</p>
               </div>
             </div>
           </div>
@@ -136,7 +136,7 @@ export default function ProtectPDFPage() {
           {/* Password Inputs */}
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-2">
                 Password
               </label>
               <input
@@ -144,12 +144,12 @@ export default function ProtectPDFPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter password"
-                className="w-full bg-[#0d1322] border border-slate-700/80 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-cyan-500 text-sm"
+                className="w-full bg-card border border-card rounded-xl px-4 py-3 text-fg focus:outline-none focus:border-cyan-500 text-sm"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-2">
                 Confirm Password
               </label>
               <input
@@ -157,18 +157,18 @@ export default function ProtectPDFPage() {
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Re-enter password"
-                className="w-full bg-[#0d1322] border border-slate-700/80 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-cyan-500 text-sm"
+                className="w-full bg-card border border-card rounded-xl px-4 py-3 text-fg focus:outline-none focus:border-cyan-500 text-sm"
               />
             </div>
           </div>
 
           {/* All Pages Preview Section */}
           {numPages > 0 && (
-            <div className="space-y-2 bg-[#0d1322] p-4 rounded-xl border border-slate-700/80">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+            <div className="space-y-2 bg-card p-4 rounded-xl border border-card">
+              <span className="text-xs font-semibold uppercase tracking-wider text-muted">
                 Document Preview ({numPages} Pages)
               </span>
-              <div className="space-y-4 max-h-56 overflow-y-auto flex flex-col items-center p-2 rounded-lg bg-black/40 border border-slate-800">
+              <div className="space-y-4 max-h-56 overflow-y-auto flex flex-col items-center p-2 rounded-lg bg-black/40 border border-card">
                 {Array.from({ length: numPages }, (_, i) => (
                   <div key={i} className="shadow-lg bg-white p-1.5 rounded">
                     <p className="text-[10px] text-gray-500 mb-1 text-center font-medium">Page {i + 1}</p>
@@ -194,14 +194,14 @@ export default function ProtectPDFPage() {
           <button
             type="submit"
             disabled={loading || !file || !password}
-            className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold py-3.5 px-4 rounded-xl transition-all shadow-lg shadow-cyan-500/20 disabled:opacity-50 text-sm tracking-wide"
+            className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-fg font-semibold py-3.5 px-4 rounded-xl transition-all shadow-lg shadow-cyan-500/20 disabled:opacity-50 text-sm tracking-wide"
           >
             {loading ? "Protecting PDF..." : "Protect and Download PDF"}
           </button>
         </form>
 
         {/* Secure Footer Note */}
-        <div className="flex items-center justify-center space-x-2 text-xs text-slate-400 pt-2 border-t border-slate-800/60">
+        <div className="flex items-center justify-center space-x-2 text-xs text-muted pt-2 border-t border-card">
           <svg className="w-4 h-4 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
           </svg>

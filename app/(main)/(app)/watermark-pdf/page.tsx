@@ -175,19 +175,19 @@ export default function WatermarkPdfPage() {
   ];
 
   return (
-    <div className="min-h-[85vh] bg-[#0b0f17] text-slate-100 flex flex-col items-center justify-start py-8 px-4 font-sans">
+    <div className="min-h-[85vh] bg-background text-fg flex flex-col items-center justify-start py-8 px-4 font-sans">
       <div className="max-w-5xl mx-auto w-full">
         
         {/* Outer Card Wrapper */}
-        <div className="bg-[#121824] border border-slate-800/80 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+        <div className="bg-card border border-card rounded-3xl p-8 shadow-2xl relative overflow-hidden">
           
           {/* Header section */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 text-blue-400 text-xs font-semibold mb-3 border border-blue-500/20">
               <Sparkles size={13} /> PROFESSIONAL PDF TOOLKIT
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-white">PDF Watermark Tool</h1>
-            <p className="text-slate-400 text-sm mt-1.5">Add text or image watermarks with precise positioning.</p>
+            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-fg">PDF Watermark Tool</h1>
+            <p className="text-muted text-sm mt-1.5">Add text or image watermarks with precise positioning.</p>
           </div>
 
           {!fileDetails ? (
@@ -197,17 +197,17 @@ export default function WatermarkPdfPage() {
               onDrop={(e) => { e.preventDefault(); setIsDraggingFile(false); handlePdfFile(e.dataTransfer.files); }}
               onClick={() => pdfInputRef.current?.click()}
               className={`cursor-pointer rounded-2xl border-2 border-dashed p-12 text-center transition-all duration-200 ${
-                isDraggingFile ? "border-blue-500 bg-blue-500/5" : "border-slate-700/60 bg-[#171f2f]/60 hover:border-slate-600 hover:bg-[#171f2f]"
+                isDraggingFile ? "border-blue-500 bg-blue-500/5" : "border-card bg-[var(--background-secondary)] hover:border-[var(--primary)] hover:bg-[var(--background-secondary)]"
               }`}
             >
               <input ref={pdfInputRef} type="file" accept="application/pdf" hidden onChange={(e) => handlePdfFile(e.target.files)} />
               <div className="w-14 h-14 mx-auto rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-4 text-blue-400">
                 <Upload size={24} />
               </div>
-              <p className="text-white font-semibold text-base">Click to upload or drag & drop</p>
-              <p className="text-slate-400 text-xs mt-1.5">PDF documents up to 50MB</p>
+              <p className="text-fg font-semibold text-base">Click to upload or drag & drop</p>
+              <p className="text-muted text-xs mt-1.5">PDF documents up to 50MB</p>
 
-              <div className="mt-8 pt-4 border-t border-slate-800/60 flex items-center justify-center gap-2 text-xs text-slate-500">
+              <div className="mt-8 pt-4 border-t border-card flex items-center justify-center gap-2 text-xs text-muted">
                 <ShieldCheck size={14} className="text-emerald-400" /> Secure processing • Files processed privately
               </div>
             </div>
@@ -216,26 +216,26 @@ export default function WatermarkPdfPage() {
               
               {/* Controls Column */}
               <div className="lg:col-span-1 space-y-4">
-                <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-[#171f2f] border border-slate-800">
+                <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-[var(--background-secondary)] border border-card">
                   <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0 border border-blue-500/20">
                     <FileText size={18} className="text-blue-400" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-slate-200 text-sm font-medium truncate">{fileDetails.name}</p>
-                    <p className="text-slate-400 text-xs">{fileDetails.size}</p>
+                    <p className="text-fg text-sm font-medium truncate">{fileDetails.name}</p>
+                    <p className="text-muted text-xs">{fileDetails.size}</p>
                   </div>
-                  <button onClick={() => { setFileDetails(null); setRawFile(null); }} className="text-slate-400 hover:text-white p-1">
+                  <button onClick={() => { setFileDetails(null); setRawFile(null); }} className="text-muted hover:text-fg p-1">
                     <X size={16} />
                   </button>
                 </div>
 
                 {/* Type Switcher */}
-                <div className="p-1 rounded-2xl bg-[#171f2f] border border-slate-800 flex gap-1">
+                <div className="p-1 rounded-2xl bg-[var(--background-secondary)] border border-card flex gap-1">
                   <button
                     type="button"
                     onClick={() => setWatermarkType("text")}
                     className={`flex-1 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
-                      watermarkType === "text" ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" : "text-slate-400 hover:text-white"
+                      watermarkType === "text" ? "bg-blue-600 text-fg shadow-lg shadow-blue-600/20" : "text-muted hover:text-fg"
                     }`}
                   >
                     <Type size={14} /> Text
@@ -244,7 +244,7 @@ export default function WatermarkPdfPage() {
                     type="button"
                     onClick={() => setWatermarkType("image")}
                     className={`flex-1 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
-                      watermarkType === "image" ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20" : "text-slate-400 hover:text-white"
+                      watermarkType === "image" ? "bg-blue-600 text-fg shadow-lg shadow-blue-600/20" : "text-muted hover:text-fg"
                     }`}
                   >
                     <ImageIcon size={14} /> Image
@@ -252,8 +252,8 @@ export default function WatermarkPdfPage() {
                 </div>
 
                 {/* Visibility Mode Switcher */}
-                <div className="p-4 rounded-2xl bg-[#171f2f] border border-slate-800 space-y-2">
-                  <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                <div className="p-4 rounded-2xl bg-[var(--background-secondary)] border border-card space-y-2">
+                  <label className="text-xs font-semibold text-fg flex items-center gap-1.5">
                     <Sun size={13} className="text-blue-400" /> Visibility Style
                   </label>
                   <div className="grid grid-cols-2 gap-2">
@@ -263,7 +263,7 @@ export default function WatermarkPdfPage() {
                       className={`py-2 px-3 rounded-xl text-xs font-medium border transition-all ${
                         visibilityMode === "transparent"
                           ? "border-blue-500 bg-blue-500/10 text-blue-400 font-semibold"
-                          : "border-slate-800 bg-[#121824] text-slate-400 hover:text-slate-200"
+                          : "border-card bg-card text-muted hover:text-fg"
                       }`}
                     >
                       Transparent
@@ -274,7 +274,7 @@ export default function WatermarkPdfPage() {
                       className={`py-2 px-3 rounded-xl text-xs font-medium border transition-all ${
                         visibilityMode === "visible"
                           ? "border-blue-500 bg-blue-500/10 text-blue-400 font-semibold"
-                          : "border-slate-800 bg-[#121824] text-slate-400 hover:text-slate-200"
+                          : "border-card bg-card text-muted hover:text-fg"
                       }`}
                     >
                       Fully Visible
@@ -284,8 +284,8 @@ export default function WatermarkPdfPage() {
 
                 {/* 3x3 Arrow Position Grid */}
                 {!isTiled && (
-                  <div className="p-4 rounded-2xl bg-[#171f2f] border border-slate-800 space-y-2">
-                    <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <div className="p-4 rounded-2xl bg-[var(--background-secondary)] border border-card space-y-2">
+                    <label className="text-xs font-semibold text-fg flex items-center gap-1.5">
                       <LayoutGrid size={13} className="text-blue-400" /> Position
                     </label>
                     <div className="grid grid-cols-3 gap-1.5 max-w-[160px] mx-auto pt-1">
@@ -300,8 +300,8 @@ export default function WatermarkPdfPage() {
                             onClick={() => setPosition(pos.id)}
                             className={`h-10 rounded-xl border flex items-center justify-center transition-all ${
                               isActive
-                                ? "bg-blue-600 text-white border-blue-500 shadow-md shadow-blue-600/20"
-                                : "bg-[#121824] border-slate-800 text-slate-400 hover:text-white"
+                                ? "bg-blue-600 text-fg border-blue-500 shadow-md shadow-blue-600/20"
+                                : "bg-card border-card text-muted hover:text-fg"
                             }`}
                           >
                             <Icon size={16} />
@@ -314,39 +314,39 @@ export default function WatermarkPdfPage() {
 
                 {/* Text Config Options */}
                 {watermarkType === "text" && (
-                  <div className="p-4 rounded-2xl bg-[#171f2f] border border-slate-800 space-y-3">
-                    <p className="text-xs font-semibold text-slate-300">Text Settings</p>
+                  <div className="p-4 rounded-2xl bg-[var(--background-secondary)] border border-card space-y-3">
+                    <p className="text-xs font-semibold text-fg">Text Settings</p>
 
                     <div>
-                      <label className="text-xs text-slate-400 block mb-1">Watermark Text</label>
+                      <label className="text-xs text-muted block mb-1">Watermark Text</label>
                       <input
                         type="text"
                         value={text}
                         onChange={(e) => setText(e.target.value)}
                         placeholder="CONFIDENTIAL"
-                        className="w-full p-2.5 rounded-xl border border-slate-800 bg-[#121824] text-slate-100 text-sm focus:outline-none focus:border-blue-500"
+                        className="w-full p-2.5 rounded-xl border border-card bg-card text-fg text-sm focus:outline-none focus:border-blue-500"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-2">
                       <div>
-                        <label className="text-xs text-slate-400 block mb-1">Text Color</label>
+                        <label className="text-xs text-muted block mb-1">Text Color</label>
                         <input
                           type="color"
                           value={textColor}
                           onChange={(e) => setTextColor(e.target.value)}
-                          className="w-full h-9 rounded-xl border border-slate-800 cursor-pointer bg-[#121824] p-1"
+                          className="w-full h-9 rounded-xl border border-card cursor-pointer bg-card p-1"
                         />
                       </div>
                       <div>
-                        <label className="text-xs text-slate-400 block mb-1">Background/Border</label>
+                        <label className="text-xs text-muted block mb-1">Background/Border</label>
                         <div className="flex items-center gap-2">
                           <input
                             type="color"
                             disabled={!useBgColor}
                             value={bgColor}
                             onChange={(e) => setBgColor(e.target.value)}
-                            className="w-full h-9 rounded-xl border border-slate-800 cursor-pointer bg-[#121824] p-1 disabled:opacity-40"
+                            className="w-full h-9 rounded-xl border border-card cursor-pointer bg-card p-1 disabled:opacity-40"
                           />
                           <input
                             type="checkbox"
@@ -359,7 +359,7 @@ export default function WatermarkPdfPage() {
                     </div>
 
                     <div>
-                      <label className="text-xs text-slate-400 block mb-1">Font Size: {fontSize}px</label>
+                      <label className="text-xs text-muted block mb-1">Font Size: {fontSize}px</label>
                       <input
                         type="range"
                         min="16"
@@ -371,14 +371,14 @@ export default function WatermarkPdfPage() {
                     </div>
 
                     <div className="pt-1">
-                      <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer select-none">
+                      <label className="flex items-center gap-2 text-xs text-fg cursor-pointer select-none">
                         <input
                           type="checkbox"
                           checked={isTiled}
                           onChange={(e) => setIsTiled(e.target.checked)}
                           className="w-4 h-4 accent-blue-600 rounded cursor-pointer"
                         />
-                        <Grid size={14} className="text-slate-400" /> Tile pattern across page
+                        <Grid size={14} className="text-muted" /> Tile pattern across page
                       </label>
                     </div>
                   </div>
@@ -386,12 +386,12 @@ export default function WatermarkPdfPage() {
 
                 {/* Image Config Options */}
                 {watermarkType === "image" && (
-                  <div className="p-4 rounded-2xl bg-[#171f2f] border border-slate-800 space-y-3">
-                    <p className="text-xs font-semibold text-slate-300">Image Settings</p>
+                  <div className="p-4 rounded-2xl bg-[var(--background-secondary)] border border-card space-y-3">
+                    <p className="text-xs font-semibold text-fg">Image Settings</p>
 
                     <div
                       onClick={() => imageInputRef.current?.click()}
-                      className="cursor-pointer border border-dashed border-slate-700 rounded-xl p-4 text-center hover:border-blue-500 bg-[#121824] transition-colors"
+                      className="cursor-pointer border border-dashed border-card rounded-xl p-4 text-center hover:border-blue-500 bg-card transition-colors"
                     >
                       <input
                         ref={imageInputRef}
@@ -406,15 +406,15 @@ export default function WatermarkPdfPage() {
                           <span className="text-xs text-blue-400 font-medium">Change Image</span>
                         </div>
                       ) : (
-                        <div className="text-slate-400 text-xs">
-                          <ImageIcon className="mx-auto mb-1 text-slate-500" size={20} />
+                        <div className="text-muted text-xs">
+                          <ImageIcon className="mx-auto mb-1 text-muted" size={20} />
                           Click to upload PNG/JPG logo
                         </div>
                       )}
                     </div>
 
                     <div>
-                      <label className="text-xs text-slate-400 block mb-1">Image Size: {Math.round(imageScale * 100)}%</label>
+                      <label className="text-xs text-muted block mb-1">Image Size: {Math.round(imageScale * 100)}%</label>
                       <input
                         type="range"
                         min="0.1"
@@ -429,11 +429,11 @@ export default function WatermarkPdfPage() {
                 )}
 
                 {/* Sliders */}
-                <div className="p-4 rounded-2xl bg-[#171f2f] border border-slate-800 space-y-3">
-                  <p className="text-xs font-semibold text-slate-300">Fine-Tuning Options</p>
+                <div className="p-4 rounded-2xl bg-[var(--background-secondary)] border border-card space-y-3">
+                  <p className="text-xs font-semibold text-fg">Fine-Tuning Options</p>
 
                   <div>
-                    <label className="text-xs text-slate-400 block mb-1">Opacity: {Math.round(opacity * 100)}%</label>
+                    <label className="text-xs text-muted block mb-1">Opacity: {Math.round(opacity * 100)}%</label>
                     <input
                       type="range"
                       min="0.05"
@@ -446,8 +446,8 @@ export default function WatermarkPdfPage() {
                   </div>
 
                   <div>
-                    <label className="text-xs text-slate-400 block mb-1 flex items-center gap-1">
-                      <RotateCw size={12} className="text-slate-400" /> Rotation Angle: {rotation}°
+                    <label className="text-xs text-muted block mb-1 flex items-center gap-1">
+                      <RotateCw size={12} className="text-muted" /> Rotation Angle: {rotation}°
                     </label>
                     <input
                       type="range"
@@ -471,7 +471,7 @@ export default function WatermarkPdfPage() {
                   type="button"
                   onClick={executeApplyWatermark}
                   disabled={processing}
-                  className="w-full py-3.5 rounded-xl bg-blue-600 text-white font-medium hover:bg-blue-500 shadow-lg shadow-blue-600/25 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+                  className="w-full py-3.5 rounded-xl bg-blue-600 text-fg font-medium hover:bg-blue-500 shadow-lg shadow-blue-600/25 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
                 >
                   {processing ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
                   {processing ? "Watermarking..." : "Download Watermarked PDF"}
@@ -479,14 +479,14 @@ export default function WatermarkPdfPage() {
               </div>
 
               {/* Canvas Preview Column */}
-              <div className="lg:col-span-2 flex flex-col items-center justify-center p-8 rounded-2xl bg-[#171f2f] border border-slate-800 min-h-[420px]">
-                <div className="flex items-center gap-1.5 text-xs text-slate-400 mb-6 font-medium">
+              <div className="lg:col-span-2 flex flex-col items-center justify-center p-8 rounded-2xl bg-[var(--background-secondary)] border border-card min-h-[420px]">
+                <div className="flex items-center gap-1.5 text-xs text-muted mb-6 font-medium">
                   <Eye size={14} className="text-blue-400" /> Live Page Watermark Preview
                 </div>
 
-                <div className="relative w-72 h-96 bg-white rounded-xl shadow-2xl border border-slate-700 overflow-hidden flex flex-col p-5 select-none">
+                <div className="relative w-72 h-96 bg-white rounded-xl shadow-2xl border border-card overflow-hidden flex flex-col p-5 select-none">
                   <div className="space-y-2.5 opacity-20">
-                    <div className="h-3 bg-slate-800 rounded w-3/4"></div>
+                    <div className="h-3 bg-[var(--background-secondary)] rounded w-3/4"></div>
                     <div className="h-2 bg-slate-600 rounded w-full"></div>
                     <div className="h-2 bg-slate-600 rounded w-5/6"></div>
                     <div className="h-2 bg-slate-600 rounded w-4/5"></div>
@@ -544,7 +544,7 @@ export default function WatermarkPdfPage() {
                         }}
                       />
                     ) : (
-                      <span className="text-xs text-slate-400 font-medium bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">Upload image to preview</span>
+                      <span className="text-xs text-muted font-medium bg-[var(--background-secondary)] px-3 py-1.5 rounded-lg border border-card">Upload image to preview</span>
                     )}
                   </div>
                 </div>

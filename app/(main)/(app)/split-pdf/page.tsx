@@ -161,9 +161,9 @@ export default function SplitPdfPage() {
   return (
     <div className={`max-w-6xl mx-auto w-full px-4 py-8 ${fileDetails ? "flex flex-col lg:flex-row gap-6 lg:gap-8 items-start" : "max-w-3xl mx-auto"}`}>
       {fileDetails && (
-        <aside className="w-full lg:w-80 shrink-0 rounded-2xl bg-[#111827] border border-slate-800/80 p-4 lg:sticky lg:top-6">
-          <p className="text-sm font-semibold text-white truncate mb-1">{fileDetails.name}</p>
-          <p className="text-xs text-slate-400 mb-4">
+        <aside className="w-full lg:w-80 shrink-0 rounded-2xl bg-card border border-card p-4 lg:sticky lg:top-6">
+          <p className="text-sm font-semibold text-fg truncate mb-1">{fileDetails.name}</p>
+          <p className="text-xs text-muted mb-4">
             {splitMode === "range" ? "Click pages to select range" : `${pageCount} pages`}
           </p>
           <div className="flex lg:block gap-3 lg:space-y-3 overflow-x-auto lg:overflow-y-auto lg:max-h-[75vh]">
@@ -184,15 +184,15 @@ export default function SplitPdfPage() {
                       ? "border-blue-500 bg-blue-500/10"
                       : inRange
                       ? "border-blue-500/40 bg-blue-500/5"
-                      : "border-slate-800/80 bg-[#0d1322] hover:border-blue-500/40"
+                      : "border-card bg-card hover:border-blue-500/40"
                   }`}
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span
                       className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                         isEdge
-                          ? "bg-blue-600 text-white"
-                          : "bg-slate-800 text-slate-400"
+                          ? "bg-blue-600 text-fg"
+                          : "bg-[var(--background-secondary)] text-muted"
                       }`}
                     >
                       Page {page}
@@ -203,6 +203,7 @@ export default function SplitPdfPage() {
                       <img src={thumbnails[idx]} alt={`Page ${page}`} className="object-cover w-full h-full" />
                     ) : (
                       <div className="flex items-center justify-center text-slate-400">
+                        {/* Fixed colour: this sits on the fixed-white page thumbnail. */}
                         <Loader2 className="animate-spin" size={16} />
                       </div>
                     )}
@@ -219,8 +220,8 @@ export default function SplitPdfPage() {
           <div className="w-12 h-12 lg:w-14 lg:h-14 mx-auto rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-4">
             <Scissors className="text-blue-400" size={24} />
           </div>
-          <h1 className="text-xl lg:text-2xl font-bold text-white tracking-tight">Split PDF</h1>
-          <p className="text-slate-400 text-sm mt-1">Separate one PDF into multiple files or extract pages.</p>
+          <h1 className="text-xl lg:text-2xl font-bold text-fg tracking-tight">Split PDF</h1>
+          <p className="text-muted text-sm mt-1">Separate one PDF into multiple files or extract pages.</p>
         </div>
 
         {!fileDetails ? (
@@ -229,7 +230,7 @@ export default function SplitPdfPage() {
             onDragLeave={() => setIsDragging(false)}
             onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFile(e.dataTransfer.files); }}
             onClick={() => inputRef.current?.click()}
-            className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 sm:p-10 text-center transition-colors bg-[#111827] border-slate-800/80 hover:border-blue-500/50 ${
+            className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 sm:p-10 text-center transition-colors bg-card border-card hover:border-blue-500/50 ${
               isDragging ? "border-blue-500 bg-blue-500/5" : ""
             }`}
           >
@@ -237,35 +238,35 @@ export default function SplitPdfPage() {
             <div className="w-12 h-12 mx-auto rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-3 text-blue-400">
               <Upload size={22} />
             </div>
-            <p className="text-white font-medium text-sm">Click to browse or drag & drop PDFs</p>
-            <p className="text-slate-400 text-xs mt-1">Upload a document to start splitting pages</p>
+            <p className="text-fg font-medium text-sm">Click to browse or drag & drop PDFs</p>
+            <p className="text-muted text-xs mt-1">Upload a document to start splitting pages</p>
           </div>
         ) : (
           <div className="space-y-6">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#111827] border border-slate-800/80">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-card">
               <div className="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
                 <FileText size={16} className="text-blue-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white text-sm truncate">{fileDetails.name}</p>
-                <p className="text-slate-400 text-xs">{fileDetails.size} • {pageCount} pages</p>
+                <p className="text-fg text-sm truncate">{fileDetails.name}</p>
+                <p className="text-muted text-xs">{fileDetails.size} • {pageCount} pages</p>
               </div>
               <button 
                 onClick={() => { setFileDetails(null); setRawFile(null); setDone(false); setErrorMessage(null); setThumbnails([]); }} 
-                className="text-slate-400 hover:text-white shrink-0 p-1"
+                className="text-muted hover:text-fg shrink-0 p-1"
               >
                 <X size={16} />
               </button>
             </div>
 
-            <div className="p-5 rounded-2xl bg-[#111827] border border-slate-800/80 space-y-4">
-              <p className="text-sm font-medium text-white">Split Mode</p>
+            <div className="p-5 rounded-2xl bg-card border border-card space-y-4">
+              <p className="text-sm font-medium text-fg">Split Mode</p>
 
               <div className="flex flex-col sm:flex-row gap-2">
                 <button
                   onClick={() => handleModeChange("range")}
                   className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                    splitMode === "range" ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20" : "bg-[#0d1322] text-slate-300 border border-slate-700/80 hover:bg-slate-800"
+                    splitMode === "range" ? "bg-blue-600 text-fg shadow-lg shadow-blue-500/20" : "bg-card text-fg border border-card hover:bg-[var(--background-secondary)]"
                   }`}
                 >
                   Extract Page Range
@@ -273,7 +274,7 @@ export default function SplitPdfPage() {
                 <button
                   onClick={() => handleModeChange("every")}
                   className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                    splitMode === "every" ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20" : "bg-[#0d1322] text-slate-300 border border-slate-700/80 hover:bg-slate-800"
+                    splitMode === "every" ? "bg-blue-600 text-fg shadow-lg shadow-blue-500/20" : "bg-card text-fg border border-card hover:bg-[var(--background-secondary)]"
                   }`}
                 >
                   Split Every N Pages
@@ -283,38 +284,38 @@ export default function SplitPdfPage() {
               {splitMode === "range" ? (
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
                   <div className="flex-1">
-                    <label className="text-xs uppercase tracking-wider font-semibold text-slate-400 block mb-1.5">From Page</label>
+                    <label className="text-xs uppercase tracking-wider font-semibold text-muted block mb-1.5">From Page</label>
                     <input
                       type="number"
                       min="1"
                       max={pageCount}
                       value={fromPage}
                       onChange={(e) => { setFromPage(e.target.value); setSelectingFrom(false); setDone(false); setErrorMessage(null); }}
-                      className="w-full bg-[#0d1322] border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+                      className="w-full bg-card border border-card rounded-xl px-3.5 py-2.5 text-fg text-sm focus:outline-none focus:border-blue-500"
                     />
                   </div>
                   <div className="flex-1">
-                    <label className="text-xs uppercase tracking-wider font-semibold text-slate-400 block mb-1.5">To Page</label>
+                    <label className="text-xs uppercase tracking-wider font-semibold text-muted block mb-1.5">To Page</label>
                     <input
                       type="number"
                       min="1"
                       max={pageCount}
                       value={toPage}
                       onChange={(e) => { setToPage(e.target.value); setSelectingFrom(true); setDone(false); setErrorMessage(null); }}
-                      className="w-full bg-[#0d1322] border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+                      className="w-full bg-card border border-card rounded-xl px-3.5 py-2.5 text-fg text-sm focus:outline-none focus:border-blue-500"
                     />
                   </div>
                 </div>
               ) : (
                 <div className="pt-2">
-                  <label className="text-xs uppercase tracking-wider font-semibold text-slate-400 block mb-1.5">Pages per File</label>
+                  <label className="text-xs uppercase tracking-wider font-semibold text-muted block mb-1.5">Pages per File</label>
                   <input
                     type="number"
                     min="1"
                     max={pageCount}
                     value={everyN}
                     onChange={(e) => { setEveryN(e.target.value); setDone(false); setErrorMessage(null); }}
-                    className="w-full bg-[#0d1322] border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-white text-sm focus:outline-none focus:border-blue-500"
+                    className="w-full bg-card border border-card rounded-xl px-3.5 py-2.5 text-fg text-sm focus:outline-none focus:border-blue-500"
                   />
                 </div>
               )}
@@ -331,7 +332,7 @@ export default function SplitPdfPage() {
                 <button
                   onClick={() => executeSplit(downloadChoice)}
                   disabled={processing}
-                  className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-sm shadow-lg shadow-blue-500/25 transition-all disabled:opacity-60 inline-flex items-center justify-center gap-2"
+                  className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-fg font-medium text-sm shadow-lg shadow-blue-500/25 transition-all disabled:opacity-60 inline-flex items-center justify-center gap-2"
                 >
                   {processing ? (
                     <>
@@ -346,14 +347,14 @@ export default function SplitPdfPage() {
             )}
 
             {done && (
-              <div className="p-5 rounded-2xl bg-[#111827] border border-slate-800/80 space-y-4">
-                <p className="text-sm font-medium text-white">Download Options</p>
+              <div className="p-5 rounded-2xl bg-card border border-card space-y-4">
+                <p className="text-sm font-medium text-fg">Download Options</p>
 
                 <div className="flex flex-col sm:flex-row gap-2">
                   <button
                     onClick={() => setDownloadChoice("split")}
                     className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                      downloadChoice === "split" ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20" : "bg-[#0d1322] text-slate-300 border border-slate-700/80 hover:bg-slate-800"
+                      downloadChoice === "split" ? "bg-blue-600 text-fg shadow-lg shadow-blue-500/20" : "bg-card text-fg border border-card hover:bg-[var(--background-secondary)]"
                     }`}
                   >
                     Split Part
@@ -361,14 +362,14 @@ export default function SplitPdfPage() {
                   <button
                     onClick={() => setDownloadChoice("remaining")}
                     className={`flex-1 px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-                      downloadChoice === "remaining" ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20" : "bg-[#0d1322] text-slate-300 border border-slate-700/80 hover:bg-slate-800"
+                      downloadChoice === "remaining" ? "bg-blue-600 text-fg shadow-lg shadow-blue-500/20" : "bg-card text-fg border border-card hover:bg-[var(--background-secondary)]"
                     }`}
                   >
                     Remaining Part
                   </button>
                 </div>
 
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-muted">
                   {downloadChoice === "split"
                     ? splitMode === "range"
                       ? `Pages ${fromPage}–${toPage} that you extracted.`
@@ -380,7 +381,7 @@ export default function SplitPdfPage() {
                   <button
                     onClick={() => executeSplit(downloadChoice)}
                     disabled={processing}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-medium text-sm shadow-lg shadow-blue-500/25 transition-all disabled:opacity-60"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-fg font-medium text-sm shadow-lg shadow-blue-500/25 transition-all disabled:opacity-60"
                   >
                     {processing ? (
                       <Loader2 className="animate-spin" size={18} />

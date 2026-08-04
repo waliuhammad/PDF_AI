@@ -71,27 +71,27 @@ export default function PdfToPpt(): JSX.Element {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0e14] text-slate-100 flex flex-col items-center justify-center p-6 antialiased selection:bg-blue-500 selection:text-white">
-      <div className="max-w-4xl w-full space-y-8 bg-[#121824] border border-slate-800/80 p-8 rounded-3xl shadow-2xl backdrop-blur-xl">
+    <div className="min-h-screen bg-background text-fg flex flex-col items-center justify-center p-6 antialiased selection:bg-blue-500 selection:text-fg">
+      <div className="max-w-4xl w-full space-y-8 bg-card border border-card p-8 rounded-3xl shadow-2xl backdrop-blur-xl">
         
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold tracking-wide uppercase">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Document Conversion Suite</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">PDF to PowerPoint Converter</h1>
-          <p className="text-sm text-slate-400">
+          <h1 className="text-3xl font-bold tracking-tight text-fg">PDF to PowerPoint Converter</h1>
+          <p className="text-sm text-muted">
             Transform pages from your PDF documents directly into styled PowerPoint presentation slides (.pptx).
           </p>
         </div>
 
         {!file && (
-          <label className="group relative border-2 border-dashed border-slate-700/70 hover:border-blue-500/85 rounded-2xl p-10 flex flex-col items-center justify-center cursor-pointer bg-[#182030]/50 hover:bg-[#182030] transition-all duration-300">
+          <label className="group relative border-2 border-dashed border-card hover:border-blue-500/85 rounded-2xl p-10 flex flex-col items-center justify-center cursor-pointer bg-[var(--background-secondary)] hover:bg-[var(--background-secondary)] transition-all duration-300">
             <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-4 group-hover:scale-110 transition-transform duration-300">
               <UploadCloud className="w-8 h-8" />
             </div>
-            <span className="font-semibold text-slate-200 text-base mb-1">Click to upload PDF document</span>
-            <span className="text-xs text-slate-400">Supports text documents and reports</span>
+            <span className="font-semibold text-fg text-base mb-1">Click to upload PDF document</span>
+            <span className="text-xs text-muted">Supports text documents and reports</span>
             <input
               ref={fileInputRef}
               type="file"
@@ -104,14 +104,14 @@ export default function PdfToPpt(): JSX.Element {
 
         {file && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between bg-[#182030] border border-slate-700/60 p-4 rounded-2xl">
+            <div className="flex items-center justify-between bg-[var(--background-secondary)] border border-card p-4 rounded-2xl">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-white truncate max-w-[220px]">{file.name}</h3>
-                  <span className="text-[11px] text-slate-400">Ready for slide generation</span>
+                  <h3 className="text-xs font-bold text-fg truncate max-w-[220px]">{file.name}</h3>
+                  <span className="text-[11px] text-muted">Ready for slide generation</span>
                 </div>
               </div>
               <button
@@ -124,18 +124,18 @@ export default function PdfToPpt(): JSX.Element {
             </div>
 
             {loading && (
-              <div className="text-center py-12 text-slate-400 text-xs animate-pulse">
+              <div className="text-center py-12 text-muted text-xs animate-pulse">
                 Parsing PDF layout and creating PowerPoint presentation slides...
               </div>
             )}
 
             {success && (
-              <div className="bg-[#182030] border border-slate-700/60 rounded-2xl p-6 text-center space-y-3">
+              <div className="bg-[var(--background-secondary)] border border-card rounded-2xl p-6 text-center space-y-3">
                 <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mx-auto">
                   <Presentation className="w-6 h-6" />
                 </div>
-                <h3 className="text-sm font-semibold text-white">Presentation Ready!</h3>
-                <p className="text-xs text-slate-400">Your PowerPoint slides have been compiled successfully.</p>
+                <h3 className="text-sm font-semibold text-fg">Presentation Ready!</h3>
+                <p className="text-xs text-muted">Your PowerPoint slides have been compiled successfully.</p>
               </div>
             )}
           </div>
@@ -150,15 +150,15 @@ export default function PdfToPpt(): JSX.Element {
         {success && downloadUrl && (
           <button
             onClick={handleDownload}
-            className="w-full bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-semibold py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/30 cursor-pointer"
+            className="w-full bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-fg font-semibold py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg shadow-emerald-600/30 cursor-pointer"
           >
             <Download className="w-5 h-5" />
             <span>Download PowerPoint (.pptx)</span>
           </button>
         )}
 
-        <div className="pt-2 flex items-center justify-center space-x-1.5 text-slate-500 text-xs">
-          <ShieldCheck className="w-4 h-4 text-slate-400" />
+        <div className="pt-2 flex items-center justify-center space-x-1.5 text-muted text-xs">
+          <ShieldCheck className="w-4 h-4 text-muted" />
           <span>Secure PDF presentation conversion • No file retention</span>
         </div>
 

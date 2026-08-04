@@ -83,8 +83,8 @@ export default function WordToPdfPage() {
         <div className="w-12 h-12 lg:w-14 lg:h-14 mx-auto rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-4">
           <FileText className="text-blue-400" size={24} />
         </div>
-        <h1 className="text-xl lg:text-2xl font-bold text-white tracking-tight">Convert Word to PDF</h1>
-        <p className="text-slate-400 text-sm mt-1">Transform your Word documents into professional, secure PDF files instantly.</p>
+        <h1 className="text-xl lg:text-2xl font-bold text-fg tracking-tight">Convert Word to PDF</h1>
+        <p className="text-muted text-sm mt-1">Transform your Word documents into professional, secure PDF files instantly.</p>
       </div>
 
       {!file ? (
@@ -93,7 +93,7 @@ export default function WordToPdfPage() {
           onDragLeave={() => setIsDragging(false)}
           onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFileChange(e.dataTransfer.files); }}
           onClick={() => inputRef.current?.click()}
-          className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 sm:p-10 text-center transition-colors bg-[#111827] border-slate-800/80 hover:border-blue-500/50 ${
+          className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 sm:p-10 text-center transition-colors bg-card border-card hover:border-blue-500/50 ${
             isDragging ? "border-blue-500 bg-blue-500/5" : ""
           }`}
         >
@@ -106,22 +106,22 @@ export default function WordToPdfPage() {
           <div className="w-12 h-12 mx-auto rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-3 text-blue-400">
             <Upload size={22} />
           </div>
-          <p className="text-white font-medium text-sm">Click to upload or drag & drop</p>
-          <p className="text-slate-400 text-xs mt-1">DOCX and DOC documents</p>
+          <p className="text-fg font-medium text-sm">Click to upload or drag & drop</p>
+          <p className="text-muted text-xs mt-1">DOCX and DOC documents</p>
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-[#111827] border border-slate-800/80">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-card">
             <div className="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
               <FileText size={16} className="text-blue-400" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-white text-sm truncate">{file.name}</p>
-              <p className="text-slate-400 text-xs">{formatSize(file.size)}</p>
+              <p className="text-fg text-sm truncate">{file.name}</p>
+              <p className="text-muted text-xs">{formatSize(file.size)}</p>
             </div>
             <button
               onClick={() => { setFile(null); setError(null); }}
-              className="text-slate-400 hover:text-white shrink-0 p-1"
+              className="text-muted hover:text-fg shrink-0 p-1"
             >
               <X size={16} />
             </button>
@@ -137,7 +137,7 @@ export default function WordToPdfPage() {
             <button
               onClick={handleConvert}
               disabled={loading}
-              className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-white font-semibold transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-2 mx-auto text-sm"
+              className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-fg font-semibold transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-2 mx-auto text-sm"
             >
               {loading && <Loader2 className="animate-spin" size={18} />}
               {loading ? "Converting..." : "Convert to PDF (.pdf)"}

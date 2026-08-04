@@ -216,18 +216,18 @@ export default function SignDocumentPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0f1d] text-slate-100 flex flex-col items-center justify-center p-6">
-      <div className="max-w-xl w-full bg-[#111827] border border-slate-800 rounded-2xl p-8 shadow-2xl space-y-6">
+    <div className="min-h-screen bg-background text-fg flex flex-col items-center justify-center p-6">
+      <div className="max-w-xl w-full bg-card border border-card rounded-2xl p-8 shadow-2xl space-y-6">
         <div className="text-center">
           <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400 bg-cyan-950/60 px-3 py-1 rounded-full border border-cyan-800/50">
             Document Security Suite
           </span>
-          <h1 className="text-3xl font-bold mt-4 tracking-tight text-white">PDF Document Signer</h1>
-          <p className="text-slate-400 text-sm mt-1">Preview pages, choose scope, and position your signature.</p>
+          <h1 className="text-3xl font-bold mt-4 tracking-tight text-fg">PDF Document Signer</h1>
+          <p className="text-muted text-sm mt-1">Preview pages, choose scope, and position your signature.</p>
         </div>
 
         {/* File Upload */}
-        <div className="border-2 border-dashed border-slate-700 hover:border-cyan-500 transition-colors rounded-xl p-4 text-center bg-[#0d1322]">
+        <div className="border-2 border-dashed border-card hover:border-cyan-500 transition-colors rounded-xl p-4 text-center bg-card">
           <input
             type="file"
             accept=".pdf"
@@ -241,7 +241,7 @@ export default function SignDocumentPage() {
             id="pdf-upload"
           />
           <label htmlFor="pdf-upload" className="cursor-pointer flex flex-col items-center">
-            <span className="text-sm font-medium text-slate-300">
+            <span className="text-sm font-medium text-fg">
               {file ? file.name : "Click to select or drop your PDF document here"}
             </span>
           </label>
@@ -249,15 +249,15 @@ export default function SignDocumentPage() {
 
         {/* PDF Preview & Pagination Controls */}
         {file && numPages > 0 && (
-          <div className="space-y-3 bg-[#0d1322] p-4 rounded-xl border border-slate-700">
-            <div className="flex items-center justify-between text-xs text-slate-400 font-medium">
+          <div className="space-y-3 bg-card p-4 rounded-xl border border-card">
+            <div className="flex items-center justify-between text-xs text-muted font-medium">
               <span>Page Preview (Page {currentPage} of {numPages})</span>
               <div className="flex space-x-2">
                 <button
                   type="button"
                   disabled={currentPage <= 1}
                   onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                  className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded text-white"
+                  className="px-2.5 py-1 bg-[var(--background-secondary)] hover:bg-[var(--background-secondary)] disabled:opacity-40 rounded text-fg"
                 >
                   ← Prev
                 </button>
@@ -265,13 +265,13 @@ export default function SignDocumentPage() {
                   type="button"
                   disabled={currentPage >= numPages}
                   onClick={() => setCurrentPage((p) => Math.min(numPages, p + 1))}
-                  className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 disabled:opacity-40 rounded text-white"
+                  className="px-2.5 py-1 bg-[var(--background-secondary)] hover:bg-[var(--background-secondary)] disabled:opacity-40 rounded text-fg"
                 >
                   Next →
                 </button>
               </div>
             </div>
-            <div className="flex justify-center bg-black/40 rounded-lg p-2 overflow-hidden border border-slate-800">
+            <div className="flex justify-center bg-black/40 rounded-lg p-2 overflow-hidden border border-card">
               <canvas ref={previewCanvasRef} className="rounded shadow max-h-64 object-contain" />
             </div>
           </div>
@@ -279,12 +279,12 @@ export default function SignDocumentPage() {
 
         <form onSubmit={handleSign} className="space-y-5">
           {/* Mode Switcher */}
-          <div className="flex bg-[#0d1322] p-1 rounded-xl border border-slate-700">
+          <div className="flex bg-card p-1 rounded-xl border border-card">
             <button
               type="button"
               onClick={() => setSignMode("text")}
               className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
-                signMode === "text" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+                signMode === "text" ? "bg-cyan-600 text-fg shadow" : "text-muted hover:text-fg"
               }`}
             >
               Text Signature
@@ -293,7 +293,7 @@ export default function SignDocumentPage() {
               type="button"
               onClick={() => setSignMode("draw")}
               className={`flex-1 py-2 text-xs font-semibold rounded-lg transition-all ${
-                signMode === "draw" ? "bg-cyan-600 text-white shadow" : "text-slate-400 hover:text-white"
+                signMode === "draw" ? "bg-cyan-600 text-fg shadow" : "text-muted hover:text-fg"
               }`}
             >
               Draw Signature
@@ -302,7 +302,7 @@ export default function SignDocumentPage() {
 
           {signMode === "text" ? (
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-2">
                 Signature Text
               </label>
               <input
@@ -310,13 +310,13 @@ export default function SignDocumentPage() {
                 value={signatureText}
                 onChange={(e) => setSignatureText(e.target.value)}
                 placeholder="e.g. John Doe"
-                className="w-full bg-[#0d1322] border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-cyan-500 text-sm"
+                className="w-full bg-card border border-card rounded-xl px-4 py-3 text-fg focus:outline-none focus:border-cyan-500 text-sm"
               />
             </div>
           ) : (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                   Draw Signature
                 </label>
                 <div className="flex items-center space-x-3">
@@ -326,17 +326,17 @@ export default function SignDocumentPage() {
                         key={col}
                         type="button"
                         onClick={() => setPenColor(col)}
-                        className={`w-4 h-4 rounded-full border ${penColor === col ? "border-white scale-110" : "border-transparent"}`}
+                        className={`w-4 h-4 rounded-full border ${penColor === col ? "border-[var(--foreground)] scale-110" : "border-transparent"}`}
                         style={{ backgroundColor: col }}
                       />
                     ))}
                   </div>
-                  <button type="button" onClick={clearCanvas} className="text-xs text-slate-400 hover:text-cyan-400 underline">
+                  <button type="button" onClick={clearCanvas} className="text-xs text-muted hover:text-cyan-400 underline">
                     Clear
                   </button>
                 </div>
               </div>
-              <div className="bg-white rounded-xl overflow-hidden border border-slate-700 flex justify-center p-2">
+              <div className="bg-white rounded-xl overflow-hidden border border-card flex justify-center p-2">
                 <canvas
                   ref={canvasRef}
                   onMouseDown={startDrawing}
@@ -354,7 +354,7 @@ export default function SignDocumentPage() {
 
           {/* Signing Scope Selector (Specific Page vs All Pages) */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-2">
               Signing Scope
             </label>
             <div className="grid grid-cols-2 gap-2">
@@ -364,7 +364,7 @@ export default function SignDocumentPage() {
                 className={`py-2.5 text-xs font-semibold rounded-xl border uppercase tracking-wider transition-all ${
                   signScope === "specific"
                     ? "bg-cyan-600/30 border-cyan-500 text-cyan-300"
-                    : "bg-[#0d1322] border-slate-700 text-slate-400 hover:text-white"
+                    : "bg-card border-card text-muted hover:text-fg"
                 }`}
               >
                 Specific Page ({currentPage})
@@ -375,7 +375,7 @@ export default function SignDocumentPage() {
                 className={`py-2.5 text-xs font-semibold rounded-xl border uppercase tracking-wider transition-all ${
                   signScope === "all"
                     ? "bg-cyan-600/30 border-cyan-500 text-cyan-300"
-                    : "bg-[#0d1322] border-slate-700 text-slate-400 hover:text-white"
+                    : "bg-card border-card text-muted hover:text-fg"
                 }`}
               >
                 All Pages ({numPages})
@@ -385,7 +385,7 @@ export default function SignDocumentPage() {
 
           {/* Position Selector */}
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-2">
               Signature Alignment
             </label>
             <div className="grid grid-cols-3 gap-2">
@@ -397,7 +397,7 @@ export default function SignDocumentPage() {
                   className={`py-2 text-xs font-semibold rounded-xl border uppercase tracking-wider transition-all ${
                     position === pos
                       ? "bg-cyan-600/30 border-cyan-500 text-cyan-300"
-                      : "bg-[#0d1322] border-slate-700 text-slate-400 hover:text-white"
+                      : "bg-card border-card text-muted hover:text-fg"
                   }`}
                 >
                   {pos}
@@ -415,7 +415,7 @@ export default function SignDocumentPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-semibold py-3 px-4 rounded-xl transition-all shadow-lg shadow-cyan-500/20 disabled:opacity-50 text-sm"
+            className="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-fg font-semibold py-3 px-4 rounded-xl transition-all shadow-lg shadow-cyan-500/20 disabled:opacity-50 text-sm"
           >
             {loading ? "Applying Signature..." : "Sign and Download PDF"}
           </button>

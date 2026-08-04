@@ -205,32 +205,32 @@ export default function PdfToImage(): JSX.Element {
   };
 
   return (
-    <div className="min-h-screen bg-[#0b0e14] text-slate-100 flex flex-col items-center justify-center p-6 antialiased selection:bg-blue-500 selection:text-white">
-      <div className="max-w-2xl w-full space-y-8 bg-[#121824] border border-slate-800/80 p-8 rounded-3xl shadow-2xl backdrop-blur-xl">
+    <div className="min-h-screen bg-background text-fg flex flex-col items-center justify-center p-6 antialiased selection:bg-blue-500 selection:text-fg">
+      <div className="max-w-2xl w-full space-y-8 bg-card border border-card p-8 rounded-3xl shadow-2xl backdrop-blur-xl">
         
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold tracking-wide uppercase">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Professional PDF Toolkit</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">PDF to Image Converter</h1>
-          <p className="text-sm text-slate-400">
+          <h1 className="text-3xl font-bold tracking-tight text-fg">PDF to Image Converter</h1>
+          <p className="text-sm text-muted">
             Convert your whole document or a specific targeted page into high-quality images.
           </p>
         </div>
 
         {libLoading ? (
-          <div className="border-2 border-dashed border-slate-700/70 rounded-2xl p-12 flex flex-col items-center justify-center bg-[#182030]/50 space-y-3">
+          <div className="border-2 border-dashed border-card rounded-2xl p-12 flex flex-col items-center justify-center bg-[var(--background-secondary)] space-y-3">
             <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
-            <span className="text-sm text-slate-300 font-medium">Initializing PDF Engine...</span>
+            <span className="text-sm text-fg font-medium">Initializing PDF Engine...</span>
           </div>
         ) : !file ? (
-          <label className="group relative border-2 border-dashed border-slate-700/70 hover:border-blue-500/80 rounded-2xl p-10 flex flex-col items-center justify-center cursor-pointer bg-[#182030]/50 hover:bg-[#182030] transition-all duration-300">
+          <label className="group relative border-2 border-dashed border-card hover:border-blue-500/80 rounded-2xl p-10 flex flex-col items-center justify-center cursor-pointer bg-[var(--background-secondary)] hover:bg-[var(--background-secondary)] transition-all duration-300">
             <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-4 group-hover:scale-110 transition-transform duration-300">
               <UploadCloud className="w-8 h-8" />
             </div>
-            <span className="font-semibold text-slate-200 text-base mb-1">Click to upload or drag & drop</span>
-            <span className="text-xs text-slate-400">PDF documents up to 50MB</span>
+            <span className="font-semibold text-fg text-base mb-1">Click to upload or drag & drop</span>
+            <span className="text-xs text-muted">PDF documents up to 50MB</span>
             <input
               type="file"
               accept=".pdf"
@@ -240,26 +240,26 @@ export default function PdfToImage(): JSX.Element {
           </label>
         ) : (
           <div className="space-y-6">
-            <div className="bg-[#182030] border border-slate-700/60 rounded-2xl p-4 flex items-center justify-between shadow-inner">
+            <div className="bg-[var(--background-secondary)] border border-card rounded-2xl p-4 flex items-center justify-between shadow-inner">
               <div className="flex items-center space-x-3.5 overflow-hidden">
                 <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div className="text-left truncate">
-                  <p className="font-medium text-sm text-slate-200 truncate">{file.name}</p>
-                  <p className="text-xs text-slate-400">{(file.size / (1024 * 1024)).toFixed(2)} MB • {numPages} Pages Detected</p>
+                  <p className="font-medium text-sm text-fg truncate">{file.name}</p>
+                  <p className="text-xs text-muted">{(file.size / (1024 * 1024)).toFixed(2)} MB • {numPages} Pages Detected</p>
                 </div>
               </div>
               <button
                 onClick={handleClearFile}
-                className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition cursor-pointer"
+                className="p-2 text-muted hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition cursor-pointer"
                 title="Remove file"
               >
                 <Trash2 className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 bg-[#182030] p-1.5 rounded-2xl border border-slate-700/60">
+            <div className="grid grid-cols-2 gap-3 bg-[var(--background-secondary)] p-1.5 rounded-2xl border border-card">
               <button
                 onClick={() => {
                   setMode("all");
@@ -267,8 +267,8 @@ export default function PdfToImage(): JSX.Element {
                 }}
                 className={`py-2.5 px-3 rounded-xl text-xs font-semibold tracking-wide transition flex items-center justify-center space-x-2 cursor-pointer ${
                   mode === "all"
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+                    ? "bg-blue-600 text-fg shadow-lg shadow-blue-600/30"
+                    : "text-muted hover:text-fg hover:bg-[var(--background-secondary)]"
                 }`}
               >
                 <Layers className="w-4 h-4" />
@@ -281,8 +281,8 @@ export default function PdfToImage(): JSX.Element {
                 }}
                 className={`py-2.5 px-3 rounded-xl text-xs font-semibold tracking-wide transition flex items-center justify-center space-x-2 cursor-pointer ${
                   mode === "custom"
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+                    ? "bg-blue-600 text-fg shadow-lg shadow-blue-600/30"
+                    : "text-muted hover:text-fg hover:bg-[var(--background-secondary)]"
                 }`}
               >
                 <FileText className="w-4 h-4" />
@@ -291,8 +291,8 @@ export default function PdfToImage(): JSX.Element {
             </div>
 
             {mode === "custom" && (
-              <div className="bg-[#182030] border border-slate-700/60 rounded-2xl p-4 text-left space-y-2">
-                <label className="text-xs text-slate-400 font-bold uppercase tracking-wider">
+              <div className="bg-[var(--background-secondary)] border border-card rounded-2xl p-4 text-left space-y-2">
+                <label className="text-xs text-muted font-bold uppercase tracking-wider">
                   Target Page Number (1 - {numPages || 1})
                 </label>
                 <input
@@ -302,20 +302,20 @@ export default function PdfToImage(): JSX.Element {
                   placeholder="e.g. 1"
                   value={pageNumber}
                   onChange={(e) => setPageNumber(e.target.value)}
-                  className="w-full bg-[#121824] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500 transition"
+                  className="w-full bg-card border border-card rounded-xl px-4 py-2.5 text-sm text-fg placeholder:text-muted focus:outline-none focus:border-blue-500 transition"
                 />
-                <p className="text-[11px] text-slate-500">Enter the exact page number to preview and convert that specific page only.</p>
+                <p className="text-[11px] text-muted">Enter the exact page number to preview and convert that specific page only.</p>
               </div>
             )}
 
-            <div className="bg-[#182030] border border-slate-700/60 rounded-2xl p-4 text-left space-y-2">
-              <label className="text-xs text-slate-400 font-bold uppercase tracking-wider">
+            <div className="bg-[var(--background-secondary)] border border-card rounded-2xl p-4 text-left space-y-2">
+              <label className="text-xs text-muted font-bold uppercase tracking-wider">
                 Select Output Image Format
               </label>
               <select
                 value={imageFormat}
                 onChange={(e) => setImageFormat(e.target.value)}
-                className="w-full bg-[#121824] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-blue-500 transition cursor-pointer"
+                className="w-full bg-card border border-card rounded-xl px-4 py-2.5 text-sm text-fg focus:outline-none focus:border-blue-500 transition cursor-pointer"
               >
                 <option value="image/png">PNG (.png)</option>
                 <option value="image/jpeg">JPEG (.jpg)</option>
@@ -323,13 +323,13 @@ export default function PdfToImage(): JSX.Element {
                 <option value="image/bmp">BMP (.bmp)</option>
                 <option value="image/gif">GIF (.gif)</option>
               </select>
-              <p className="text-[11px] text-slate-500">Choose the file format for your downloaded images.</p>
+              <p className="text-[11px] text-muted">Choose the file format for your downloaded images.</p>
             </div>
 
             {numPages > 0 && (
-              <div className="bg-[#182030] border border-slate-700/60 rounded-2xl p-4 flex flex-col items-center">
+              <div className="bg-[var(--background-secondary)] border border-card rounded-2xl p-4 flex flex-col items-center">
                 <div className="w-full flex items-center justify-between mb-3">
-                  <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">
+                  <span className="text-xs text-muted font-bold uppercase tracking-wider">
                     {mode === "all" ? `Previews (${numPages} Total Pages)` : `Target Page Preview (Page ${pageNumber || "?"})`}
                   </span>
                   <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase">
@@ -343,10 +343,10 @@ export default function PdfToImage(): JSX.Element {
                     if (!isVisible) return null;
 
                     return (
-                      <div key={pageNum} className="bg-black/40 border border-slate-800 rounded-xl p-3 flex flex-col items-center relative shadow-inner">
-                        <div className="w-full flex justify-between items-center mb-2 text-[11px] text-slate-400 px-1">
-                          <span className="font-semibold text-slate-300">Page {pageNum} of {numPages}</span>
-                          <span className="bg-slate-800 px-2 py-0.5 rounded text-blue-400 font-mono uppercase">
+                      <div key={pageNum} className="bg-black/40 border border-card rounded-xl p-3 flex flex-col items-center relative shadow-inner">
+                        <div className="w-full flex justify-between items-center mb-2 text-[11px] text-muted px-1">
+                          <span className="font-semibold text-fg">Page {pageNum} of {numPages}</span>
+                          <span className="bg-[var(--background-secondary)] px-2 py-0.5 rounded text-blue-400 font-mono uppercase">
                             {imageFormat.split("/")[1]}
                           </span>
                         </div>
@@ -360,7 +360,7 @@ export default function PdfToImage(): JSX.Element {
                     );
                   })}
                 </div>
-                <p className="text-[11px] text-slate-500 mt-3 text-center">
+                <p className="text-[11px] text-muted mt-3 text-center">
                   {mode === "all" ? "Showing all document pages." : "Showing preview for the specified target page only."}
                 </p>
               </div>
@@ -378,15 +378,15 @@ export default function PdfToImage(): JSX.Element {
           <button
             onClick={handleDownloadImages}
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 shadow-lg shadow-blue-600/30 cursor-pointer"
+            className="w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-fg font-semibold py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 shadow-lg shadow-blue-600/30 cursor-pointer"
           >
             <Download className="w-5 h-5" />
             <span>{loading ? "Converting Images..." : mode === "all" ? `Download All Images (${imageFormat.split("/")[1].toUpperCase()})` : `Download Page Image (${imageFormat.split("/")[1].toUpperCase()})`}</span>
           </button>
         )}
 
-        <div className="pt-2 flex items-center justify-center space-x-1.5 text-slate-500 text-xs">
-          <ShieldCheck className="w-4 h-4 text-slate-400" />
+        <div className="pt-2 flex items-center justify-center space-x-1.5 text-muted text-xs">
+          <ShieldCheck className="w-4 h-4 text-muted" />
           <span>Secure client-side processing • No server upload needed</span>
         </div>
 

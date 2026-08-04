@@ -56,26 +56,26 @@ export default function PptToPdfPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#0B0F19] text-slate-100 flex flex-col items-center justify-center p-6">
-      <div className="max-w-3xl w-full bg-[#111827] rounded-3xl shadow-2xl p-10 border border-slate-800 flex flex-col items-center">
+    <main className="min-h-screen bg-background text-fg flex flex-col items-center justify-center p-6">
+      <div className="max-w-3xl w-full bg-card rounded-3xl shadow-2xl p-10 border border-card flex flex-col items-center">
         
         {/* Badge */}
-        <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-800/80 border border-slate-700/60 text-sky-400 text-xs font-semibold tracking-wide uppercase mb-6 shadow-sm">
+        <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[var(--background-secondary)] border border-card text-sky-400 text-xs font-semibold tracking-wide uppercase mb-6 shadow-sm">
           <Sparkles className="w-3.5 h-3.5" />
           DOCUMENT CONVERSION SUITE
         </div>
 
         {/* Title & Subtitle */}
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2 text-white text-center">
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2 text-fg text-center">
           PPT to PDF Converter
         </h1>
-        <p className="text-slate-400 text-sm text-center mb-8 max-w-md">
+        <p className="text-muted text-sm text-center mb-8 max-w-md">
           Transform your PowerPoint presentation slides into clean, secure target PDF output.
         </p>
 
         {/* Form */}
         <form onSubmit={handleConvert} className="w-full space-y-6">
-          <label className="relative flex flex-col items-center justify-center border-2 border-dashed border-sky-500/40 hover:border-sky-400/80 rounded-2xl p-10 text-center cursor-pointer transition bg-[#0E1526]/60 group">
+          <label className="relative flex flex-col items-center justify-center border-2 border-dashed border-sky-500/40 hover:border-sky-400/80 rounded-2xl p-10 text-center cursor-pointer transition bg-card group">
             <input
               type="file"
               accept=".pptx, .ppt"
@@ -87,10 +87,10 @@ export default function PptToPdfPage() {
               <CloudUpload className="w-7 h-7" />
             </div>
 
-            <span className="text-base font-semibold text-slate-200 mb-1">
+            <span className="text-base font-semibold text-fg mb-1">
               {file ? file.name : "Click to upload PowerPoint file"}
             </span>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-muted">
               Supports .pptx and .ppt formats
             </span>
           </label>
@@ -104,15 +104,15 @@ export default function PptToPdfPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 px-4 bg-sky-600 hover:bg-sky-500 text-white font-medium rounded-xl transition shadow-lg shadow-sky-600/25 disabled:opacity-50 text-sm tracking-wide"
+            className="w-full py-3.5 px-4 bg-sky-600 hover:bg-sky-500 text-fg font-medium rounded-xl transition shadow-lg shadow-sky-600/25 disabled:opacity-50 text-sm tracking-wide"
           >
             {loading ? "Converting presentation..." : "Convert to PDF"}
           </button>
         </form>
 
         {/* Footer info security badge */}
-        <div className="flex items-center gap-2 mt-8 text-xs text-slate-400">
-          <ShieldCheck className="w-4 h-4 text-slate-400" />
+        <div className="flex items-center gap-2 mt-8 text-xs text-muted">
+          <ShieldCheck className="w-4 h-4 text-muted" />
           <span>Secure client-side document processing • No file retention</span>
         </div>
 

@@ -256,21 +256,21 @@ export default function ImageToPdf(): JSX.Element {
   const selectedImg = images.find((img) => img.id === selectedImageId);
 
   return (
-    <div className="min-h-screen bg-[#0b0e14] text-slate-100 flex flex-col items-center justify-center p-6 antialiased selection:bg-blue-500 selection:text-white">
-      <div className="max-w-4xl w-full space-y-8 bg-[#121824] border border-slate-800/80 p-8 rounded-3xl shadow-2xl backdrop-blur-xl">
+    <div className="min-h-screen bg-background text-fg flex flex-col items-center justify-center p-6 antialiased selection:bg-blue-500 selection:text-fg">
+      <div className="max-w-4xl w-full space-y-8 bg-card border border-card p-8 rounded-3xl shadow-2xl backdrop-blur-xl">
         
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold tracking-wide uppercase">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Professional PDF Toolkit</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Image & Text PDF Editor</h1>
-          <p className="text-sm text-slate-400">
+          <h1 className="text-3xl font-bold tracking-tight text-fg">Image & Text PDF Editor</h1>
+          <p className="text-sm text-muted">
             Customize layout size, position, and add styled text labels or captions to your PDF pages.
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-3 bg-[#182030] p-1.5 rounded-2xl border border-slate-700/60">
+        <div className="grid grid-cols-2 gap-3 bg-[var(--background-secondary)] p-1.5 rounded-2xl border border-card">
           <button
             onClick={() => {
               setConversionType("single");
@@ -281,8 +281,8 @@ export default function ImageToPdf(): JSX.Element {
             }}
             className={`py-2.5 px-3 rounded-xl text-xs font-semibold tracking-wide transition flex items-center justify-center space-x-2 cursor-pointer ${
               conversionType === "single"
-                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+                ? "bg-blue-600 text-fg shadow-lg shadow-blue-600/30"
+                : "text-muted hover:text-fg hover:bg-[var(--background-secondary)]"
             }`}
           >
             <ImageIcon className="w-4 h-4" />
@@ -292,8 +292,8 @@ export default function ImageToPdf(): JSX.Element {
             onClick={() => setConversionType("multi")}
             className={`py-2.5 px-3 rounded-xl text-xs font-semibold tracking-wide transition flex items-center justify-center space-x-2 cursor-pointer ${
               conversionType === "multi"
-                ? "bg-blue-600 text-white shadow-lg shadow-blue-600/30"
-                : "text-slate-400 hover:text-slate-200 hover:bg-slate-800/50"
+                ? "bg-blue-600 text-fg shadow-lg shadow-blue-600/30"
+                : "text-muted hover:text-fg hover:bg-[var(--background-secondary)]"
             }`}
           >
             <Layers className="w-4 h-4" />
@@ -302,14 +302,14 @@ export default function ImageToPdf(): JSX.Element {
         </div>
 
         {images.length === 0 && (
-          <label className="group relative border-2 border-dashed border-slate-700/70 hover:border-blue-500/80 rounded-2xl p-10 flex flex-col items-center justify-center cursor-pointer bg-[#182030]/50 hover:bg-[#182030] transition-all duration-300">
+          <label className="group relative border-2 border-dashed border-card hover:border-blue-500/80 rounded-2xl p-10 flex flex-col items-center justify-center cursor-pointer bg-[var(--background-secondary)] hover:bg-[var(--background-secondary)] transition-all duration-300">
             <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-4 group-hover:scale-110 transition-transform duration-300">
               <UploadCloud className="w-8 h-8" />
             </div>
-            <span className="font-semibold text-slate-200 text-base mb-1">
+            <span className="font-semibold text-fg text-base mb-1">
               {conversionType === "single" ? "Click to upload an image" : "Click to upload multiple images"}
             </span>
-            <span className="text-xs text-slate-400">Supports PNG, JPG, WebP, GIF, BMP</span>
+            <span className="text-xs text-muted">Supports PNG, JPG, WebP, GIF, BMP</span>
             <input
               ref={fileInputRef}
               type="file"
@@ -324,7 +324,7 @@ export default function ImageToPdf(): JSX.Element {
         {images.length > 0 && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-400 font-bold uppercase tracking-wider">
+              <span className="text-xs text-muted font-bold uppercase tracking-wider">
                 Uploaded Files ({images.length})
               </span>
               <div className="flex items-center space-x-3">
@@ -363,8 +363,8 @@ export default function ImageToPdf(): JSX.Element {
                   onClick={() => setSelectedImageId(item.id)}
                   className={`flex items-center space-x-2 p-2 rounded-xl border shrink-0 transition cursor-pointer ${
                     selectedImageId === item.id
-                      ? "bg-blue-600/20 border-blue-500 text-white"
-                      : "bg-[#182030] border-slate-700/60 text-slate-400 hover:bg-slate-800"
+                      ? "bg-blue-600/20 border-blue-500 text-fg"
+                      : "bg-[var(--background-secondary)] border-card text-muted hover:bg-[var(--background-secondary)]"
                   }`}
                 >
                   <img src={item.previewUrl} alt="" className="w-8 h-8 object-cover rounded-md" />
@@ -374,12 +374,12 @@ export default function ImageToPdf(): JSX.Element {
             </div>
 
             {selectedImg && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-[#182030] border border-slate-700/60 rounded-2xl p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-[var(--background-secondary)] border border-card rounded-2xl p-6">
                 
                 {/* Visual Preview Box */}
-                <div className="flex flex-col items-center justify-center bg-black/40 border border-slate-800 rounded-xl p-4 relative min-h-[300px]">
-                  <span className="absolute top-3 left-3 text-[11px] text-slate-400 uppercase font-mono tracking-wider">A4 Page Preview</span>
-                  <div className="w-[150px] h-[212px] bg-white rounded shadow-md relative overflow-hidden border border-slate-300">
+                <div className="flex flex-col items-center justify-center bg-black/40 border border-card rounded-xl p-4 relative min-h-[300px]">
+                  <span className="absolute top-3 left-3 text-[11px] text-muted uppercase font-mono tracking-wider">A4 Page Preview</span>
+                  <div className="w-[150px] h-[212px] bg-white rounded shadow-md relative overflow-hidden border border-card">
                     <img
                       src={selectedImg.previewUrl}
                       alt="Transform preview"
@@ -417,46 +417,46 @@ export default function ImageToPdf(): JSX.Element {
                 <div className="space-y-5 max-h-[420px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-700">
                   
                   <div className="space-y-3">
-                    <div className="flex items-center space-x-2 text-slate-200 text-sm font-semibold border-b border-slate-700 pb-2">
+                    <div className="flex items-center space-x-2 text-fg text-sm font-semibold border-b border-card pb-2">
                       <Sliders className="w-4 h-4 text-blue-400" />
                       <span>Image Size & Position (mm)</span>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-[11px] text-slate-400 font-bold uppercase">Width</label>
+                        <label className="text-[11px] text-muted font-bold uppercase">Width</label>
                         <input
                           type="number"
                           value={selectedImg.width}
                           onChange={(e) => handlePropertyChange("width", parseFloat(e.target.value) || 10)}
-                          className="w-full bg-[#121824] border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 mt-1 focus:outline-none focus:border-blue-500"
+                          className="w-full bg-card border border-card rounded-xl px-3 py-1.5 text-xs text-fg mt-1 focus:outline-none focus:border-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] text-slate-400 font-bold uppercase">Height</label>
+                        <label className="text-[11px] text-muted font-bold uppercase">Height</label>
                         <input
                           type="number"
                           value={selectedImg.height}
                           onChange={(e) => handlePropertyChange("height", parseFloat(e.target.value) || 10)}
-                          className="w-full bg-[#121824] border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 mt-1 focus:outline-none focus:border-blue-500"
+                          className="w-full bg-card border border-card rounded-xl px-3 py-1.5 text-xs text-fg mt-1 focus:outline-none focus:border-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] text-slate-400 font-bold uppercase">X Offset</label>
+                        <label className="text-[11px] text-muted font-bold uppercase">X Offset</label>
                         <input
                           type="number"
                           value={selectedImg.xPos}
                           onChange={(e) => handlePropertyChange("xPos", parseFloat(e.target.value) || 0)}
-                          className="w-full bg-[#121824] border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 mt-1 focus:outline-none focus:border-blue-500"
+                          className="w-full bg-card border border-card rounded-xl px-3 py-1.5 text-xs text-fg mt-1 focus:outline-none focus:border-blue-500"
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] text-slate-400 font-bold uppercase">Y Offset</label>
+                        <label className="text-[11px] text-muted font-bold uppercase">Y Offset</label>
                         <input
                           type="number"
                           value={selectedImg.yPos}
                           onChange={(e) => handlePropertyChange("yPos", parseFloat(e.target.value) || 0)}
-                          className="w-full bg-[#121824] border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 mt-1 focus:outline-none focus:border-blue-500"
+                          className="w-full bg-card border border-card rounded-xl px-3 py-1.5 text-xs text-fg mt-1 focus:outline-none focus:border-blue-500"
                         />
                       </div>
                     </div>
@@ -464,8 +464,8 @@ export default function ImageToPdf(): JSX.Element {
 
                   {/* Text Annotations Section */}
                   <div className="space-y-3 pt-2">
-                    <div className="flex items-center justify-between border-b border-slate-700 pb-2">
-                      <div className="flex items-center space-x-2 text-slate-200 text-sm font-semibold">
+                    <div className="flex items-center justify-between border-b border-card pb-2">
+                      <div className="flex items-center space-x-2 text-fg text-sm font-semibold">
                         <Type className="w-4 h-4 text-blue-400" />
                         <span>Text Annotations</span>
                       </div>
@@ -478,12 +478,12 @@ export default function ImageToPdf(): JSX.Element {
                     </div>
 
                     {selectedImg.texts.map((t, index) => (
-                      <div key={t.id} className="bg-[#121824] border border-slate-700/80 rounded-xl p-3 space-y-3">
+                      <div key={t.id} className="bg-card border border-card rounded-xl p-3 space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-slate-400 uppercase">Text Item #{index + 1}</span>
+                          <span className="text-[11px] font-bold text-muted uppercase">Text Item #{index + 1}</span>
                           <button
                             onClick={() => handleDeleteTextAnnotation(t.id)}
-                            className="text-slate-400 hover:text-rose-400 transition cursor-pointer"
+                            className="text-muted hover:text-rose-400 transition cursor-pointer"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -494,16 +494,16 @@ export default function ImageToPdf(): JSX.Element {
                           value={t.text}
                           onChange={(e) => handleUpdateTextAnnotation(t.id, { text: e.target.value })}
                           placeholder="Enter caption text..."
-                          className="w-full bg-[#182030] border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-blue-500"
+                          className="w-full bg-[var(--background-secondary)] border border-card rounded-lg px-2.5 py-1.5 text-xs text-fg focus:outline-none focus:border-blue-500"
                         />
 
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <label className="text-[10px] text-slate-400 uppercase">Font</label>
+                            <label className="text-[10px] text-muted uppercase">Font</label>
                             <select
                               value={t.fontFamily}
                               onChange={(e) => handleUpdateTextAnnotation(t.id, { fontFamily: e.target.value })}
-                              className="w-full bg-[#182030] border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-200 mt-0.5 focus:outline-none"
+                              className="w-full bg-[var(--background-secondary)] border border-card rounded-lg px-2 py-1 text-xs text-fg mt-0.5 focus:outline-none"
                             >
                               <option value="helvetica">Helvetica</option>
                               <option value="times">Times New Roman</option>
@@ -511,65 +511,65 @@ export default function ImageToPdf(): JSX.Element {
                             </select>
                           </div>
                           <div>
-                            <label className="text-[10px] text-slate-400 uppercase">Size (pt)</label>
+                            <label className="text-[10px] text-muted uppercase">Size (pt)</label>
                             <input
                               type="number"
                               value={t.fontSize}
                               onChange={(e) => handleUpdateTextAnnotation(t.id, { fontSize: parseFloat(e.target.value) || 10 })}
-                              className="w-full bg-[#182030] border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-200 mt-0.5 focus:outline-none"
+                              className="w-full bg-[var(--background-secondary)] border border-card rounded-lg px-2 py-1 text-xs text-fg mt-0.5 focus:outline-none"
                             />
                           </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <label className="text-[10px] text-slate-400 uppercase">X Coord (mm)</label>
+                            <label className="text-[10px] text-muted uppercase">X Coord (mm)</label>
                             <input
                               type="number"
                               value={t.x}
                               onChange={(e) => handleUpdateTextAnnotation(t.id, { x: parseFloat(e.target.value) || 0 })}
-                              className="w-full bg-[#182030] border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-200 mt-0.5 focus:outline-none"
+                              className="w-full bg-[var(--background-secondary)] border border-card rounded-lg px-2 py-1 text-xs text-fg mt-0.5 focus:outline-none"
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] text-slate-400 uppercase">Y Coord (mm)</label>
+                            <label className="text-[10px] text-muted uppercase">Y Coord (mm)</label>
                             <input
                               type="number"
                               value={t.y}
                               onChange={(e) => handleUpdateTextAnnotation(t.id, { y: parseFloat(e.target.value) || 0 })}
-                              className="w-full bg-[#182030] border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-200 mt-0.5 focus:outline-none"
+                              className="w-full bg-[var(--background-secondary)] border border-card rounded-lg px-2 py-1 text-xs text-fg mt-0.5 focus:outline-none"
                             />
                           </div>
                         </div>
 
                         <div className="flex items-center justify-between pt-1">
                           <div className="flex items-center space-x-3">
-                            <label className="flex items-center space-x-1.5 text-xs text-slate-300 cursor-pointer">
+                            <label className="flex items-center space-x-1.5 text-xs text-fg cursor-pointer">
                               <input
                                 type="checkbox"
                                 checked={t.isBold}
                                 onChange={(e) => handleUpdateTextAnnotation(t.id, { isBold: e.target.checked })}
-                                className="rounded bg-slate-800 border-slate-600 text-blue-600 focus:ring-0"
+                                className="rounded bg-[var(--background-secondary)] border-card text-blue-600 focus:ring-0"
                               />
                               <span>Bold</span>
                             </label>
-                            <label className="flex items-center space-x-1.5 text-xs text-slate-300 cursor-pointer">
+                            <label className="flex items-center space-x-1.5 text-xs text-fg cursor-pointer">
                               <input
                                 type="checkbox"
                                 checked={t.isItalic}
                                 onChange={(e) => handleUpdateTextAnnotation(t.id, { isItalic: e.target.checked })}
-                                className="rounded bg-slate-800 border-slate-600 text-blue-600 focus:ring-0"
+                                className="rounded bg-[var(--background-secondary)] border-card text-blue-600 focus:ring-0"
                               />
                               <span>Italic</span>
                             </label>
                           </div>
                           <div className="flex items-center space-x-1.5">
-                            <label className="text-[10px] text-slate-400">Color</label>
+                            <label className="text-[10px] text-muted">Color</label>
                             <input
                               type="color"
                               value={t.color}
                               onChange={(e) => handleUpdateTextAnnotation(t.id, { color: e.target.value })}
-                              className="w-6 h-6 rounded bg-transparent cursor-pointer border border-slate-600"
+                              className="w-6 h-6 rounded bg-transparent cursor-pointer border border-card"
                             />
                           </div>
                         </div>
@@ -601,15 +601,15 @@ export default function ImageToPdf(): JSX.Element {
           <button
             onClick={handleConvertToPdf}
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 shadow-lg shadow-blue-600/30 cursor-pointer"
+            className="w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-fg font-semibold py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 shadow-lg shadow-blue-600/30 cursor-pointer"
           >
             <Download className="w-5 h-5" />
             <span>{loading ? "Generating PDF..." : conversionType === "single" ? "Convert Image & Text to PDF" : `Convert ${images.length} Pages to PDF`}</span>
           </button>
         )}
 
-        <div className="pt-2 flex items-center justify-center space-x-1.5 text-slate-500 text-xs">
-          <ShieldCheck className="w-4 h-4 text-slate-400" />
+        <div className="pt-2 flex items-center justify-center space-x-1.5 text-muted text-xs">
+          <ShieldCheck className="w-4 h-4 text-muted" />
           <span>Secure client-side processing • No external file storage</span>
         </div>
 

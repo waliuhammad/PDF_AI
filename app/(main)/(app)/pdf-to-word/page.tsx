@@ -178,7 +178,7 @@ export default function PdfToWordPage() {
               type="button"
               onClick={executeConversion}
               disabled={processing}
-              className="flex-1 py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-base shadow-lg shadow-blue-600/25 disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all"
+              className="flex-1 py-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-fg font-bold text-base shadow-lg shadow-blue-600/25 disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all"
             >
               {processing ? <Loader2 className="animate-spin" size={20} /> : <Download size={20} />}
               {processing ? "Converting to Word..." : "Convert to Word (.docx)"}
