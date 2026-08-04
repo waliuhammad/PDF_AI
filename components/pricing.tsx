@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Check, Star, Users, Crown } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -373,15 +374,18 @@ export default function Pricing() {
 
 
 
-                            <button
+                            <Link
+                                href="/register"
                                 className={`
                                     mt-7
+                                    block
                                     w-full
                                     py-3
                                     rounded-xl
                                     text-xs
                                     md:text-sm
                                     font-medium
+                                    text-center
                                     transition-all
 
                                     ${plan.popular
@@ -401,7 +405,7 @@ export default function Pricing() {
                                         "Upgrade Now"
                                 }
 
-                            </button>
+                            </Link>
 
 
                         </motion.div>
