@@ -53,14 +53,14 @@ export function Sidebar() {
         <>
             <div className={`flex items-center justify-between px-2 mb-3 ${collapsed && !isMobile ? "px-0 justify-center" : ""}`}>
                 {(!collapsed || isMobile) && (
-                    <Link href="/" className="text-xl font-bold text-[#1e202d] truncate" onClick={() => isMobile && setOpen(false)}>
-                        PDF<span className="text-[#1e202d]">AI</span>
+                    <Link href="/" className="text-xl font-bold text-fg truncate" onClick={() => isMobile && setOpen(false)}>
+                        PDF<span className="text-fg">AI</span>
                     </Link>
                 )}
                 {!isMobile && (
                     <button
                         onClick={() => setCollapsed(!collapsed)}
-                        className="p-1 rounded-lg text-[#1e202d] hover:bg-[#1f2230] hover:text-white transition-colors"
+                        className="p-1 rounded-lg text-fg hover:bg-[var(--background-secondary)] hover:text-fg transition-colors"
                         aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
                         title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
                     >
@@ -72,16 +72,16 @@ export function Sidebar() {
             {/* User info */}
             {firebaseUser && (
                 <div
-                    className={`flex items-center gap-2.5 px-2 py-2 mb-2 rounded-xl bg-[#1f2230]/5 border border-[#1f2230]/10 ${collapsed && !isMobile ? "justify-center px-0" : ""
+                    className={`flex items-center gap-2.5 px-2 py-2 mb-2 rounded-xl bg-[var(--background-secondary)] border border-card ${collapsed && !isMobile ? "justify-center px-0" : ""
                         }`}
                 >
-                    <div className="w-8 h-8 rounded-full bg-[#1f2230] text-white flex items-center justify-center text-sm font-semibold shrink-0">
+                    <div className="w-8 h-8 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-sm font-semibold shrink-0">
                         {initial}
                     </div>
                     {(!collapsed || isMobile) && (
                         <div className="min-w-0">
-                            <p className="text-sm font-medium text-[#1e202d] truncate">{displayName}</p>
-                            <p className="text-xs text-[#1e202d]/60 truncate">{displayEmail}</p>
+                            <p className="text-sm font-medium text-fg truncate">{displayName}</p>
+                            <p className="text-xs text-muted truncate">{displayEmail}</p>
                         </div>
                     )}
                 </div>
@@ -99,8 +99,8 @@ export function Sidebar() {
                                 onClick={() => isMobile && setOpen(false)}
                                 title={collapsed && !isMobile ? item.label : undefined}
                                 className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-base font-medium transition-all ${active
-                                    ? "bg-[#1f2230] text-white shadow-md"
-                                    : "text-[#1e202d] hover:bg-[#1f2230] hover:text-white"
+                                    ? "bg-[var(--primary)] text-white shadow-md"
+                                    : "text-fg hover:bg-[var(--background-secondary)] hover:text-fg"
                                     } ${collapsed && !isMobile ? "justify-center px-2" : ""}`}
                             >
                                 <item.icon size={18} className="shrink-0" />
@@ -112,16 +112,16 @@ export function Sidebar() {
             </nav>
 
             {(!collapsed || isMobile) && (
-                <div className="rounded-xl bg-[#1f2230]/5 p-2.5 my-2 border border-[#1f2230]/10">
+                <div className="rounded-xl bg-[var(--background-secondary)] p-2.5 my-2 border border-card">
                     <div className="flex items-center gap-1.5 mb-0.5">
-                        <Sparkles size={15} className="text-[#1e202d] shrink-0" />
-                        <span className="text-sm font-semibold text-[#1e202d]">Upgrade to Pro</span>
+                        <Sparkles size={15} className="text-fg shrink-0" />
+                        <span className="text-sm font-semibold text-fg">Upgrade to Pro</span>
                     </div>
-                    <p className="text-xs text-[#1e202d]/80 mb-2">Unlock unlimited chats & more.</p>
+                    <p className="text-xs text-muted mb-2">Unlock unlimited chats & more.</p>
                     <Link
                         href="/pricing"
                         onClick={() => isMobile && setOpen(false)}
-                        className="block text-center text-xs font-medium py-1.5 rounded-lg bg-[#1f2230] text-white hover:bg-[#2b2f42] transition-colors shadow-sm"
+                        className="block text-center text-xs font-medium py-1.5 rounded-lg bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] transition-colors shadow-sm"
                     >
                         Upgrade Now
                     </Link>
@@ -132,7 +132,7 @@ export function Sidebar() {
                 onClick={handleLogout}
                 disabled={loggingOut}
                 title={collapsed && !isMobile ? "Log out" : undefined}
-                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-base font-medium text-[#1e202d] hover:bg-[#1f2230] hover:text-white transition-all disabled:opacity-60 ${collapsed && !isMobile ? "justify-center px-2" : ""
+                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-base font-medium text-fg hover:bg-[var(--background-secondary)] hover:text-fg transition-all disabled:opacity-60 ${collapsed && !isMobile ? "justify-center px-2" : ""
                     }`}
             >
                 <LogOut size={18} className="shrink-0" />
@@ -143,17 +143,17 @@ export function Sidebar() {
 
     return (
         <>
-            <div className="md:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 border-b border-slate-200 bg-white">
-                <Link href="/" className="text-xl font-bold text-[#1e202d]">
+            <div className="md:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 border-b border-card bg-card">
+                <Link href="/" className="text-xl font-bold text-fg">
                     PDF<span>AI</span>
                 </Link>
-                <button onClick={() => setOpen(true)} className="text-[#1e202d] p-1" aria-label="Open menu">
+                <button onClick={() => setOpen(true)} className="text-fg p-1" aria-label="Open menu">
                     <Menu size={22} />
                 </button>
             </div>
 
             <aside
-                className={`hidden md:flex h-screen sticky top-0 flex-col border-r border-slate-200 bg-white py-3 shrink-0 transition-all duration-300 shadow-sm overflow-hidden ${collapsed ? "w-20 px-3" : "w-64 px-3.5"
+                className={`hidden md:flex h-screen sticky top-0 flex-col border-r border-card bg-card py-3 shrink-0 transition-all duration-300 shadow-sm overflow-hidden ${collapsed ? "w-20 px-3" : "w-64 px-3.5"
                     }`}
             >
                 {content(false)}
@@ -162,10 +162,10 @@ export function Sidebar() {
             {open && (
                 <div className="md:hidden fixed inset-0 z-50 flex">
                     <div className="absolute inset-0 bg-black/40 backdrop-blur-xs" onClick={() => setOpen(false)} />
-                    <aside className="relative w-72 max-w-[80%] h-full bg-white px-3.5 py-3 flex flex-col shadow-2xl border-r border-slate-200 overflow-hidden">
+                    <aside className="relative w-72 max-w-[80%] h-full bg-card px-3.5 py-3 flex flex-col shadow-2xl border-r border-card overflow-hidden">
                         <button
                             onClick={() => setOpen(false)}
-                            className="absolute top-3 right-3 text-[#1e202d]"
+                            className="absolute top-3 right-3 text-fg"
                             aria-label="Close menu"
                         >
                             <X size={20} />
