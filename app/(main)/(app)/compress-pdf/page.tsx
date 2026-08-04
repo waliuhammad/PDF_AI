@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import React, { useState, useRef } from "react";
 import { Upload, FileText, X, FileArchive, Download, Loader2, CheckCircle2 } from "lucide-react";
 
 interface TargetOption {
@@ -120,117 +120,179 @@ export default function CompressPdfPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto w-full px-4 py-8">
-      <div className="text-center mb-8 lg:mb-10">
-        <div className="w-12 h-12 lg:w-14 lg:h-14 mx-auto rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-4">
-          <FileArchive className="text-blue-400" size={24} />
+    <div className="max-w-5xl mx-auto w-full px-4">
+      <div className="text-center mb-8">
+        <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-50 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] flex items-center justify-center mb-3 text-slate-900 dark:text-white">
+          <FileArchive size={28} />
         </div>
-        <h1 className="text-xl lg:text-2xl font-bold text-fg tracking-tight">Compress PDF</h1>
-        <p className="text-muted text-sm mt-1">Select your target size and compress your PDF.</p>
+        <h1 className="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Compress PDF</h1>
+        <p className="text-slate-600 dark:text-[#9ca3af] text-sm mt-1.5 max-w-lg mx-auto">
+          Select your target size and compress your PDF while keeping the best possible quality.
+        </p>
       </div>
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="application/pdf"
+        hidden
+        onChange={(e) => handleFile(e.target.files)}
+      />
 
       {!fileDetails ? (
         <div
-          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
           onDragLeave={() => setIsDragging(false)}
-          onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFile(e.dataTransfer.files); }}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDragging(false);
+            handleFile(e.dataTransfer.files);
+          }}
           onClick={() => inputRef.current?.click()}
-          className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 sm:p-10 text-center transition-colors bg-card border-card hover:border-blue-500/50 ${
-            isDragging ? "border-blue-500 bg-blue-500/5" : ""
+          className={`cursor-pointer rounded-[32px] p-16 h-[380px] flex flex-col items-center justify-center text-center transition-all bg-white dark:bg-[#1b1e29] border border-slate-200 dark:border-[#272c3a] shadow-xl ${
+            isDragging ? "border-slate-900 dark:border-white scale-[1.01]" : "hover:border-slate-300 dark:hover:border-[#333a4a]"
           }`}
         >
-          <input ref={inputRef} type="file" accept="application/pdf" hidden onChange={(e) => handleFile(e.target.files)} />
-          <div className="w-12 h-12 mx-auto rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-3 text-blue-400">
-            <Upload size={22} />
+          <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-[#232836] mx-auto flex items-center justify-center mb-4 text-slate-900 dark:text-white shadow-sm border border-slate-300 dark:border-[#32394a]">
+            <Upload size={26} />
           </div>
-          <p className="text-fg font-medium text-sm">Drag & drop a PDF file here</p>
-          <p className="text-muted text-xs mt-1">or click to browse</p>
+          <p className="text-slate-900 dark:text-white font-semibold text-lg">Click to browse or drag & drop PDFs</p>
+          <p className="text-slate-600 dark:text-[#9ca3af] text-sm mt-1">Upload a document to start compression</p>
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-card">
-            <div className="w-9 h-9 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center shrink-0">
-              <FileText size={16} className="text-blue-400" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-fg text-sm truncate">{fileDetails.name}</p>
-              <p className="text-muted text-xs">Original Size: <span className="font-semibold text-fg">{fileDetails.formattedSize}</span></p>
+          <div className="bg-white dark:bg-[#111318] border border-slate-200 dark:border-[#222632] rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] flex items-center justify-center shrink-0 text-slate-900 dark:text-white">
+                <FileText size={20} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-slate-900 dark:text-white text-sm font-bold truncate">{fileDetails.name}</p>
+                <p className="text-xs text-slate-600 dark:text-[#9ca3af] mt-0.5">
+                  Original Size: <strong className="text-slate-900 dark:text-white">{fileDetails.formattedSize}</strong>
+                </p>
+              </div>
             </div>
             <button
-              onClick={() => { setFileDetails(null); setRawFile(null); setDone(false); setErrorMessage(null); }}
-              className="text-muted hover:text-fg shrink-0 p-1"
-            >
-              <X size={16} />
-            </button>
-          </div>
-
-          <div className="p-5 rounded-2xl bg-card border border-card space-y-4">
-            <label className="text-sm font-medium text-fg block">Select Compression Level & Target Size</label>
-            <p className="text-xs text-muted mb-2">Choose from 6 target sizes generated for your PDF:</p>
-
-            <select
-              value={selectedOption?.targetKB || ""}
-              onChange={(e) => {
-                const opt = options.find((o) => o.targetKB === Number(e.target.value));
-                if (opt) setSelectedOption(opt);
+              type="button"
+              onClick={() => {
+                setFileDetails(null);
+                setRawFile(null);
                 setDone(false);
                 setErrorMessage(null);
               }}
-              className="w-full bg-card border border-card rounded-xl px-3.5 py-2.5 text-fg text-sm focus:outline-none focus:border-blue-500 transition-colors cursor-pointer"
+              className="py-1.5 px-3.5 rounded-xl bg-red-950/50 hover:bg-red-900/50 text-red-400 font-semibold text-xs flex items-center gap-1.5 transition-colors shrink-0"
             >
-              {options.map((opt) => (
-                <option key={opt.targetKB} value={opt.targetKB} className="bg-card text-fg">
-                  {opt.label}
-                </option>
-              ))}
-            </select>
+              <X size={15} /> Remove File
+            </button>
           </div>
 
-          {errorMessage && (
-            <div className="p-3.5 rounded-xl bg-red-950/50 border border-red-800/80 text-red-300 text-xs text-center font-medium">
-              {errorMessage}
+          <div className="bg-white dark:bg-[#111318] border border-slate-200 dark:border-[#222632] rounded-3xl p-6 shadow-md space-y-6">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#222632]">
+              <div className="flex items-center gap-2">
+                <FileArchive size={18} className="text-slate-900 dark:text-white" />
+                <span className="text-sm font-extrabold text-slate-900 dark:text-white">Compression Configuration</span>
+              </div>
             </div>
-          )}
 
-          <div className="text-center pt-2">
-            {!done ? (
-              <button
-                onClick={executeCompress}
-                disabled={processing}
-                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-fg font-semibold transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 flex items-center justify-center gap-2 mx-auto text-sm"
-              >
-                {processing && <Loader2 className="animate-spin" size={18} />}
-                {processing ? "Compressing..." : "Compress PDF"}
-              </button>
-            ) : (
-              <div className="p-6 rounded-2xl bg-card border border-card space-y-4">
-                <div className="flex items-center justify-center gap-2 text-emerald-400 font-semibold text-base">
-                  <CheckCircle2 size={20} />
-                  <span>PDF Compressed Successfully!</span>
-                </div>
-                {compressedSize && (
-                  <p className="text-xs sm:text-sm text-fg">
-                    Size reduced from <span className="font-semibold text-fg">{fileDetails.formattedSize}</span> to{" "}
-                    <span className="font-semibold text-fg">{formatSize(compressedSize)}</span>
-                    {calculateSavings() > 0 && (
-                      <span className="ml-2 px-2 py-0.5 rounded-full text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium inline-block">
-                        -{calculateSavings()}%
-                      </span>
-                    )}
-                  </p>
-                )}
-                <div className="pt-2">
-                  <button
-                    onClick={executeCompress}
-                    disabled={processing}
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-500 hover:to-cyan-400 text-fg font-semibold transition-all shadow-lg shadow-blue-500/20 disabled:opacity-50 text-sm"
-                  >
-                    {processing ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
-                    Download Compressed PDF
-                  </button>
-                </div>
+            <div className="space-y-4">
+              <div>
+                <label className="text-xs uppercase tracking-wider font-semibold text-slate-600 dark:text-[#9ca3af] block mb-1.5">
+                  Select Compression Level & Target Size
+                </label>
+                <select
+                  value={selectedOption?.targetKB || ""}
+                  onChange={(e) => {
+                    const opt = options.find((o) => o.targetKB === Number(e.target.value));
+                    if (opt) setSelectedOption(opt);
+                    setDone(false);
+                    setErrorMessage(null);
+                  }}
+                  className="w-full bg-slate-50 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] rounded-xl px-3.5 py-3 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-slate-900 dark:border-white cursor-pointer"
+                >
+                  {options.map((opt) => (
+                    <option key={opt.targetKB} value={opt.targetKB} className="bg-slate-50 dark:bg-[#181b22] text-slate-900 dark:text-white">
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {errorMessage && (
+              <div className="p-3 rounded-xl bg-red-950/50 border border-red-800 text-red-400 text-xs font-semibold text-center">
+                {errorMessage}
               </div>
             )}
+
+            <div className="pt-2">
+              {!done ? (
+                <div className="flex items-center gap-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFileDetails(null);
+                      setRawFile(null);
+                      setDone(false);
+                      setErrorMessage(null);
+                    }}
+                    className="py-3 px-6 rounded-2xl border border-slate-200 dark:border-[#272b36] text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-slate-900 dark:text-white font-bold text-xs transition-colors"
+                  >
+                    Clear All
+                  </button>
+                  <button
+                    type="button"
+                    onClick={executeCompress}
+                    disabled={processing}
+                    className="flex-1 py-3.5 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all hover:bg-zinc-200"
+                  >
+                    {processing ? <Loader2 className="animate-spin" size={18} /> : <FileArchive size={18} />}
+                    {processing ? "Compressing PDF..." : "Compress PDF"}
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4 pt-2">
+                  <div className="flex items-center gap-2 text-emerald-400 font-extrabold text-sm">
+                    <CheckCircle2 size={18} />
+                    <span>PDF Compressed Successfully!</span>
+                  </div>
+
+                  {compressedSize && (
+                    <p className="text-sm text-slate-600 dark:text-[#9ca3af]">
+                      Size reduced from <strong className="text-slate-900 dark:text-white">{fileDetails.formattedSize}</strong> to{" "}
+                      <strong className="text-slate-900 dark:text-white">{formatSize(compressedSize)}</strong>
+                      {calculateSavings() > 0 && (
+                        <span className="ml-2.5 px-2.5 py-0.5 rounded-full text-xs bg-emerald-950/50 text-emerald-400 border border-emerald-800 font-bold inline-block">
+                          -{calculateSavings()}%
+                        </span>
+                      )}
+                    </p>
+                  )}
+
+                  <div className="flex items-center gap-4 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setDone(false)}
+                      className="py-3 px-6 rounded-2xl border border-slate-200 dark:border-[#272b36] text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-slate-900 dark:text-white font-bold text-xs transition-colors"
+                    >
+                      Compress Again
+                    </button>
+                    <button
+                      type="button"
+                      onClick={executeCompress}
+                      disabled={processing}
+                      className="flex-1 py-3.5 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all hover:bg-zinc-200"
+                    >
+                      {processing ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
+                      {processing ? "Downloading..." : "Download Compressed PDF"}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}

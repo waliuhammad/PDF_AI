@@ -1,396 +1,340 @@
 "use client";
 
-import React, { useState, useEffect, useRef, JSX } from "react";
-import { FileText, Trash2, Download, UploadCloud, Layers, ShieldCheck, Sparkles, Loader2, Image as ImageIcon } from "lucide-react";
+import React, { useState, useRef, ChangeEvent, DragEvent } from "react";
+import { 
+  Upload, 
+  FileText, 
+  Trash2, 
+  Download, 
+  Loader2, 
+  CheckCircle2, 
+  AlertCircle, 
+  Layers, 
+  FileCheck 
+} from "lucide-react";
 
-export default function PdfToImage(): JSX.Element {
+export default function PdfToImageConverter() {
   const [file, setFile] = useState<File | null>(null);
-  const [pdfDoc, setPdfDoc] = useState<any | null>(null);
   const [numPages, setNumPages] = useState<number>(0);
-  const [mode, setMode] = useState<"all" | "custom">("all");
-  const [pageNumber, setPageNumber] = useState<string>("");
-  const [imageFormat, setImageFormat] = useState<string>("image/png");
+  const [mode, setMode] = useState<"whole" | "custom">("whole");
+  const [pageNumber, setPageNumber] = useState<string>("1");
+  const [imageFormat, setImageFormat] = useState<string>("PNG (.png)");
+  
   const [loading, setLoading] = useState<boolean>(false);
-  const [libLoading, setLibLoading] = useState<boolean>(true);
+  const [loadingInfo, setLoadingInfo] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [pdfjsLib, setPdfjsLib] = useState<any | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const canvasRefs = useRef<{ [key: number]: HTMLCanvasElement | null }>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    let isMounted = true;
-    import("pdfjs-dist")
-      .then((lib) => {
-        if (!isMounted) return;
-        lib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${lib.version}/build/pdf.worker.min.mjs`;
-        setPdfjsLib(lib);
-        setLibLoading(false);
-      })
-      .catch((err) => {
-        console.error("Failed to load pdfjs:", err);
-        if (isMounted) {
-          setError("Failed to load PDF engine.");
-          setLibLoading(false);
-        }
-      });
+  // Handle Drag and Drop
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
-    if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0];
-      if (selectedFile.type === "application/pdf" || selectedFile.name.endsWith(".pdf")) {
-        setFile(selectedFile);
-        setMode("all");
-        setPageNumber("");
-        setError(null);
-
-        if (!pdfjsLib) {
-          setError("PDF engine is still initializing. Please wait and re-upload.");
-          return;
-        }
-
-        try {
-          const arrayBuffer = await selectedFile.arrayBuffer();
-          const uint8Array = new Uint8Array(arrayBuffer);
-          
-          const loadingTask = pdfjsLib.getDocument({ data: uint8Array });
-          const loadedPdf = await loadingTask.promise;
-          
-          if (!loadedPdf || loadedPdf.numPages === 0) {
-            throw new Error("No pages found in this PDF.");
-          }
-
-          setPdfDoc(loadedPdf);
-          setNumPages(loadedPdf.numPages);
-        } catch (err) {
-          console.error("PDF parse error:", err);
-          setError("Failed to parse PDF document pages. File might be corrupted or password-protected.");
-          setPdfDoc(null);
-          setNumPages(0);
-        }
-      } else {
-        setError("Please upload a valid PDF document.");
-      }
+  const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const droppedFile = e.dataTransfer.files[0];
+      await handleFileSelection(droppedFile);
     }
   };
 
-  const handleClearFile = (): void => {
-    setFile(null);
-    setPdfDoc(null);
-    setNumPages(0);
-    setMode("all");
-    setPageNumber("");
-    setError(null);
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const selectedFile = e.target.files[0];
+      await handleFileSelection(selectedFile);
+    }
   };
 
-  // Renders pages based on mode: all pages when mode is "all", or just the target page when mode is "custom"
-  useEffect(() => {
-    if (!pdfDoc || numPages === 0) return;
+  const handleFileSelection = async (selectedFile: File) => {
+    setError(null);
+    setSuccessMessage(null);
 
-    let isMounted = true;
-
-    const renderSelectedPages = async (): Promise<void> => {
-      const pagesToRender: number[] = [];
-
-      if (mode === "all") {
-        for (let i = 1; i <= numPages; i++) {
-          pagesToRender.push(i);
-        }
-      } else {
-        const target = parseInt(pageNumber, 10);
-        if (!isNaN(target) && target >= 1 && target <= numPages) {
-          pagesToRender.push(target);
-        }
-      }
-
-      for (const i of pagesToRender) {
-        try {
-          const page = await pdfDoc.getPage(i);
-          const canvas = canvasRefs.current[i];
-          if (!canvas || !isMounted) continue;
-
-          const context = canvas.getContext("2d");
-          if (!context) continue;
-
-          const viewport = page.getViewport({ scale: 1.5 });
-          canvas.height = viewport.height;
-          canvas.width = viewport.width;
-
-          const renderContext = {
-            canvasContext: context,
-            viewport: viewport,
-          };
-
-          const renderTask = page.render(renderContext);
-          await renderTask.promise;
-        } catch (err) {
-          console.error(`Error rendering page ${i}:`, err);
-        }
-      }
-    };
-
-    renderSelectedPages();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [pdfDoc, numPages, mode, pageNumber]);
-
-  const handleDownloadImages = async (): Promise<void> => {
-    if (!file) return;
-
-    if (mode === "custom" && !pageNumber.trim()) {
-      setError("Please specify the exact page number you want to convert.");
+    if (selectedFile.type !== "application/pdf") {
+      setError("Invalid file format. Please upload a valid PDF document.");
       return;
+    }
+
+    setFile(selectedFile);
+    setLoadingInfo(true);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", selectedFile);
+      formData.append("action", "get-info");
+
+      const response = await fetch("/api/pdf-to-image", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to parse PDF file metadata.");
+      }
+
+      setNumPages(data.numPages);
+      setPageNumber("1");
+    } catch (err: any) {
+      setError(err.message || "Failed to read PDF structure.");
+      setFile(null);
+    } finally {
+      setLoadingInfo(false);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setFile(null);
+    setNumPages(0);
+    setError(null);
+    setSuccessMessage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleConvert = async () => {
+    if (!file) {
+      setError("Please upload a PDF file first.");
+      return;
+    }
+
+    if (mode === "custom") {
+      const parsedPage = parseInt(pageNumber, 10);
+      if (isNaN(parsedPage) || parsedPage < 1 || parsedPage > numPages) {
+        setError(`Please enter a valid page number between 1 and ${numPages}.`);
+        return;
+      }
     }
 
     setLoading(true);
     setError(null);
-
-    const extensionMap: { [key: string]: string } = {
-      "image/png": "png",
-      "image/jpeg": "jpg",
-      "image/webp": "webp",
-      "image/bmp": "bmp",
-      "image/gif": "gif"
-    };
-    const ext = extensionMap[imageFormat] || "png";
+    setSuccessMessage(null);
 
     try {
-      if (mode === "all") {
-        for (let i = 1; i <= numPages; i++) {
-          const canvas = canvasRefs.current[i];
-          if (!canvas) continue;
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("action", "convert");
+      formData.append("mode", mode);
+      formData.append("pageNumber", pageNumber);
+      formData.append("imageFormat", imageFormat);
 
-          const imageURL = canvas.toDataURL(imageFormat, 1.0);
-          const a = document.createElement("a");
-          a.href = imageURL;
-          a.download = `${file.name.replace(/\.[^/.]+$/, "")}_page_${i}.${ext}`;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-        }
-      } else {
-        const targetNum = parseInt(pageNumber, 10);
-        if (isNaN(targetNum) || targetNum < 1 || targetNum > numPages) {
-          throw new Error(`Invalid page number. Please enter a number between 1 and ${numPages}.`);
-        }
+      const response = await fetch("/api/pdf-to-image", {
+        method: "POST",
+        body: formData,
+      });
 
-        const canvas = canvasRefs.current[targetNum];
-        if (!canvas) {
-          throw new Error("Target page canvas not found. Make sure the page number is valid.");
-        }
-
-        const imageURL = canvas.toDataURL(imageFormat, 1.0);
-        const a = document.createElement("a");
-        a.href = imageURL;
-        a.download = `${file.name.replace(/\.[^/.]+$/, "")}_page_${targetNum}.${ext}`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Conversion failed on the server.");
       }
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+
+      const baseName = file.name.replace(/\.[^/.]+$/, "");
+      if (mode === "whole") {
+        link.download = `${baseName}_images.zip`;
       } else {
-        setError("An error occurred during image conversion.");
+        const extMatch = imageFormat.match(/\(([^)]+)\)/);
+        const ext = extMatch ? extMatch[1] : ".png";
+        link.download = `${baseName}_page_${pageNumber}${ext}`;
       }
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+
+      setSuccessMessage("Conversion completed successfully! Your download has started.");
+    } catch (err: any) {
+      setError(err.message || "An unexpected error occurred during conversion.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background text-fg flex flex-col items-center justify-center p-6 antialiased selection:bg-blue-500 selection:text-fg">
-      <div className="max-w-2xl w-full space-y-8 bg-card border border-card p-8 rounded-3xl shadow-2xl backdrop-blur-xl">
+    <main className="min-h-screen bg-white dark:bg-[#070b14] text-slate-900 dark:text-slate-100 py-12 px-4 sm:px-6 lg:px-8 transition-colors">
+      <div className="max-w-3xl mx-auto space-y-8">
         
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold tracking-wide uppercase">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Professional PDF Toolkit</span>
+        {/* Header Badge & Title */}
+        <div className="text-center space-y-3">
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-purple-50 dark:bg-cyan-950/60 border border-purple-200 dark:border-cyan-800/40 text-purple-900 dark:text-cyan-400 text-xs font-semibold tracking-wide uppercase shadow-sm">
+            <FileCheck className="w-4 h-4" /> Professional PDF Toolkit
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-fg">PDF to Image Converter</h1>
-          <p className="text-sm text-muted">
-            Convert your whole document or a specific targeted page into high-quality images.
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            PDF to Image Converter
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
+            Convert your whole document or a specific targeted page directly into actual image files securely.
           </p>
         </div>
 
-        {libLoading ? (
-          <div className="border-2 border-dashed border-card rounded-2xl p-12 flex flex-col items-center justify-center bg-[var(--background-secondary)] space-y-3">
-            <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
-            <span className="text-sm text-fg font-medium">Initializing PDF Engine...</span>
-          </div>
-        ) : !file ? (
-          <label className="group relative border-2 border-dashed border-card hover:border-blue-500/80 rounded-2xl p-10 flex flex-col items-center justify-center cursor-pointer bg-[var(--background-secondary)] hover:bg-[var(--background-secondary)] transition-all duration-300">
-            <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-4 group-hover:scale-110 transition-transform duration-300">
-              <UploadCloud className="w-8 h-8" />
+        {/* Main Card Container */}
+        <div className="bg-white dark:bg-[#121622] rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800/80 p-6 sm:p-8 space-y-6 transition-colors">
+          
+          {/* Error / Success Notifications */}
+          {error && (
+            <div className="flex items-center gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800/80 text-red-700 dark:text-red-300 text-sm animate-fadeIn">
+              <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-500" />
+              <span>{error}</span>
             </div>
-            <span className="font-semibold text-fg text-base mb-1">Click to upload or drag & drop</span>
-            <span className="text-xs text-muted">PDF documents up to 50MB</span>
-            <input
-              type="file"
-              accept=".pdf"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-          </label>
-        ) : (
-          <div className="space-y-6">
-            <div className="bg-[var(--background-secondary)] border border-card rounded-2xl p-4 flex items-center justify-between shadow-inner">
-              <div className="flex items-center space-x-3.5 overflow-hidden">
-                <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 shrink-0">
+          )}
+
+          {successMessage && (
+            <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/80 text-emerald-700 dark:text-emerald-300 text-sm animate-fadeIn">
+              <CheckCircle2 className="w-5 h-5 flex-shrink-0 text-emerald-500" />
+              <span>{successMessage}</span>
+            </div>
+          )}
+
+          {/* Step 1 — Upload PDF */}
+          {!file ? (
+            <div
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className="border-2 border-dashed border-slate-300 dark:border-slate-800/80 hover:border-purple-900 dark:hover:border-cyan-500/50 rounded-2xl p-8 sm:p-12 text-center cursor-pointer bg-slate-50 dark:bg-[#0b0f19] hover:bg-purple-50/30 dark:hover:bg-cyan-500/5 transition-all group"
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+              <div className="w-16 h-16 bg-purple-100 dark:bg-cyan-500/10 text-purple-900 dark:text-cyan-400 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform shadow-inner border border-purple-200 dark:border-cyan-500/20">
+                <Upload className="w-8 h-8" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
+                Drag and drop your PDF here
+              </h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">or click to browse from your computer</p>
+              <span className="inline-block px-4 py-2 rounded-xl bg-slate-900 dark:bg-[#0d1322] border border-slate-900 dark:border-slate-700 text-white text-sm font-medium shadow-md shadow-slate-900/20 group-hover:bg-slate-800 dark:group-hover:bg-[#111827] transition-colors">
+                Browse PDF File
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800/80 shadow-sm">
+              <div className="flex items-center gap-3 overflow-hidden">
+                <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-cyan-500/10 text-purple-900 dark:text-cyan-400 flex items-center justify-center flex-shrink-0 border border-purple-200 dark:border-cyan-500/20">
                   <FileText className="w-5 h-5" />
                 </div>
-                <div className="text-left truncate">
-                  <p className="font-medium text-sm text-fg truncate">{file.name}</p>
-                  <p className="text-xs text-muted">{(file.size / (1024 * 1024)).toFixed(2)} MB • {numPages} Pages Detected</p>
+                <div className="truncate">
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{file.name}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {(file.size / (1024 * 1024)).toFixed(2)} MB • {loadingInfo ? "Analyzing..." : `${numPages} Pages Detected`}
+                  </p>
                 </div>
               </div>
               <button
-                onClick={handleClearFile}
-                className="p-2 text-muted hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition cursor-pointer"
+                onClick={handleRemoveFile}
+                className="p-2 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
                 title="Remove file"
               >
                 <Trash2 className="w-5 h-5" />
               </button>
             </div>
+          )}
 
-            <div className="grid grid-cols-2 gap-3 bg-[var(--background-secondary)] p-1.5 rounded-2xl border border-card">
-              <button
-                onClick={() => {
-                  setMode("all");
-                  setPageNumber("");
-                }}
-                className={`py-2.5 px-3 rounded-xl text-xs font-semibold tracking-wide transition flex items-center justify-center space-x-2 cursor-pointer ${
-                  mode === "all"
-                    ? "bg-blue-600 text-fg shadow-lg shadow-blue-600/30"
-                    : "text-muted hover:text-fg hover:bg-[var(--background-secondary)]"
-                }`}
-              >
-                <Layers className="w-4 h-4" />
-                <span>Whole Document</span>
-              </button>
-              <button
-                onClick={() => {
-                  setMode("custom");
-                  setPageNumber("1"); // Default to page 1 preview when switching to custom
-                }}
-                className={`py-2.5 px-3 rounded-xl text-xs font-semibold tracking-wide transition flex items-center justify-center space-x-2 cursor-pointer ${
-                  mode === "custom"
-                    ? "bg-blue-600 text-fg shadow-lg shadow-blue-600/30"
-                    : "text-muted hover:text-fg hover:bg-[var(--background-secondary)]"
-                }`}
-              >
-                <FileText className="w-4 h-4" />
-                <span>Specific Page</span>
-              </button>
-            </div>
-
-            {mode === "custom" && (
-              <div className="bg-[var(--background-secondary)] border border-card rounded-2xl p-4 text-left space-y-2">
-                <label className="text-xs text-muted font-bold uppercase tracking-wider">
-                  Target Page Number (1 - {numPages || 1})
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max={numPages || 1}
-                  placeholder="e.g. 1"
-                  value={pageNumber}
-                  onChange={(e) => setPageNumber(e.target.value)}
-                  className="w-full bg-card border border-card rounded-xl px-4 py-2.5 text-sm text-fg placeholder:text-muted focus:outline-none focus:border-blue-500 transition"
-                />
-                <p className="text-[11px] text-muted">Enter the exact page number to preview and convert that specific page only.</p>
+          {/* Step 3 — Conversion Mode Selection */}
+          {file && (
+            <div className="space-y-4 pt-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                Select Conversion Mode
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setMode("whole")}
+                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-semibold transition-all ${
+                    mode === "whole"
+                      ? "border-slate-900 dark:border-slate-700 bg-slate-900 dark:bg-[#0d1322] text-white shadow-md shadow-slate-900/20"
+                      : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f19] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/50"
+                  }`}
+                >
+                  <Layers className="w-4 h-4" /> Whole Document
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode("custom")}
+                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-semibold transition-all ${
+                    mode === "custom"
+                      ? "border-slate-900 dark:border-slate-700 bg-slate-900 dark:bg-[#0d1322] text-white shadow-md shadow-slate-900/20"
+                      : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#0b0f19] text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/50"
+                  }`}
+                >
+                  <FileText className="w-4 h-4" /> Specific Page
+                </button>
               </div>
-            )}
 
-            <div className="bg-[var(--background-secondary)] border border-card rounded-2xl p-4 text-left space-y-2">
-              <label className="text-xs text-muted font-bold uppercase tracking-wider">
+              {/* Specific Page Input Box */}
+              {mode === "custom" && (
+                <div className="p-4 rounded-xl bg-slate-50 dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800/80 space-y-2 animate-fadeIn">
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                    Target Page Number (1 to {numPages})
+                  </label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={numPages}
+                    value={pageNumber}
+                    onChange={(e) => setPageNumber(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-purple-900 dark:focus:ring-cyan-500 focus:outline-none text-slate-900 dark:text-white bg-white dark:bg-[#121622]"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Step 4 — Image Format Selector */}
+          {file && (
+            <div className="space-y-2">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Select Output Image Format
               </label>
               <select
                 value={imageFormat}
                 onChange={(e) => setImageFormat(e.target.value)}
-                className="w-full bg-card border border-card rounded-xl px-4 py-2.5 text-sm text-fg focus:outline-none focus:border-blue-500 transition cursor-pointer"
+                className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-purple-900 dark:focus:ring-cyan-500 focus:outline-none text-slate-900 dark:text-white bg-white dark:bg-[#0b0f19] font-medium"
               >
-                <option value="image/png">PNG (.png)</option>
-                <option value="image/jpeg">JPEG (.jpg)</option>
-                <option value="image/webp">WebP (.webp)</option>
-                <option value="image/bmp">BMP (.bmp)</option>
-                <option value="image/gif">GIF (.gif)</option>
+                <option value="PNG (.png)">PNG (.png)</option>
+                <option value="JPEG (.jpg)">JPEG (.jpg)</option>
+                <option value="WebP (.webp)">WebP (.webp)</option>
+                <option value="BMP (.bmp)">BMP (.bmp)</option>
+                <option value="GIF (.gif)">GIF (.gif)</option>
               </select>
-              <p className="text-[11px] text-muted">Choose the file format for your downloaded images.</p>
             </div>
+          )}
 
-            {numPages > 0 && (
-              <div className="bg-[var(--background-secondary)] border border-card rounded-2xl p-4 flex flex-col items-center">
-                <div className="w-full flex items-center justify-between mb-3">
-                  <span className="text-xs text-muted font-bold uppercase tracking-wider">
-                    {mode === "all" ? `Previews (${numPages} Total Pages)` : `Target Page Preview (Page ${pageNumber || "?"})`}
-                  </span>
-                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 uppercase">
-                    Format: {imageFormat.split("/")[1]}
-                  </span>
-                </div>
-                
-                <div className="w-full max-h-[420px] overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-slate-700">
-                  {Array.from({ length: numPages }, (_, i) => i + 1).map((pageNum) => {
-                    const isVisible = mode === "all" || (mode === "custom" && pageNumber === String(pageNum));
-                    if (!isVisible) return null;
+          {/* Step 5 & 6 — Convert Button */}
+          {file && (
+            <button
+              onClick={handleConvert}
+              disabled={loading || loadingInfo}
+              className="w-full py-4 px-6 rounded-xl bg-slate-900 dark:bg-[#0d1322] border border-slate-900 dark:border-slate-700 hover:bg-slate-800 dark:hover:bg-[#111827] text-white font-semibold shadow-lg shadow-slate-900/25 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" /> Converting Document...
+                </>
+              ) : (
+                <>
+                  <Download className="w-5 h-5" /> Convert & Download {mode === "whole" ? "All Images (ZIP)" : `Page ${pageNumber}`}
+                </>
+              )}
+            </button>
+          )}
 
-                    return (
-                      <div key={pageNum} className="bg-black/40 border border-card rounded-xl p-3 flex flex-col items-center relative shadow-inner">
-                        <div className="w-full flex justify-between items-center mb-2 text-[11px] text-muted px-1">
-                          <span className="font-semibold text-fg">Page {pageNum} of {numPages}</span>
-                          <span className="bg-[var(--background-secondary)] px-2 py-0.5 rounded text-blue-400 font-mono uppercase">
-                            {imageFormat.split("/")[1]}
-                          </span>
-                        </div>
-                        <div className="w-full h-80 flex items-center justify-center overflow-hidden bg-white rounded-lg p-2">
-                          <canvas
-                            ref={(el) => { canvasRefs.current[pageNum] = el; }}
-                            className="max-h-full max-w-full object-contain origin-center shadow-md bg-white"
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                <p className="text-[11px] text-muted mt-3 text-center">
-                  {mode === "all" ? "Showing all document pages." : "Showing preview for the specified target page only."}
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {error && (
-          <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-400 text-xs font-medium text-center">
-            {error}
-          </div>
-        )}
-
-        {file && !libLoading && (
-          <button
-            onClick={handleDownloadImages}
-            disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-fg font-semibold py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 shadow-lg shadow-blue-600/30 cursor-pointer"
-          >
-            <Download className="w-5 h-5" />
-            <span>{loading ? "Converting Images..." : mode === "all" ? `Download All Images (${imageFormat.split("/")[1].toUpperCase()})` : `Download Page Image (${imageFormat.split("/")[1].toUpperCase()})`}</span>
-          </button>
-        )}
-
-        <div className="pt-2 flex items-center justify-center space-x-1.5 text-muted text-xs">
-          <ShieldCheck className="w-4 h-4 text-muted" />
-          <span>Secure client-side processing • No server upload needed</span>
         </div>
-
       </div>
-    </div>
+    </main>
   );
 }
