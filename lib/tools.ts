@@ -17,9 +17,21 @@ import {
     ShieldCheck,
     Presentation,
     ImagePlus,
+    type LucideIcon,
 } from "lucide-react";
 
-export const tools = [
+export interface Tool {
+    name: string;
+    description: string;
+    icon: LucideIcon;
+    href: string;
+    category: string;
+    badge?: string;
+    /** No page exists yet — rendered as a non-clickable card instead of a dead link. */
+    comingSoon?: boolean;
+}
+
+export const tools: Tool[] = [
     {
         name: "Merge PDF",
         description: "Combine multiple PDF files into one.",
@@ -133,6 +145,7 @@ export const tools = [
         href: "/ocr",
         category: "AI Tools",
         badge: "AI",
+        comingSoon: true,
     },
     {
         name: "AI Summary",

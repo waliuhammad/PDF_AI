@@ -33,7 +33,7 @@ const quickActions = [
     { label: "Upload PDF", icon: Upload, href: "/documents" },
     { label: "Tools", icon: Wrench, href: "/tools" },
     { label: "New Chat", icon: MessageSquare, href: "/chats" },
-    { label: "AI Tools", icon: Cpu, href: "/ai-tools" },
+    { label: "AI Tools", icon: Cpu, href: "/tools?category=AI%20Tools" },
 ];
 
 export default function DashboardPage() {

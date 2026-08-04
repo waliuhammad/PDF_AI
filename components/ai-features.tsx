@@ -157,7 +157,7 @@ export function AIFeatures() {
                     className="mt-10 text-center"
                 >
                     <Link
-                        href="/ai-tools"
+                        href="/tools?category=AI%20Tools"
                         className="
                             inline-flex
                             items-center

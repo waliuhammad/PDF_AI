@@ -11,6 +11,7 @@ interface ToolCardProps {
     href: string;
     color?: string;
     badge?: string;
+    comingSoon?: boolean;
 }
 
 export default function ToolCard({
@@ -20,11 +21,11 @@ export default function ToolCard({
     href,
     color = "bg-primary/10",
     badge,
+    comingSoon = false,
 }: ToolCardProps) {
-    return (
-        <Link href={href} className="block h-full">
-            <motion.div
-                whileHover={{ y: -5, scale: 1.02 }}
+    const card = (
+        <motion.div
+                whileHover={comingSoon ? undefined : { y: -5, scale: 1.02 }}
                 transition={{ duration: 0.2 }}
                 className="
           group
@@ -46,7 +47,7 @@ export default function ToolCard({
         "
             >
                 {/* Badge */}
-                {badge && (
+                {(comingSoon || badge) && (
                     <span
                         className="
               absolute
@@ -63,7 +64,7 @@ export default function ToolCard({
               text-primary
             "
                     >
-                        {badge}
+                        {comingSoon ? "Soon" : badge}
                     </span>
                 )}
 
@@ -133,8 +134,16 @@ export default function ToolCard({
             via-transparent
             to-primary/5
           "
-                />
-            </motion.div>
+            />
+        </motion.div>
+    );
+
+    // Tools without a page yet render as a plain container so they can't 404.
+    return comingSoon ? (
+        <div className="block h-full cursor-not-allowed opacity-60">{card}</div>
+    ) : (
+        <Link href={href} className="block h-full">
+            {card}
         </Link>
     );
 }

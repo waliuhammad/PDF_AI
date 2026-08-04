@@ -1,0 +1,97 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
+import { Search, Wrench } from "lucide-react";
+
+import ToolCard from "./tool-card";
+import { tools } from "@/lib/tools";
+
+// "All" first, then whatever categories the tool list actually declares, so a new
+// category in lib/tools.ts shows up here without touching this file.
+const categories = ["All", ...Array.from(new Set(tools.map((t) => t.category)))];
+
+/** `initialCategory` lets other pages deep-link a category, e.g. /tools?category=AI%20Tools */
+export function ToolsHub({ initialCategory }: { initialCategory?: string }) {
+    const [search, setSearch] = useState("");
+    const [category, setCategory] = useState(() =>
+        initialCategory && categories.includes(initialCategory) ? initialCategory : "All"
+    );
+
+    const filteredTools = useMemo(() => {
+        const query = search.trim().toLowerCase();
+
+        return tools.filter((tool) => {
+            const matchesSearch =
+                !query ||
+                tool.name.toLowerCase().includes(query) ||
+                tool.description.toLowerCase().includes(query);
+
+            const matchesCategory = category === "All" || tool.category === category;
+
+            return matchesSearch && matchesCategory;
+        });
+    }, [search, category]);
+
+    return (
+        <div>
+            <div className="flex items-center justify-between flex-wrap gap-2 mb-6">
+                <div>
+                    <h1 className="text-2xl font-bold text-fg">All Tools</h1>
+                    <p className="text-muted text-sm mt-1">
+                        {filteredTools.length} {filteredTools.length === 1 ? "tool" : "tools"} available
+                    </p>
+                </div>
+            </div>
+
+            {/* Toolbar */}
+            <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 mb-6">
+                <div className="relative flex-1">
+                    <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
+                    <input
+                        type="text"
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Search tools..."
+                        className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-card text-fg placeholder:text-muted text-sm focus:outline-none focus:border-[var(--primary)] transition-colors bg-card"
+                    />
+                </div>
+
+                <div className="flex items-center gap-1 p-1 rounded-xl border border-card bg-card overflow-x-auto">
+                    {categories.map((option) => (
+                        <button
+                            key={option}
+                            onClick={() => setCategory(option)}
+                            className={`px-3 py-1.5 rounded-lg text-sm whitespace-nowrap transition-colors ${category === option ? "bg-[var(--primary)] text-white" : "text-muted hover:text-fg"
+                                }`}
+                        >
+                            {option}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {filteredTools.length === 0 ? (
+                <div className="text-center py-16">
+                    <div className="w-12 h-12 mx-auto rounded-xl bg-[var(--background-secondary)] flex items-center justify-center mb-3">
+                        <Wrench size={20} className="text-muted" />
+                    </div>
+                    <p className="text-muted text-sm">No tools match &ldquo;{search}&rdquo;.</p>
+                </div>
+            ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {filteredTools.map((tool, index) => (
+                        <motion.div
+                            key={tool.name}
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: Math.min(index * 0.03, 0.3) }}
+                        >
+                            <ToolCard {...tool} />
+                        </motion.div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+}
