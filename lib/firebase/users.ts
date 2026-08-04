@@ -22,10 +22,25 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
 }
 
 /**
- * Updates the display name on both the Firebase Auth record (so it survives a
- * Firestore outage) and the user document.
+ * Updates the display name on the Firebase Auth record first — that is what the
+ * sidebar and dashboard actually read — then mirrors it to the user document.
+ *
+ * The Firestore write is best-effort, matching how getUserProfile already
+ * tolerates Firestore being unavailable or locked down by security rules.
+ * Reporting the whole save as failed would be wrong, since the name has in fact
+ * changed, so the caller is told whether the mirror succeeded instead.
  */
-export async function updateUserProfile(user: User, fullName: string) {
+export async function updateUserProfile(
+    user: User,
+    fullName: string
+): Promise<{ syncedToDatabase: boolean }> {
     await updateProfile(user, { displayName: fullName });
-    await setDoc(doc(db, "users", user.uid), { fullName }, { merge: true });
+
+    try {
+        await setDoc(doc(db, "users", user.uid), { fullName }, { merge: true });
+        return { syncedToDatabase: true };
+    } catch (err) {
+        console.warn("Could not mirror the profile to Firestore:", err);
+        return { syncedToDatabase: false };
+    }
 }

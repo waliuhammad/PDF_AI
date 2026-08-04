@@ -9,7 +9,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { updateUserProfile } from "@/lib/firebase/users";
 import { changePassword, hasPasswordProvider } from "@/lib/firebase/auth";
 
-type Status = { kind: "idle" } | { kind: "saving" } | { kind: "saved" } | { kind: "error"; message: string };
+type Status =
+    | { kind: "idle" }
+    | { kind: "saving" }
+    | { kind: "saved" }
+    | { kind: "warning"; message: string }
+    | { kind: "error"; message: string };
 
 type NotificationKey = "email" | "product" | "marketing";
 
@@ -44,10 +49,17 @@ function StatusMessage({ status, savedLabel }: { status: Status; savedLabel: str
             </p>
         );
     }
+    if (status.kind === "warning") {
+        return (
+            <p className="flex items-start gap-1.5 text-sm text-amber-600">
+                <AlertCircle size={15} className="shrink-0 mt-0.5" /> {status.message}
+            </p>
+        );
+    }
     if (status.kind === "error") {
         return (
-            <p className="flex items-center gap-1.5 text-sm text-red-600">
-                <AlertCircle size={15} /> {status.message}
+            <p className="flex items-start gap-1.5 text-sm text-red-600">
+                <AlertCircle size={15} className="shrink-0 mt-0.5" /> {status.message}
             </p>
         );
     }
@@ -92,8 +104,15 @@ export default function SettingsPage() {
 
         setProfileStatus({ kind: "saving" });
         try {
-            await updateUserProfile(user, name.trim());
-            setProfileStatus({ kind: "saved" });
+            const { syncedToDatabase } = await updateUserProfile(user, name.trim());
+            setProfileStatus(
+                syncedToDatabase
+                    ? { kind: "saved" }
+                    : {
+                        kind: "warning",
+                        message: "Name updated, but it couldn't be saved to your profile record.",
+                    }
+            );
         } catch (err) {
             setProfileStatus({
                 kind: "error",
