@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useDocuments } from "@/hooks/useDocuments";
+import { AiError, askAboutDocument, ensureAiFileId } from "@/lib/ai";
 import {
     addMessage,
     createChat,
@@ -73,6 +75,7 @@ export function useChat(chatId: string) {
     const { user, loading: authLoading } = useAuth();
     const uid = user?.uid ?? null;
     const { chats, loading: chatsLoading } = useChats();
+    const { documents } = useDocuments();
 
     const [snapshot, setSnapshot] = useState<{
         key: string | null;
@@ -95,21 +98,44 @@ export function useChat(chatId: string) {
 
     const ready = snapshot.key === key;
 
+    const [thinking, setThinking] = useState(false);
+
     const send = useCallback(
         async (content: string) => {
             if (!uid) return;
-            await addMessage(uid, chatId, "user", content);
 
-            // Placeholder reply until the AI backend is connected in the next step.
-            const chat = chats.find((c) => c.id === chatId);
-            await addMessage(
-                uid,
-                chatId,
-                "assistant",
-                `I can't answer that yet — "${chat?.documentName ?? "this document"}" hasn't been sent to an AI model. Connecting the backend will replace this reply with a real answer.`
-            );
+            await addMessage(uid, chatId, "user", content);
+            setThinking(true);
+
+            try {
+                const chat = chats.find((c) => c.id === chatId);
+                const document = documents.find((d) => d.id === chat?.documentId);
+
+                if (!document) {
+                    throw new AiError(
+                        "The document for this chat is no longer in your library, so I can't read it."
+                    );
+                }
+
+                const fileId = await ensureAiFileId(uid, document);
+
+                // The prior turns give the model the conversation; the message
+                // just written is passed separately as the question.
+                const history = snapshot.messages.map((m) => ({ role: m.role, content: m.content }));
+                const reply = await askAboutDocument(fileId, content, history);
+
+                await addMessage(uid, chatId, "assistant", reply);
+            } catch (err) {
+                const message =
+                    err instanceof AiError
+                        ? err.message
+                        : "Something went wrong answering that. Please try again.";
+                await addMessage(uid, chatId, "assistant", message);
+            } finally {
+                setThinking(false);
+            }
         },
-        [uid, chatId, chats]
+        [uid, chatId, chats, documents, snapshot.messages]
     );
 
     return {
@@ -117,6 +143,7 @@ export function useChat(chatId: string) {
         messages: ready ? snapshot.messages : [],
         loading: authLoading || chatsLoading || (!!uid && !ready),
         error: ready ? snapshot.error : null,
+        thinking,
         send,
     };
 }

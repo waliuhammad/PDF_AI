@@ -34,6 +34,8 @@ export interface StoredDocument {
     contentType: string;
     storagePath: string;
     favorite: boolean;
+    /** Anthropic Files API id, set the first time this document is sent to the AI. */
+    aiFileId: string | null;
     /** Milliseconds since epoch. Null only in the brief window before the
      *  server timestamp resolves on a locally-added document. */
     createdAt: number | null;
@@ -69,6 +71,7 @@ export function watchDocuments(
                         contentType: data.contentType ?? "application/octet-stream",
                         storagePath: data.storagePath ?? "",
                         favorite: !!data.favorite,
+                        aiFileId: data.aiFileId ?? null,
                         createdAt: createdAt ? createdAt.toMillis() : null,
                     };
                 })
@@ -120,6 +123,7 @@ export function uploadDocument(
                         contentType: file.type || "application/octet-stream",
                         storagePath,
                         favorite: false,
+                        aiFileId: null,
                         createdAt: serverTimestamp(),
                     });
 
@@ -130,6 +134,7 @@ export function uploadDocument(
                         contentType: file.type || "application/octet-stream",
                         storagePath,
                         favorite: false,
+                        aiFileId: null,
                         createdAt: Date.now(),
                     });
                 } catch (err) {
@@ -167,4 +172,9 @@ export async function setDocumentFavorite(uid: string, id: string, favorite: boo
 /** Short-lived signed URL for viewing or downloading the file. */
 export function getDocumentUrl(storagePath: string) {
     return getDownloadURL(ref(storage, storagePath));
+}
+
+/** Remembers the Anthropic file id so the document is only uploaded once. */
+export async function setDocumentAiFileId(uid: string, id: string, aiFileId: string) {
+    await updateDoc(doc(documentsCollection(uid), id), { aiFileId });
 }

@@ -2,17 +2,15 @@
 
 import { useState, useRef } from "react";
 import { Upload, FileText, X, Copy, Sparkles } from "lucide-react";
-
-const MOCK_SUMMARY = [
-    "The document outlines the key objectives, scope, and timeline of the project.",
-    "It highlights three main deliverables and the resources assigned to each.",
-    "Risks and open questions are listed near the end for team review.",
-];
+import { summarizeDocument, AiError } from "@/lib/ai";
 
 export default function SummarizePdfPage() {
     const [file, setFile] = useState<{ name: string; size: string } | null>(null);
+    const [rawFile, setRawFile] = useState<File | null>(null);
+    const [summary, setSummary] = useState<string[]>([]);
     const [isDragging, setIsDragging] = useState(false);
     const [processing, setProcessing] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [done, setDone] = useState(false);
     const [copied, setCopied] = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -27,19 +25,32 @@ export default function SummarizePdfPage() {
         const f = fileList[0];
         if (f.type !== "application/pdf") return;
         setFile({ name: f.name, size: formatSize(f.size) });
+        setRawFile(f);
+        setSummary([]);
+        setError(null);
         setDone(false);
     };
 
-    const handleSummarize = () => {
+    const handleSummarize = async () => {
+        if (!rawFile) return;
+
         setProcessing(true);
-        setTimeout(() => {
-            setProcessing(false);
+        setError(null);
+        try {
+            const points = await summarizeDocument(rawFile, "medium");
+            setSummary(points);
             setDone(true);
-        }, 2200);
+        } catch (err) {
+            setError(
+                err instanceof AiError ? err.message : "Couldn't summarize that document."
+            );
+        } finally {
+            setProcessing(false);
+        }
     };
 
     const handleCopy = () => {
-        navigator.clipboard.writeText(MOCK_SUMMARY.join("\n"));
+        navigator.clipboard.writeText(summary.join("\n"));
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
     };
@@ -96,13 +107,19 @@ export default function SummarizePdfPage() {
                                 </button>
                             </div>
                             <ul className="space-y-2">
-                                {MOCK_SUMMARY.map((line, i) => (
+                                {summary.map((line, i) => (
                                     <li key={i} className="text-sm text-fg leading-relaxed flex gap-2">
                                         <span className="text-[var(--primary)]">•</span>
                                         <span>{line}</span>
                                     </li>
                                 ))}
                             </ul>
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="mt-6 px-4 py-3 rounded-xl border border-red-500/40 bg-red-500/10 text-sm text-red-600">
+                            {error}
                         </div>
                     )}
 

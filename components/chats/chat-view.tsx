@@ -7,7 +7,7 @@ import { useChat } from "@/hooks/useChats";
 import { formatRelativeTime } from "@/lib/utils";
 
 export function ChatView({ chatId }: { chatId: string }) {
-    const { chat, messages, loading, send } = useChat(chatId);
+    const { chat, messages, loading, thinking, send } = useChat(chatId);
 
     const [draft, setDraft] = useState("");
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -120,6 +120,14 @@ export function ChatView({ chatId }: { chatId: string }) {
                                 </div>
                             ))
                         )}
+
+                        {thinking && (
+                            <div className="flex justify-start">
+                                <div className="rounded-2xl px-4 py-2.5 text-sm bg-[var(--background-secondary)] text-muted">
+                                    Reading the document...
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     <form onSubmit={handleSend} className="flex items-center gap-2 p-3 border-t border-card shrink-0">
@@ -132,7 +140,7 @@ export function ChatView({ chatId }: { chatId: string }) {
                         />
                         <button
                             type="submit"
-                            disabled={!draft.trim()}
+                            disabled={!draft.trim() || thinking}
                             className="p-2.5 rounded-xl bg-[var(--primary)] text-white hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             aria-label="Send message"
                         >
