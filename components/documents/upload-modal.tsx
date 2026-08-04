@@ -12,7 +12,7 @@ interface UploadFile {
 
 interface UploadModalProps {
     onClose: () => void;
-    onUploadComplete: (files: { name: string; size: string }[]) => void;
+    onUploadComplete: (files: { name: string; size: string; bytes: number }[]) => void;
 }
 
 export function UploadModal({ onClose, onUploadComplete }: UploadModalProps) {
@@ -77,7 +77,7 @@ export function UploadModal({ onClose, onUploadComplete }: UploadModalProps) {
     const handleFinish = () => {
         const completed = files
             .filter((f) => f.status === "done")
-            .map((f) => ({ name: f.file.name, size: formatSize(f.file.size) }));
+            .map((f) => ({ name: f.file.name, size: formatSize(f.file.size), bytes: f.file.size }));
         onUploadComplete(completed);
         onClose();
     };

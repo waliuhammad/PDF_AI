@@ -80,6 +80,21 @@ export default function DocumentsPage() {
         setDocs((prev) => prev.filter((d) => d.id !== id));
     };
 
+    const addUploadedDocs = (uploaded: { name: string; size: string; bytes: number }[]) => {
+        const now = Date.now();
+        const newDocs: Doc[] = uploaded.map((f, i) => ({
+            id: `${now}-${i}`,
+            name: f.name,
+            size: f.size,
+            // Existing rows store this in MB, so match that unit rather than raw bytes.
+            sizeBytes: f.bytes / (1024 * 1024),
+            date: "Just now",
+            timestamp: now,
+            favorite: false,
+        }));
+        setDocs((prev) => [...newDocs, ...prev]);
+    };
+
     const renameDoc = (id: string) => {
         const newName = prompt("Enter new name:");
         if (!newName) return;
@@ -216,6 +231,13 @@ export default function DocumentsPage() {
                         />
                     ))}
                 </div>
+            )}
+
+            {showUpload && (
+                <UploadModal
+                    onClose={() => setShowUpload(false)}
+                    onUploadComplete={addUploadedDocs}
+                />
             )}
         </div>
     );
