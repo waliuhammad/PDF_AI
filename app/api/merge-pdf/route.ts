@@ -20,7 +20,6 @@ export async function POST(req: NextRequest) {
 
     if (pageOrderJson) {
       const pageOrder: { fileIndex: number; pageIndex: number; rotation?: number }[] = JSON.parse(pageOrderJson);
-      
       const loadedPdfDocs = new Map<number, PDFDocument>();
 
       for (const item of pageOrder) {
@@ -36,10 +35,8 @@ export async function POST(req: NextRequest) {
 
         if (item.rotation && item.rotation !== 0) {
           const currentRotation = copiedPage.getRotation().angle;
-          // Normalize negative angles (e.g., -90 becomes 270, or math handles it correctly via modulo)
           let newAngle = (currentRotation + item.rotation) % 360;
           if (newAngle < 0) newAngle += 360;
-          
           copiedPage.setRotation(degrees(newAngle));
         }
 
@@ -59,7 +56,7 @@ export async function POST(req: NextRequest) {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="custom_merged_document.pdf"`,
+        "Content-Disposition": `attachment; filename="merged_document.pdf"`,
       },
     });
   } catch (error: any) {

@@ -1,18 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const secret =  process.env.CONVERTAPI_SECRET;
+  const secret = process.env.CONVERTAPI_SECRET;
 
-  console.log("CHECKING SECRET KEY:", secret ? "Key exists!" : "KEY IS UNDEFINED!");
+  if (!secret || secret === "YOUR_ACTUAL_SECRET_HERE") {
+    return NextResponse.json(
+      { error: "Missing valid CONVERTAPI_SECRET in environment variables." },
+      { status: 500 }
+    );
+  }
 
   try {
-    if (!secret || secret === "YOUR_ACTUAL_SECRET_HERE") {
-      return NextResponse.json(
-        { error: "Missing valid CONVERTAPI_SECRET in environment variables." },
-        { status: 500 }
-      );
-    }
-   
     const formData = await req.formData();
     const file = formData.get("file") as File;
 
@@ -22,18 +20,31 @@ export async function POST(req: NextRequest) {
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
+    const base64File = buffer.toString("base64");
 
-    const convertFormData = new FormData();
-    const blob = new Blob([buffer], { type: "application/pdf" });
-    convertFormData.append("File", blob, file.name);
-    convertFormData.append("StoreFile", "true");
-
-    // Pass secret directly as a query parameter to guarantee authorization
     const apiRes = await fetch(
-      `https://v2.convertapi.com/convert/pdf/to/docx?secret=${encodeURIComponent(secret)}`,
+      "https://v2.convertapi.com/convert/pdf/to/docx",
       {
         method: "POST",
-        body: convertFormData,
+        headers: {
+          "Authorization": `Bearer ${secret}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          Parameters: [
+            {
+              Name: "File",
+              FileValue: {
+                Name: file.name,
+                Data: base64File,
+              },
+            },
+            {
+              Name: "StoreFile",
+              Value: true,
+            },
+          ],
+        }),
       }
     );
 
@@ -61,14 +72,18 @@ export async function POST(req: NextRequest) {
     return new NextResponse(Buffer.from(docxBuffer), {
       status: 200,
       headers: {
-        "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        "Content-Disposition": `attachment; filename="${file.name.replace(/\.[^/.]+$/, "")}_converted.docx"`,
+        "Content-Type":
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "Content-Disposition": `attachment; filename="${file.name.replace(
+          /\.[^/.]+$/,
+          ""
+        )}_converted.docx"`,
       },
     });
   } catch (error: any) {
     console.error("PDF to Word conversion error:", error);
     return NextResponse.json(
-      { error: "Failed to convert PDF file to Word." },
+      { error: error.message || "Failed to convert PDF file to Word." },
       { status: 500 }
     );
   }

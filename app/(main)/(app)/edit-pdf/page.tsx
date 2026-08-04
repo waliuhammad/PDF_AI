@@ -1,155 +1,7 @@
 "use client";
 
-<<<<<<< HEAD
-import { useState, useRef } from "react";
-import { Upload, FileText, X, Download, Edit3, Plus, Trash2 } from "lucide-react";
-
-type TextItem = { id: number; text: string };
-
-export default function EditPdfPage() {
-    const [file, setFile] = useState<{ name: string; size: string } | null>(null);
-    const [isDragging, setIsDragging] = useState(false);
-    const [newText, setNewText] = useState("");
-    const [items, setItems] = useState<TextItem[]>([]);
-    const [processing, setProcessing] = useState(false);
-    const [done, setDone] = useState(false);
-    const inputRef = useRef<HTMLInputElement>(null);
-
-    const formatSize = (bytes: number) => {
-        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-    };
-
-    const handleFile = (fileList: FileList | null) => {
-        if (!fileList || fileList.length === 0) return;
-        const f = fileList[0];
-        if (f.type !== "application/pdf") return;
-        setFile({ name: f.name, size: formatSize(f.size) });
-        setItems([]);
-        setDone(false);
-    };
-
-    const addText = () => {
-        if (!newText.trim()) return;
-        setItems((prev) => [...prev, { id: Date.now(), text: newText.trim() }]);
-        setNewText("");
-    };
-
-    const removeText = (id: number) => {
-        setItems((prev) => prev.filter((i) => i.id !== id));
-    };
-
-    const handleSave = () => {
-        setProcessing(true);
-        setTimeout(() => {
-            setProcessing(false);
-            setDone(true);
-        }, 1800);
-    };
-
-    return (
-        <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-10">
-                <div className="w-14 h-14 mx-auto rounded-2xl bg-red-50 flex items-center justify-center mb-4">
-                    <Edit3 className="text-[var(--primary)]" size={26} />
-                </div>
-                <h1 className="text-2xl font-bold text-fg">Edit PDF</h1>
-                <p className="text-muted text-sm mt-1">Add text directly onto your PDF pages.</p>
-            </div>
-
-            {!file ? (
-                <div
-                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                    onDragLeave={() => setIsDragging(false)}
-                    onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFile(e.dataTransfer.files); }}
-                    onClick={() => inputRef.current?.click()}
-                    className={`cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-colors ${isDragging ? "border-[var(--primary)] bg-red-50" : "border-card bg-card"
-                        }`}
-                >
-                    <input ref={inputRef} type="file" accept="application/pdf" hidden onChange={(e) => handleFile(e.target.files)} />
-                    <Upload className="mx-auto text-muted mb-3" size={28} />
-                    <p className="text-fg font-medium text-sm">Drag & drop a PDF file here</p>
-                    <p className="text-muted text-xs mt-1">or click to browse</p>
-                </div>
-            ) : (
-                <>
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-card">
-                        <div className="w-9 h-9 rounded-lg bg-red-50 flex items-center justify-center shrink-0">
-                            <FileText size={16} className="text-[var(--primary)]" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-fg text-sm truncate">{file.name}</p>
-                            <p className="text-muted text-xs">{file.size}</p>
-                        </div>
-                        <button onClick={() => { setFile(null); setDone(false); setItems([]); }} className="text-muted hover:text-[var(--primary)] shrink-0">
-                            <X size={16} />
-                        </button>
-                    </div>
-
-                    {/* Page preview with added text overlaid */}
-                    <div className="mt-6 relative rounded-2xl border border-card bg-card p-6 h-64 overflow-y-auto">
-                        <div className="space-y-2 mb-4">
-                            <div className="h-2.5 w-4/5 rounded bg-[var(--background-secondary)]" />
-                            <div className="h-2.5 w-full rounded bg-[var(--background-secondary)]" />
-                            <div className="h-2.5 w-3/5 rounded bg-[var(--background-secondary)]" />
-                        </div>
-                        <div className="space-y-2">
-                            {items.map((item) => (
-                                <div key={item.id} className="flex items-center gap-2 bg-red-50 rounded-md px-2 py-1 w-fit">
-                                    <span className="text-sm text-[var(--primary)]">{item.text}</span>
-                                    <button onClick={() => removeText(item.id)} className="text-[var(--primary)] hover:opacity-70">
-                                        <Trash2 size={12} />
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Add text control */}
-                    <div className="mt-6 p-5 rounded-2xl bg-card border border-card">
-                        <label className="text-xs text-muted block mb-1">Add text to page</label>
-                        <div className="flex gap-2">
-                            <input
-                                type="text"
-                                value={newText}
-                                onChange={(e) => setNewText(e.target.value)}
-                                onKeyDown={(e) => { if (e.key === "Enter") addText(); }}
-                                placeholder="Type text to insert..."
-                                className="flex-1 px-3 py-2 rounded-lg border border-card text-fg text-sm bg-card focus:outline-none focus:border-[var(--primary)]"
-                            />
-                            <button
-                                onClick={addText}
-                                disabled={!newText.trim()}
-                                className="px-4 rounded-lg bg-[var(--primary)] text-white disabled:opacity-60 hover:bg-[var(--primary-hover)] transition-colors"
-                            >
-                                <Plus size={18} />
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="mt-8 text-center">
-                        {!done ? (
-                            <button
-                                onClick={handleSave}
-                                disabled={processing || items.length === 0}
-                                className="px-8 py-3 rounded-full bg-[var(--primary)] text-white font-medium hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-60"
-                            >
-                                {processing ? "Saving..." : "Save Changes"}
-                            </button>
-                        ) : (
-                            <button className="inline-flex items-center gap-2 px-8 py-3 rounded-full bg-[var(--primary)] text-white font-medium hover:bg-[var(--primary-hover)] transition-colors">
-                                <Download size={18} />
-                                Download Edited PDF
-                            </button>
-                        )}
-                    </div>
-                </>
-            )}
-        </div>
-    );
-=======
 import { useState, useRef, useEffect } from "react";
-import { Upload, FileText, X, Edit3, Download, Loader2, Type, Bold, Italic, Pencil, Trash2, ChevronLeft, ChevronRight, Eraser, Move } from "lucide-react";
+import { Upload, FileText, X, Edit3, Download, Loader2, Type, Bold, Italic, Pencil, Trash2, ChevronLeft, ChevronRight, Eraser, Move, Sparkles, ShieldCheck } from "lucide-react";
 
 interface TextAnnotation {
   id: string;
@@ -219,7 +71,7 @@ export default function EditPdfPage() {
   const [replaceHeight, setReplaceHeight] = useState(22);
 
   // Draw Options
-  const [drawColor, setDrawColor] = useState("#818cf8");
+  const [drawColor, setDrawColor] = useState("#4f46e5");
   const [strokeWidth, setStrokeWidth] = useState(3);
   const [isDrawing, setIsDrawing] = useState(false);
   const [currentPath, setCurrentPath] = useState<{ x: number; y: number }[]>([]);
@@ -494,56 +346,66 @@ export default function EditPdfPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto w-full text-slate-200">
-      <div className="text-center mb-6">
-        <div className="w-12 h-12 mx-auto rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center mb-3 shadow-lg shadow-indigo-500/5">
-          <Edit3 className="text-indigo-400" size={24} />
-        </div>
-        <h1 className="text-xl lg:text-2xl font-bold text-white tracking-tight">Pro Interactive PDF Editor</h1>
-        <p className="text-slate-400 text-sm mt-1">Click anywhere on page to place text, or drag existing overlays.</p>
-      </div>
-
+    <div className="max-w-6xl mx-auto w-full text-slate-900 dark:text-slate-200">
       {!fileDetails ? (
-        <div
-          onDragOver={(e) => { e.preventDefault(); setIsDraggingFile(true); }}
-          onDragLeave={() => setIsDraggingFile(false)}
-          onDrop={(e) => { e.preventDefault(); setIsDraggingFile(false); handleFile(e.dataTransfer.files); }}
-          onClick={() => inputRef.current?.click()}
-          className={`cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-all ${
-            isDraggingFile 
-              ? "border-indigo-500 bg-indigo-500/10" 
-              : "border-slate-800 bg-[#121622] hover:border-slate-700 shadow-xl"
-          }`}
-        >
-          <input ref={inputRef} type="file" accept="application/pdf" hidden onChange={(e) => handleFile(e.target.files)} />
-          <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center mx-auto mb-3 border border-indigo-500/20">
-            <Upload className="text-indigo-400" size={22} />
+        <div className="max-w-4xl mx-auto p-8 rounded-3xl bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800/80 shadow-2xl transition-colors">
+          {/* Header Section */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-900/10 dark:bg-slate-800 border border-slate-900/20 dark:border-slate-700 text-slate-900 dark:text-slate-300 text-xs font-semibold mb-4 shadow-sm">
+              <Sparkles size={13} className="text-slate-900 dark:text-slate-400" />
+              DOCUMENT CONVERSION SUITE
+            </div>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight mb-2">Pro Interactive PDF Editor</h1>
+            <p className="text-slate-600 dark:text-slate-400 text-sm">Add text, replace content, or draw with precise positioning.</p>
           </div>
-          <p className="text-white font-medium text-sm">Click to upload or drag & drop</p>
-          <p className="text-slate-500 text-xs mt-1">PDF documents up to 50MB</p>
+
+          {/* Drag & Drop Upload Card */}
+          <div
+            onDragOver={(e) => { e.preventDefault(); setIsDraggingFile(true); }}
+            onDragLeave={() => setIsDraggingFile(false)}
+            onDrop={(e) => { e.preventDefault(); setIsDraggingFile(false); handleFile(e.dataTransfer.files); }}
+            onClick={() => inputRef.current?.click()}
+            className={`cursor-pointer rounded-2xl border-2 border-dashed p-12 text-center transition-all ${
+              isDraggingFile 
+                ? "border-slate-900 bg-slate-100 dark:border-slate-500 dark:bg-slate-500/10" 
+                : "border-slate-300 bg-slate-50 dark:border-slate-800 dark:bg-[#0b0f19] hover:border-slate-400 dark:hover:border-slate-700 shadow-inner"
+            }`}
+          >
+            <input ref={inputRef} type="file" accept="application/pdf" hidden onChange={(e) => handleFile(e.target.files)} />
+            <div className="w-14 h-14 rounded-2xl bg-slate-900/10 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4 border border-slate-900/20 dark:border-slate-700 shadow-md">
+              <Upload className="text-slate-900 dark:text-slate-300" size={24} />
+            </div>
+            <p className="text-slate-900 dark:text-white font-semibold text-base mb-1">Click to upload PDF document</p>
+            <p className="text-slate-500 text-xs mb-6">Supports text documents and reports</p>
+
+            <div className="w-full border-t border-slate-200 dark:border-slate-800/80 pt-4 flex items-center justify-center gap-2 text-slate-600 dark:text-slate-400 text-xs">
+              <ShieldCheck size={14} className="text-emerald-600 dark:text-emerald-400" />
+              <span>Secure PDF text extraction • No file retention</span>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1 space-y-4">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-[#121622] border border-slate-800 shadow-lg">
-              <div className="w-9 h-9 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center shrink-0">
-                <FileText size={16} className="text-indigo-400" />
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800 shadow-lg transition-colors">
+              <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0">
+                <FileText size={16} className="text-slate-700 dark:text-slate-300" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-white text-sm truncate font-medium">{fileDetails.name}</p>
-                <p className="text-slate-400 text-xs">{fileDetails.size} • {pageCount} pages</p>
+                <p className="text-slate-900 dark:text-white text-sm truncate font-medium">{fileDetails.name}</p>
+                <p className="text-slate-500 dark:text-slate-400 text-xs">{fileDetails.size} • {pageCount} pages</p>
               </div>
-              <button onClick={() => { setFileDetails(null); setRawFile(null); setAnnotations([]); setPdfDocProxy(null); }} className="text-slate-400 hover:text-white transition-colors">
+              <button onClick={() => { setFileDetails(null); setRawFile(null); setAnnotations([]); setPdfDocProxy(null); }} className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
                 <X size={16} />
               </button>
             </div>
 
-            <div className="p-1.5 rounded-xl bg-[#121622] border border-slate-800 flex gap-1 shadow-lg">
+            <div className="p-1.5 rounded-xl bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800 flex gap-1 shadow-lg transition-colors">
               <button
                 type="button"
                 onClick={() => setActiveTool("replace")}
                 className={`flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
-                  activeTool === "replace" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                  activeTool === "replace" ? "bg-slate-900 text-white dark:bg-slate-800 border border-slate-900 dark:border-slate-700 shadow-md" : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50"
                 }`}
               >
                 <Eraser size={13} /> Edit/Replace
@@ -552,7 +414,7 @@ export default function EditPdfPage() {
                 type="button"
                 onClick={() => setActiveTool("text")}
                 className={`flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
-                  activeTool === "text" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                  activeTool === "text" ? "bg-slate-900 text-white dark:bg-slate-800 border border-slate-900 dark:border-slate-700 shadow-md" : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50"
                 }`}
               >
                 <Type size={13} /> Add Text
@@ -561,7 +423,7 @@ export default function EditPdfPage() {
                 type="button"
                 onClick={() => setActiveTool("draw")}
                 className={`flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
-                  activeTool === "draw" ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20" : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                  activeTool === "draw" ? "bg-slate-900 text-white dark:bg-slate-800 border border-slate-900 dark:border-slate-700 shadow-md" : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50"
                 }`}
               >
                 <Pencil size={13} /> Draw
@@ -569,18 +431,18 @@ export default function EditPdfPage() {
             </div>
 
             {(activeTool === "replace" || activeTool === "text") && (
-              <div className="p-4 rounded-2xl bg-[#121622] border border-slate-800 space-y-3 shadow-lg">
+              <div className="p-4 rounded-2xl bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800 space-y-3 shadow-lg transition-colors">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-white">Text Properties</p>
+                  <p className="text-xs font-semibold text-slate-900 dark:text-white">Text Properties</p>
                   {selectedTextAnn && (
-                    <span className="text-[10px] text-indigo-400 font-semibold flex items-center gap-1 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">
+                    <span className="text-[10px] text-slate-700 dark:text-slate-300 font-semibold flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full border border-slate-200 dark:border-slate-700">
                       <Move size={10} /> Active Selected
                     </span>
                   )}
                 </div>
 
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">Text Content</label>
+                  <label className="text-xs text-slate-500 dark:text-slate-400 block mb-1">Text Content</label>
                   <input
                     type="text"
                     value={
@@ -600,14 +462,14 @@ export default function EditPdfPage() {
                       }
                     }}
                     placeholder="Write text here..."
-                    className="w-full p-2.5 rounded-xl border border-slate-800 bg-[#0b0f19] text-white text-sm focus:outline-none focus:border-indigo-500 transition-colors"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#121622] text-slate-900 dark:text-white text-sm focus:outline-none focus:border-slate-400 dark:focus:border-slate-600 transition-colors"
                   />
                 </div>
 
                 {activeTool === "replace" && (
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-xs text-slate-400 block mb-1">Whiteout Width</label>
+                      <label className="text-xs text-slate-500 dark:text-slate-400 block mb-1">Whiteout Width</label>
                       <input
                         type="number"
                         value={
@@ -620,11 +482,11 @@ export default function EditPdfPage() {
                           setReplaceWidth(val);
                           updateSelectedAnnotation("width", val);
                         }}
-                        className="w-full p-2 rounded-xl border border-slate-800 bg-[#0b0f19] text-white text-xs focus:outline-none focus:border-indigo-500"
+                        className="w-full p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#121622] text-slate-900 dark:text-white text-xs focus:outline-none focus:border-slate-400 dark:focus:border-slate-600"
                       />
                     </div>
                     <div>
-                      <label className="text-xs text-slate-400 block mb-1">Whiteout Height</label>
+                      <label className="text-xs text-slate-500 dark:text-slate-400 block mb-1">Whiteout Height</label>
                       <input
                         type="number"
                         value={
@@ -637,7 +499,7 @@ export default function EditPdfPage() {
                           setReplaceHeight(val);
                           updateSelectedAnnotation("height", val);
                         }}
-                        className="w-full p-2 rounded-xl border border-slate-800 bg-[#0b0f19] text-white text-xs focus:outline-none focus:border-indigo-500"
+                        className="w-full p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#121622] text-slate-900 dark:text-white text-xs focus:outline-none focus:border-slate-400 dark:focus:border-slate-600"
                       />
                     </div>
                   </div>
@@ -653,8 +515,8 @@ export default function EditPdfPage() {
                     }}
                     className={`p-2 rounded-lg border text-xs font-semibold flex items-center justify-center flex-1 transition-all ${
                       (selectedTextAnn ? selectedTextAnn.isBold : isBold)
-                        ? "border-indigo-500 bg-indigo-500/20 text-indigo-300"
-                        : "border-slate-800 bg-[#0b0f19] text-slate-400 hover:border-slate-700"
+                        ? "border-slate-900 dark:border-slate-600 bg-slate-900 text-white dark:bg-slate-800"
+                        : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#121622] text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700"
                     }`}
                   >
                     <Bold size={14} />
@@ -668,8 +530,8 @@ export default function EditPdfPage() {
                     }}
                     className={`p-2 rounded-lg border text-xs font-semibold flex items-center justify-center flex-1 transition-all ${
                       (selectedTextAnn ? selectedTextAnn.isItalic : isItalic)
-                        ? "border-indigo-500 bg-indigo-500/20 text-indigo-300"
-                        : "border-slate-800 bg-[#0b0f19] text-slate-400 hover:border-slate-700"
+                        ? "border-slate-900 dark:border-slate-600 bg-slate-900 text-white dark:bg-slate-800"
+                        : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#121622] text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700"
                     }`}
                   >
                     <Italic size={14} />
@@ -681,12 +543,12 @@ export default function EditPdfPage() {
                       setTextColor(e.target.value);
                       updateSelectedAnnotation("color", e.target.value);
                     }}
-                    className="h-8 w-12 rounded-lg border border-slate-800 cursor-pointer bg-[#0b0f19] p-0.5"
+                    className="h-8 w-12 rounded-lg border border-slate-200 dark:border-slate-800 cursor-pointer bg-slate-50 dark:bg-[#121622] p-0.5"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">
+                  <label className="text-xs text-slate-500 dark:text-slate-400 block mb-1">
                     Font Size: {selectedTextAnn ? selectedTextAnn.fontSize : fontSize}px
                   </label>
                   <input
@@ -699,42 +561,42 @@ export default function EditPdfPage() {
                       setFontSize(val);
                       updateSelectedAnnotation("fontSize", val);
                     }}
-                    className="w-full accent-indigo-500 cursor-pointer bg-slate-800 rounded-lg h-2"
+                    className="w-full accent-slate-900 dark:accent-slate-400 cursor-pointer bg-slate-200 dark:bg-slate-800 rounded-lg h-2"
                   />
                 </div>
               </div>
             )}
 
             {activeTool === "draw" && (
-              <div className="p-4 rounded-2xl bg-[#121622] border border-slate-800 space-y-3 shadow-lg">
-                <p className="text-xs font-semibold text-white">Drawing Properties</p>
+              <div className="p-4 rounded-2xl bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800 space-y-3 shadow-lg transition-colors">
+                <p className="text-xs font-semibold text-slate-900 dark:text-white">Drawing Properties</p>
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">Color</label>
+                  <label className="text-xs text-slate-500 dark:text-slate-400 block mb-1">Color</label>
                   <input
                     type="color"
                     value={drawColor}
                     onChange={(e) => setDrawColor(e.target.value)}
-                    className="w-full h-9 rounded-xl border border-slate-800 cursor-pointer bg-[#0b0f19] p-1"
+                    className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 cursor-pointer bg-slate-50 dark:bg-[#121622] p-1"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-400 block mb-1">Stroke Width: {strokeWidth}px</label>
+                  <label className="text-xs text-slate-500 dark:text-slate-400 block mb-1">Stroke Width: {strokeWidth}px</label>
                   <input
                     type="range"
                     min="1"
                     max="16"
                     value={strokeWidth}
                     onChange={(e) => setStrokeWidth(Number(e.target.value))}
-                    className="w-full accent-indigo-500 cursor-pointer bg-slate-800 rounded-lg h-2"
+                    className="w-full accent-slate-900 dark:accent-slate-400 cursor-pointer bg-slate-200 dark:bg-slate-800 rounded-lg h-2"
                   />
                 </div>
               </div>
             )}
 
-            <div className="p-4 rounded-2xl bg-[#121622] border border-slate-800 space-y-2 shadow-lg">
-              <p className="text-xs font-semibold text-white">Active Modifications ({annotations.length})</p>
+            <div className="p-4 rounded-2xl bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800 space-y-2 shadow-lg transition-colors">
+              <p className="text-xs font-semibold text-slate-900 dark:text-white">Active Modifications ({annotations.length})</p>
               {annotations.length === 0 ? (
-                <p className="text-xs text-slate-500">No edits made yet.</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500">No edits made yet.</p>
               ) : (
                 <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                   {annotations.map((ann) => (
@@ -743,14 +605,21 @@ export default function EditPdfPage() {
                       onClick={() => setSelectedAnnotationId(ann.id)}
                       className={`flex items-center justify-between p-2 rounded-lg text-xs cursor-pointer transition-colors ${
                         selectedAnnotationId === ann.id 
-                          ? "bg-indigo-600/20 border border-indigo-500/50 text-indigo-200" 
-                          : "bg-[#0b0f19] border border-slate-800/60 text-slate-300 hover:border-slate-700"
+                          ? "bg-slate-900 text-white dark:bg-slate-800 border border-slate-900 dark:border-slate-700" 
+                          : "bg-slate-50 dark:bg-[#121622] border border-slate-200 dark:border-slate-800/60 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700"
                       }`}
                     >
                       <span className="truncate pr-2 font-medium">
                         P{ann.pageIndex + 1}: {ann.type === "replace" ? `Replace → "${ann.newText}"` : ann.type === "text" ? `Text: "${ann.text}"` : "Draw Stroke"}
                       </span>
-                      <button type="button" onClick={(e) => { e.stopPropagation(); removeAnnotation(ann.id); }} className="text-rose-400 hover:text-rose-300 transition-colors p-1">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeAnnotation(ann.id);
+                        }}
+                        className={`text-slate-400 hover:text-red-600 dark:hover:text-red-400 ${selectedAnnotationId === ann.id ? "text-slate-300" : ""}`}
+                      >
                         <Trash2 size={13} />
                       </button>
                     </div>
@@ -760,7 +629,7 @@ export default function EditPdfPage() {
             </div>
 
             {errorMessage && (
-              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs text-center font-medium">
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs">
                 {errorMessage}
               </div>
             )}
@@ -768,146 +637,146 @@ export default function EditPdfPage() {
             <button
               type="button"
               onClick={executeSave}
-              disabled={processing}
-              className="w-full py-3 rounded-xl bg-indigo-600 text-white font-medium hover:bg-indigo-500 disabled:opacity-60 flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/20 transition-all cursor-pointer"
+              disabled={processing || annotations.length === 0}
+              className="w-full py-3 rounded-xl bg-slate-900 text-white dark:bg-[#121622] border border-slate-900 dark:border-slate-700 font-medium hover:bg-slate-800 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg text-sm"
             >
-              {processing ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
-              {processing ? "Saving Changes..." : "Download Edited PDF"}
+              {processing ? (
+                <>
+                  <Loader2 size={16} className="animate-spin" />
+                  Generating PDF...
+                </>
+              ) : (
+                <>
+                  <Download size={16} />
+                  Save & Download PDF
+                </>
+              )}
             </button>
           </div>
 
-          <div className="lg:col-span-2 space-y-4">
-            <div className="p-4 rounded-2xl bg-[#121622] border border-slate-800 shadow-xl">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    disabled={selectedPageIndex === 0}
-                    onClick={() => setSelectedPageIndex((p) => p - 1)}
-                    className="p-1.5 rounded-lg bg-[#0b0f19] border border-slate-800 text-slate-300 disabled:opacity-40 hover:border-slate-700 transition-colors"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  <span className="text-xs font-semibold text-white">
-                    Page {selectedPageIndex + 1} of {pageCount}
-                  </span>
-                  <button
-                    type="button"
-                    disabled={selectedPageIndex >= pageCount - 1}
-                    onClick={() => setSelectedPageIndex((p) => p + 1)}
-                    className="p-1.5 rounded-lg bg-[#0b0f19] border border-slate-800 text-slate-300 disabled:opacity-40 hover:border-slate-700 transition-colors"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </div>
-
-                <span className="text-xs text-slate-400">
-                  Active Tool: <strong className="text-indigo-400 capitalize">{activeTool}</strong>
+          <div className="lg:col-span-2 flex flex-col items-center bg-white dark:bg-[#121622] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl transition-colors">
+            <div className="flex items-center justify-between w-full mb-3 px-2">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={selectedPageIndex === 0}
+                  onClick={() => setSelectedPageIndex((p) => Math.max(0, p - 1))}
+                  className="p-1.5 rounded-lg bg-slate-900 text-white dark:bg-[#121622] border border-slate-900 dark:border-slate-800 disabled:opacity-40 hover:bg-slate-800 dark:hover:border-slate-700 transition-colors"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span className="text-xs text-slate-700 dark:text-slate-300 font-medium">
+                  Page {selectedPageIndex + 1} of {pageCount}
                 </span>
+                <button
+                  type="button"
+                  disabled={selectedPageIndex >= pageCount - 1}
+                  onClick={() => setSelectedPageIndex((p) => Math.min(pageCount - 1, p + 1))}
+                  className="p-1.5 rounded-lg bg-slate-900 text-white dark:bg-[#121622] border border-slate-900 dark:border-slate-800 disabled:opacity-40 hover:bg-slate-800 dark:hover:border-slate-700 transition-colors"
+                >
+                  <ChevronRight size={16} />
+                </button>
               </div>
+              <span className="text-[11px] text-slate-400 dark:text-slate-500">
+                {activeTool === "draw" ? "Click & drag to draw" : "Click anywhere on page to place"}
+              </span>
+            </div>
 
+            <div className="relative border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#121622] rounded-xl overflow-auto max-h-[650px] shadow-inner flex justify-center w-full transition-colors">
               <div
+                ref={overlayContainerRef}
                 onClick={handlePageClick}
                 onMouseDown={startDrawing}
                 onMouseMove={onMouseMoveContainer}
                 onMouseUp={onMouseUpContainer}
-                className={`relative w-full flex justify-center bg-[#080b12] rounded-xl border border-slate-800/80 overflow-auto p-4 select-none shadow-inner ${
-                  activeTool === "replace" || activeTool === "text" ? "cursor-crosshair" : activeTool === "draw" ? "cursor-crosshair" : "cursor-default"
-                }`}
-                style={{ minHeight: "500px" }}
+                className="relative cursor-crosshair inline-block"
               >
-                <div className="relative shadow-2xl" ref={overlayContainerRef}>
-                  <canvas ref={canvasRef} className="block rounded shadow-lg max-w-full" />
+                <canvas ref={canvasRef} className="block" />
 
-                  <div className="absolute inset-0">
-                    
-                    {/* Render Replace Text Boxes (Default White background background via bg-white style, and text color) */}
-                    {annotations
-                      .filter((a) => a.pageIndex === selectedPageIndex && a.type === "replace")
-                      .map((ann) => {
-                        const repAnn = ann as ReplaceAnnotation;
-                        const isSelected = selectedAnnotationId === repAnn.id;
-                        return (
-                          <div
-                            key={repAnn.id}
-                            onMouseDown={(e) => startDragAnnotation(e, repAnn.id, repAnn.x, repAnn.y)}
-                            className={`absolute bg-white flex items-center px-1 cursor-grab active:cursor-grabbing transition-shadow rounded-sm ${
-                              isSelected ? "ring-2 ring-indigo-500 shadow-xl" : "border border-dashed border-slate-400 hover:border-indigo-500"
-                            }`}
+                {annotations
+                  .filter((ann) => ann.pageIndex === selectedPageIndex)
+                  .map((ann) => {
+                    if (ann.type === "draw") {
+                      const svgPoints = ann.path.map((p) => `${p.x},${p.y}`).join(" ");
+                      return (
+                        <svg key={ann.id} className="absolute inset-0 pointer-events-none w-full h-full">
+                          <polyline
+                            fill="none"
+                            stroke={ann.color}
+                            strokeWidth={ann.strokeWidth}
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            points={svgPoints}
+                          />
+                        </svg>
+                      );
+                    }
+
+                    const isSelected = selectedAnnotationId === ann.id;
+
+                    if (ann.type === "replace") {
+                      return (
+                        <div
+                          key={ann.id}
+                          onMouseDown={(e) => startDragAnnotation(e, ann.id, ann.x, ann.y)}
+                          style={{
+                            position: "absolute",
+                            left: `${ann.x}px`,
+                            top: `${ann.y}px`,
+                            width: `${ann.width}px`,
+                            height: `${ann.height}px`,
+                          }}
+                          className={`flex items-center bg-white px-1 select-none cursor-move group ${
+                            isSelected ? "ring-2 ring-slate-900 dark:ring-slate-400 shadow-md" : "border border-dashed border-slate-400/60"
+                          }`}
+                        >
+                          <span
                             style={{
-                              top: `${repAnn.y}px`,
-                              left: `${repAnn.x}px`,
-                              width: `${repAnn.width}px`,
-                              height: `${repAnn.height}px`,
-                              fontSize: `${repAnn.fontSize}px`,
-                              fontWeight: repAnn.isBold ? "bold" : "normal",
-                              fontStyle: repAnn.isItalic ? "italic" : "normal",
-                              color: repAnn.color,
+                              fontSize: `${ann.fontSize}px`,
+                              fontWeight: ann.isBold ? "bold" : "normal",
+                              fontStyle: ann.isItalic ? "italic" : "normal",
+                              color: ann.color,
+                              lineHeight: 1,
                             }}
+                            className="truncate pointer-events-none"
                           >
-                            <span className="truncate w-full">{repAnn.newText}</span>
-                          </div>
-                        );
-                      })}
+                            {ann.newText}
+                          </span>
+                        </div>
+                      );
+                    }
 
-                    {/* Render Text Overlays */}
-                    {annotations
-                      .filter((a) => a.pageIndex === selectedPageIndex && a.type === "text")
-                      .map((ann) => {
-                        const textAnn = ann as TextAnnotation;
-                        const isSelected = selectedAnnotationId === textAnn.id;
-                        return (
-                          <div
-                            key={textAnn.id}
-                            onMouseDown={(e) => startDragAnnotation(e, textAnn.id, textAnn.x, textAnn.y)}
-                            className={`absolute px-1.5 py-0.5 rounded cursor-grab active:cursor-grabbing transition-shadow ${
-                              isSelected ? "ring-2 ring-indigo-500 bg-white/90 shadow-xl" : "border border-dashed border-indigo-500/60 bg-white/80"
-                            }`}
+                    if (ann.type === "text") {
+                      return (
+                        <div
+                          key={ann.id}
+                          onMouseDown={(e) => startDragAnnotation(e, ann.id, ann.x, ann.y)}
+                          style={{
+                            position: "absolute",
+                            left: `${ann.x}px`,
+                            top: `${ann.y}px`,
+                          }}
+                          className={`px-1.5 py-0.5 select-none cursor-move rounded ${
+                            isSelected ? "ring-2 ring-slate-900 dark:ring-slate-400 bg-slate-200/40 dark:bg-slate-800/40 shadow-md" : "hover:bg-slate-200/20 dark:hover:bg-slate-800/20 border border-transparent hover:border-slate-300 dark:hover:border-slate-700"
+                          }`}
+                        >
+                          <span
                             style={{
-                              top: `${textAnn.y}px`,
-                              left: `${textAnn.x}px`,
-                              fontSize: `${textAnn.fontSize}px`,
-                              fontWeight: textAnn.isBold ? "bold" : "normal",
-                              fontStyle: textAnn.isItalic ? "italic" : "normal",
-                              color: textAnn.color,
+                              fontSize: `${ann.fontSize}px`,
+                              fontWeight: ann.isBold ? "bold" : "normal",
+                              fontStyle: ann.isItalic ? "italic" : "normal",
+                              color: ann.color,
                             }}
+                            className="pointer-events-none whitespace-nowrap block"
                           >
-                            {textAnn.text}
-                          </div>
-                        );
-                      })}
+                            {ann.text}
+                          </span>
+                        </div>
+                      );
+                    }
 
-                    <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                      {annotations
-                        .filter((a) => a.pageIndex === selectedPageIndex && a.type === "draw")
-                        .map((ann) => {
-                          const drawAnn = ann as DrawAnnotation;
-                          const points = drawAnn.path.map((p) => `${p.x},${p.y}`).join(" ");
-                          return (
-                            <polyline
-                              key={drawAnn.id}
-                              fill="none"
-                              stroke={drawAnn.color}
-                              strokeWidth={drawAnn.strokeWidth}
-                              points={points}
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          );
-                        })}
-                      {isDrawing && currentPath.length > 1 && (
-                        <polyline
-                          fill="none"
-                          stroke={drawColor}
-                          strokeWidth={strokeWidth}
-                          points={currentPath.map((p) => `${p.x},${p.y}`).join(" ")}
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      )}
-                    </svg>
-                  </div>
-                </div>
+                    return null;
+                  })}
               </div>
             </div>
           </div>
@@ -915,5 +784,4 @@ export default function EditPdfPage() {
       )}
     </div>
   );
->>>>>>> 0635d89 ( commit message here)
 }
