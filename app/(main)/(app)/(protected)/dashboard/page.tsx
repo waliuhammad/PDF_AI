@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { useAuth } from "@/hooks/useAuth";
+import { useDocuments } from "@/hooks/useDocuments";
 import { useLibrary } from "@/lib/store";
 import { formatRelativeTime } from "@/lib/utils";
 
@@ -30,7 +31,7 @@ const STORAGE_QUOTA_GB = 10;
 export default function DashboardPage() {
     // Route protection and the loading gate live in the (app) layout.
     const { user, profile } = useAuth();
-    const documents = useLibrary((s) => s.documents);
+    const { documents } = useDocuments();
     const chats = useLibrary((s) => s.chats);
 
     const { storageUsedGb, storagePercent, favouriteCount, recentDocs, recentChats } = useMemo(() => {
@@ -40,7 +41,7 @@ export default function DashboardPage() {
             storageUsedGb: usedGb,
             storagePercent: Math.min((usedGb / STORAGE_QUOTA_GB) * 100, 100),
             favouriteCount: documents.filter((d) => d.favorite).length,
-            recentDocs: [...documents].sort((a, b) => b.timestamp - a.timestamp).slice(0, 3),
+            recentDocs: [...documents].sort((a, b) => (b.timestamp ?? Infinity) - (a.timestamp ?? Infinity)).slice(0, 3),
             recentChats: [...chats].sort((a, b) => b.timestamp - a.timestamp).slice(0, 2),
         };
     }, [documents, chats]);
@@ -98,7 +99,7 @@ export default function DashboardPage() {
                                         <div className="min-w-0">
                                             <p className="text-sm font-medium text-fg truncate">{pdf.name}</p>
                                             <p className="text-xs text-muted">
-                                                {pdf.size} · {formatRelativeTime(pdf.timestamp)}
+                                                {pdf.size} · {pdf.timestamp ? formatRelativeTime(pdf.timestamp) : "Just now"}
                                             </p>
                                         </div>
                                     </div>

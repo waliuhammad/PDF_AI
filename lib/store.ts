@@ -1,27 +1,15 @@
 "use client";
 
 import { create } from "zustand";
-import { formatFileSize } from "@/lib/utils";
 
 /**
- * Client-side library of the user's documents and chats.
+ * Client-side store for chats.
  *
- * This is the single source of truth the documents, chats and dashboard pages
- * read from, so counts and recent lists always agree. It is seeded with sample
- * rows and lives in memory only — swapping the seed and the actions below for
- * Firestore/Storage calls is the backend step, and no component has to change.
+ * Documents moved to Firestore + Storage (see lib/firebase/documents.ts and
+ * hooks/useDocuments.ts); chats are still seeded in memory and are the next
+ * thing to move. Replacing the seed and the actions below with Firestore calls
+ * is the remaining work — no component has to change.
  */
-
-export interface DocumentItem {
-    id: string;
-    name: string;
-    /** Formatted for display, e.g. "2.4 MB". */
-    size: string;
-    /** Megabytes, kept separately so the list can sort by size. */
-    sizeMb: number;
-    timestamp: number;
-    favorite: boolean;
-}
 
 export interface ChatMessage {
     id: string;
@@ -40,25 +28,6 @@ export interface ChatItem {
 
 const HOUR = 3600_000;
 const DAY = 86400_000;
-
-function seedDocuments(): DocumentItem[] {
-    const now = Date.now();
-    return [
-        { name: "Research Paper - Neural Networks.pdf", sizeMb: 2.4, age: 2 * HOUR, favorite: true },
-        { name: "Company Financial Report Q3.pdf", sizeMb: 5.1, age: DAY, favorite: false },
-        { name: "Contract Agreement Draft.pdf", sizeMb: 0.87, age: 3 * DAY, favorite: false },
-        { name: "Product Roadmap 2026.pdf", sizeMb: 1.2, age: 5 * DAY, favorite: true },
-        { name: "Legal Terms & Conditions.pdf", sizeMb: 0.64, age: 7 * DAY, favorite: false },
-        { name: "Marketing Strategy Deck.pdf", sizeMb: 3.8, age: 14 * DAY, favorite: false },
-    ].map((d, i) => ({
-        id: `seed-doc-${i}`,
-        name: d.name,
-        size: formatFileSize(d.sizeMb * 1024 * 1024),
-        sizeMb: d.sizeMb,
-        timestamp: now - d.age,
-        favorite: d.favorite,
-    }));
-}
 
 function seedChats(): ChatItem[] {
     const now = Date.now();
@@ -100,13 +69,7 @@ function seedChats(): ChatItem[] {
 }
 
 interface LibraryState {
-    documents: DocumentItem[];
     chats: ChatItem[];
-
-    addDocuments: (files: { name: string; bytes: number }[]) => void;
-    removeDocument: (id: string) => void;
-    renameDocument: (id: string, name: string) => void;
-    toggleFavorite: (id: string) => void;
 
     createChat: (pdfName: string, title?: string) => string;
     removeChat: (id: string) => void;
@@ -114,35 +77,7 @@ interface LibraryState {
 }
 
 export const useLibrary = create<LibraryState>((set) => ({
-    documents: seedDocuments(),
     chats: seedChats(),
-
-    addDocuments: (files) =>
-        set((state) => {
-            const now = Date.now();
-            const added: DocumentItem[] = files.map((f, i) => ({
-                id: `doc-${now}-${i}`,
-                name: f.name,
-                size: formatFileSize(f.bytes),
-                sizeMb: f.bytes / (1024 * 1024),
-                timestamp: now,
-                favorite: false,
-            }));
-            return { documents: [...added, ...state.documents] };
-        }),
-
-    removeDocument: (id) =>
-        set((state) => ({ documents: state.documents.filter((d) => d.id !== id) })),
-
-    renameDocument: (id, name) =>
-        set((state) => ({
-            documents: state.documents.map((d) => (d.id === id ? { ...d, name } : d)),
-        })),
-
-    toggleFavorite: (id) =>
-        set((state) => ({
-            documents: state.documents.map((d) => (d.id === id ? { ...d, favorite: !d.favorite } : d)),
-        })),
 
     createChat: (pdfName, title) => {
         const id = `chat-${Date.now()}`;

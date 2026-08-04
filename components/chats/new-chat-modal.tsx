@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { X, FileText, Search, MessageSquare } from "lucide-react";
 import Link from "next/link";
-import { useLibrary } from "@/lib/store";
+import { useDocuments } from "@/hooks/useDocuments";
 
 interface NewChatModalProps {
     onClose: () => void;
@@ -11,7 +11,7 @@ interface NewChatModalProps {
 }
 
 export function NewChatModal({ onClose, onCreate }: NewChatModalProps) {
-    const documents = useLibrary((s) => s.documents);
+    const { documents } = useDocuments();
     const [search, setSearch] = useState("");
     const [selected, setSelected] = useState<string | null>(null);
     const [title, setTitle] = useState("");
