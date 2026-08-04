@@ -5,14 +5,12 @@ import { useRouter } from "next/navigation";
 import { Search, Plus, MessageSquare } from "lucide-react";
 import { ChatListItem } from "@/components/chats/chat-list-item";
 import { NewChatModal } from "@/components/chats/new-chat-modal";
-import { useLibrary } from "@/lib/store";
+import { useChats } from "@/hooks/useChats";
 import { formatRelativeTime } from "@/lib/utils";
 
 export default function ChatsPage() {
     const router = useRouter();
-    const chats = useLibrary((s) => s.chats);
-    const createChat = useLibrary((s) => s.createChat);
-    const removeChat = useLibrary((s) => s.removeChat);
+    const { chats, loading, error, create, remove: removeChat } = useChats();
 
     const [search, setSearch] = useState("");
     const [showNewChat, setShowNewChat] = useState(false);
@@ -23,12 +21,12 @@ export default function ChatsPage() {
         return chats.filter(
             (c) =>
                 c.title.toLowerCase().includes(query) ||
-                c.pdfName.toLowerCase().includes(query)
+                c.documentName.toLowerCase().includes(query)
         );
     }, [chats, search]);
 
-    const handleCreate = (pdfName: string, title: string) => {
-        const id = createChat(pdfName, title);
+    const handleCreate = async (documentId: string, documentName: string, title: string) => {
+        const id = await create(documentId, documentName, title);
         setShowNewChat(false);
         router.push(`/chats/${id}`);
     };
@@ -62,7 +60,17 @@ export default function ChatsPage() {
                 />
             </div>
 
-            {filteredChats.length === 0 ? (
+            {error && (
+                <div className="mb-4 px-4 py-3 rounded-xl border border-red-500/40 bg-red-500/10 text-sm text-red-600">
+                    {error}
+                </div>
+            )}
+
+            {loading ? (
+                <div className="text-center py-16">
+                    <p className="text-muted text-sm">Loading your chats...</p>
+                </div>
+            ) : filteredChats.length === 0 ? (
                 <div className="text-center py-16">
                     <div className="w-12 h-12 mx-auto rounded-xl bg-[var(--background-secondary)] flex items-center justify-center mb-3">
                         <MessageSquare size={20} className="text-muted" />
@@ -75,21 +83,17 @@ export default function ChatsPage() {
                 </div>
             ) : (
                 <div className="bg-card border border-card rounded-2xl p-2">
-                    {filteredChats.map((chat) => {
-                        const last = chat.messages[chat.messages.length - 1];
-
-                        return (
-                            <ChatListItem
-                                key={chat.id}
-                                title={chat.title}
-                                pdfName={chat.pdfName}
-                                lastMessage={last?.content ?? "No messages yet"}
-                                date={formatRelativeTime(chat.timestamp)}
-                                onDelete={() => removeChat(chat.id)}
-                                onClick={() => router.push(`/chats/${chat.id}`)}
-                            />
-                        );
-                    })}
+                    {filteredChats.map((chat) => (
+                        <ChatListItem
+                            key={chat.id}
+                            title={chat.title}
+                            pdfName={chat.documentName}
+                            lastMessage={chat.lastMessage || "No messages yet"}
+                            date={chat.updatedAt ? formatRelativeTime(chat.updatedAt) : "Just now"}
+                            onDelete={() => removeChat(chat.id)}
+                            onClick={() => router.push(`/chats/${chat.id}`)}
+                        />
+                    ))}
                 </div>
             )}
 

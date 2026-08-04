@@ -16,7 +16,7 @@ import {
 import { StatCard } from "@/components/dashboard/stat-card";
 import { useAuth } from "@/hooks/useAuth";
 import { useDocuments } from "@/hooks/useDocuments";
-import { useLibrary } from "@/lib/store";
+import { useChats } from "@/hooks/useChats";
 import { formatRelativeTime } from "@/lib/utils";
 
 const quickActions = [
@@ -32,7 +32,7 @@ export default function DashboardPage() {
     // Route protection and the loading gate live in the (app) layout.
     const { user, profile } = useAuth();
     const { documents } = useDocuments();
-    const chats = useLibrary((s) => s.chats);
+    const { chats } = useChats();
 
     const { storageUsedGb, storagePercent, favouriteCount, recentDocs, recentChats } = useMemo(() => {
         const usedGb = documents.reduce((total, doc) => total + doc.sizeMb, 0) / 1024;
@@ -42,7 +42,7 @@ export default function DashboardPage() {
             storagePercent: Math.min((usedGb / STORAGE_QUOTA_GB) * 100, 100),
             favouriteCount: documents.filter((d) => d.favorite).length,
             recentDocs: [...documents].sort((a, b) => (b.timestamp ?? Infinity) - (a.timestamp ?? Infinity)).slice(0, 3),
-            recentChats: [...chats].sort((a, b) => b.timestamp - a.timestamp).slice(0, 2),
+            recentChats: [...chats].sort((a, b) => (b.updatedAt ?? Infinity) - (a.updatedAt ?? Infinity)).slice(0, 2),
         };
     }, [documents, chats]);
 
@@ -181,11 +181,11 @@ export default function DashboardPage() {
                                     </div>
                                     <div className="min-w-0">
                                         <p className="text-sm font-medium text-fg truncate">{chat.title}</p>
-                                        <p className="text-xs text-muted truncate">{chat.pdfName}</p>
+                                        <p className="text-xs text-muted truncate">{chat.documentName}</p>
                                     </div>
                                 </div>
                                 <span className="text-xs text-muted shrink-0 ml-3">
-                                    {formatRelativeTime(chat.timestamp)}
+                                    {chat.updatedAt ? formatRelativeTime(chat.updatedAt) : "Just now"}
                                 </span>
                             </Link>
                         ))}

@@ -7,13 +7,14 @@ import { useDocuments } from "@/hooks/useDocuments";
 
 interface NewChatModalProps {
     onClose: () => void;
-    onCreate: (pdfName: string, title: string) => void;
+    /** The id is carried through so the conversation can fetch the file later. */
+    onCreate: (documentId: string, documentName: string, title: string) => void;
 }
 
 export function NewChatModal({ onClose, onCreate }: NewChatModalProps) {
     const { documents } = useDocuments();
     const [search, setSearch] = useState("");
-    const [selected, setSelected] = useState<string | null>(null);
+    const [selected, setSelected] = useState<{ id: string; name: string } | null>(null);
     const [title, setTitle] = useState("");
 
     const visible = documents.filter((d) =>
@@ -67,8 +68,8 @@ export function NewChatModal({ onClose, onCreate }: NewChatModalProps) {
                                 visible.map((doc) => (
                                     <button
                                         key={doc.id}
-                                        onClick={() => setSelected(doc.name)}
-                                        className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-colors ${selected === doc.name
+                                        onClick={() => setSelected({ id: doc.id, name: doc.name })}
+                                        className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-colors ${selected?.id === doc.id
                                             ? "border-[var(--primary)] bg-[var(--primary)]/5"
                                             : "border-card hover:border-[var(--primary)]"
                                             }`}
@@ -104,7 +105,7 @@ export function NewChatModal({ onClose, onCreate }: NewChatModalProps) {
                                 Cancel
                             </button>
                             <button
-                                onClick={() => selected && onCreate(selected, title)}
+                                onClick={() => selected && onCreate(selected.id, selected.name, title)}
                                 disabled={!selected}
                                 className="px-5 py-2.5 rounded-full bg-[var(--primary)] text-white text-sm font-medium hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                             >

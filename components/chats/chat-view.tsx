@@ -3,21 +3,28 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, FileText, Send, MessageSquare, Sparkles } from "lucide-react";
-import { useLibrary } from "@/lib/store";
+import { useChat } from "@/hooks/useChats";
 import { formatRelativeTime } from "@/lib/utils";
 
 export function ChatView({ chatId }: { chatId: string }) {
-    const chat = useLibrary((s) => s.chats.find((c) => c.id === chatId));
-    const sendMessage = useLibrary((s) => s.sendMessage);
+    const { chat, messages, loading, send } = useChat(chatId);
 
     const [draft, setDraft] = useState("");
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    const messageCount = chat?.messages.length ?? 0;
+    const messageCount = messages.length;
 
     useEffect(() => {
         scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
     }, [messageCount]);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <p className="text-sm text-muted">Loading conversation...</p>
+            </div>
+        );
+    }
 
     if (!chat) {
         return (
@@ -41,7 +48,7 @@ export function ChatView({ chatId }: { chatId: string }) {
         e.preventDefault();
         const content = draft.trim();
         if (!content) return;
-        sendMessage(chat.id, content);
+        send(content);
         setDraft("");
     };
 
@@ -59,7 +66,7 @@ export function ChatView({ chatId }: { chatId: string }) {
                 <div className="min-w-0">
                     <h1 className="text-lg font-semibold text-fg truncate">{chat.title}</h1>
                     <p className="text-xs text-muted truncate">
-                        {chat.pdfName} · {formatRelativeTime(chat.timestamp)}
+                        {chat.documentName} · {chat.updatedAt ? formatRelativeTime(chat.updatedAt) : "Just now"}
                     </p>
                 </div>
             </div>
@@ -69,7 +76,7 @@ export function ChatView({ chatId }: { chatId: string }) {
                 <div className="hidden lg:flex flex-col bg-card border border-card rounded-2xl overflow-hidden">
                     <div className="flex items-center gap-2.5 px-4 py-3 border-b border-card shrink-0">
                         <FileText size={16} className="text-[var(--primary)] shrink-0" />
-                        <p className="text-sm font-medium text-fg truncate">{chat.pdfName}</p>
+                        <p className="text-sm font-medium text-fg truncate">{chat.documentName}</p>
                     </div>
                     <div className="flex-1 flex items-center justify-center p-6 bg-[var(--background-secondary)]">
                         <div className="text-center">
@@ -86,7 +93,7 @@ export function ChatView({ chatId }: { chatId: string }) {
                 {/* Chat panel */}
                 <div className="flex flex-col bg-card border border-card rounded-2xl overflow-hidden min-h-0">
                     <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
-                        {chat.messages.length === 0 ? (
+                        {messages.length === 0 ? (
                             <div className="h-full flex flex-col items-center justify-center text-center px-6">
                                 <div className="w-12 h-12 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center mb-3">
                                     <Sparkles size={20} className="text-[var(--primary)]" />
@@ -97,7 +104,7 @@ export function ChatView({ chatId }: { chatId: string }) {
                                 </p>
                             </div>
                         ) : (
-                            chat.messages.map((message) => (
+                            messages.map((message) => (
                                 <div
                                     key={message.id}
                                     className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
