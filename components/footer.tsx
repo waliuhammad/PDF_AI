@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FileText } from "lucide-react";
 import {
     FaLinkedin,
@@ -8,28 +9,54 @@ import {
 } from "react-icons/fa";
 
 
-const productLinks = [
-    "Merge PDF",
-    "Compress PDF",
-    "PDF Converter",
-    "OCR Scanner",
-    "AI PDF Chat",
+/** `href` is omitted where the destination page doesn't exist yet — those render
+ *  as plain text rather than as links that would 404. */
+interface FooterLink {
+    label: string;
+    href?: string;
+}
+
+const productLinks: FooterLink[] = [
+    { label: "Merge PDF", href: "/merge-pdf" },
+    { label: "Compress PDF", href: "/compress-pdf" },
+    { label: "PDF Converter", href: "/tools?category=Convert" },
+    { label: "OCR Scanner" },
+    { label: "AI PDF Chat", href: "/chats" },
 ];
 
 
-const companyLinks = [
-    "About",
-    "Contact",
-    "Pricing",
-    "Blog",
+const companyLinks: FooterLink[] = [
+    { label: "About" },
+    { label: "Contact" },
+    { label: "Pricing", href: "/pricing" },
+    { label: "Blog" },
 ];
 
 
-const legalLinks = [
-    "Privacy Policy",
-    "Terms of Service",
-    "Security",
+const legalLinks: FooterLink[] = [
+    { label: "Privacy Policy" },
+    { label: "Terms of Service" },
+    { label: "Security" },
 ];
+
+
+function FooterLinkList({ links }: { links: FooterLink[] }) {
+    return (
+        <ul className="space-y-3">
+            {links.map((link) => (
+                <li key={link.label} className="text-sm">
+                    {link.href ? (
+                        <Link href={link.href} className="text-muted hover:text-primary transition-colors">
+                            {link.label}
+                        </Link>
+                    ) : (
+                        <span className="text-muted">{link.label}</span>
+                    )}
+                </li>
+            ))}
+        </ul>
+    );
+}
 
 
 export default function Footer() {
@@ -158,23 +185,7 @@ export default function Footer() {
                     </h3>
 
 
-                    <ul className="space-y-3">
-
-                        {productLinks.map((item) => (
-                            <li
-                                key={item}
-                                className="
-                                    text-sm
-                                    text-muted
-                                    hover:text-primary
-                                    cursor-pointer
-                                "
-                            >
-                                {item}
-                            </li>
-                        ))}
-
-                    </ul>
+                    <FooterLinkList links={productLinks} />
 
                 </div>
 
@@ -194,23 +205,7 @@ export default function Footer() {
                     </h3>
 
 
-                    <ul className="space-y-3">
-
-                        {companyLinks.map((item) => (
-                            <li
-                                key={item}
-                                className="
-                                    text-sm
-                                    text-muted
-                                    hover:text-primary
-                                    cursor-pointer
-                                "
-                            >
-                                {item}
-                            </li>
-                        ))}
-
-                    </ul>
+                    <FooterLinkList links={companyLinks} />
 
                 </div>
 
@@ -230,23 +225,7 @@ export default function Footer() {
                     </h3>
 
 
-                    <ul className="space-y-3">
-
-                        {legalLinks.map((item) => (
-                            <li
-                                key={item}
-                                className="
-                                    text-sm
-                                    text-muted
-                                    hover:text-primary
-                                    cursor-pointer
-                                "
-                            >
-                                {item}
-                            </li>
-                        ))}
-
-                    </ul>
+                    <FooterLinkList links={legalLinks} />
 
                 </div>
 

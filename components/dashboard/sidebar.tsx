@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { onAuthStateChanged, type User } from "firebase/auth";
+import { useState } from "react";
 import {
     LayoutDashboard,
     FileText,
@@ -17,9 +16,8 @@ import {
     ChevronLeft,
     ChevronRight,
 } from "lucide-react";
-import { auth } from "@/lib/firebase/client";
 import { logout } from "@/lib/firebase/auth";
-import { getUserProfile, type UserProfile } from "@/lib/firebase/users";
+import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -32,24 +30,10 @@ const navItems = [
 export function Sidebar() {
     const pathname = usePathname();
     const router = useRouter();
+    const { user: firebaseUser, profile } = useAuth();
     const [open, setOpen] = useState(false); // Mobile drawer state
     const [collapsed, setCollapsed] = useState(false); // Desktop sidebar collapse state
-    const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
-    const [profile, setProfile] = useState<UserProfile | null>(null);
     const [loggingOut, setLoggingOut] = useState(false);
-
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-            setFirebaseUser(user);
-            if (user) {
-                const fetchedProfile = await getUserProfile(user.uid);
-                setProfile(fetchedProfile);
-            } else {
-                setProfile(null);
-            }
-        });
-        return () => unsubscribe();
-    }, []);
 
     const handleLogout = async () => {
         setLoggingOut(true);

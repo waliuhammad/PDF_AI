@@ -89,3 +89,20 @@ export async function verifyResetCode(oobCode: string) {
 export async function confirmReset(oobCode: string, newPassword: string) {
     await confirmPasswordReset(auth, oobCode, newPassword);
 }
+
+import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
+
+/** True when the account signs in with a password (rather than only Google/Facebook/Apple). */
+export function hasPasswordProvider(user: User | null) {
+    return !!user?.providerData.some((provider) => provider.providerId === "password");
+}
+
+export async function changePassword(currentPassword: string, newPassword: string) {
+    const user = auth.currentUser;
+    if (!user?.email) throw new Error("You need to be signed in to change your password.");
+
+    // Firebase requires a recent login before it will accept a password change.
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+    await reauthenticateWithCredential(user, credential);
+    await updatePassword(user, newPassword);
+}

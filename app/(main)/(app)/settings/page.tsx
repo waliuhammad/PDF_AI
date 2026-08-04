@@ -1,19 +1,144 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import Link from "next/link";
 import { useTheme } from "next-themes";
 import { SettingsTabs, SettingsTab } from "@/components/settings/settings-tabs";
-import { Sun, Moon, Monitor } from "lucide-react";
+import { Sun, Moon, Monitor, Check, AlertCircle, Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { updateUserProfile } from "@/lib/firebase/users";
+import { changePassword, hasPasswordProvider } from "@/lib/firebase/auth";
+
+type Status = { kind: "idle" } | { kind: "saving" } | { kind: "saved" } | { kind: "error"; message: string };
+
+type NotificationKey = "email" | "product" | "marketing";
+
+const PREFS_STORAGE_KEY = "pdfai:preferences";
+
+interface Preferences {
+    language: string;
+    notifications: Record<NotificationKey, boolean>;
+}
+
+const DEFAULT_PREFS: Preferences = {
+    language: "en",
+    notifications: { email: true, product: true, marketing: false },
+};
+
+function loadPreferences(): Preferences {
+    if (typeof window === "undefined") return DEFAULT_PREFS;
+    try {
+        const stored = localStorage.getItem(PREFS_STORAGE_KEY);
+        return stored ? { ...DEFAULT_PREFS, ...JSON.parse(stored) } : DEFAULT_PREFS;
+    } catch {
+        // Corrupt or unavailable storage — fall back to defaults.
+        return DEFAULT_PREFS;
+    }
+}
+
+function StatusMessage({ status, savedLabel }: { status: Status; savedLabel: string }) {
+    if (status.kind === "saved") {
+        return (
+            <p className="flex items-center gap-1.5 text-sm text-green-600">
+                <Check size={15} /> {savedLabel}
+            </p>
+        );
+    }
+    if (status.kind === "error") {
+        return (
+            <p className="flex items-center gap-1.5 text-sm text-red-600">
+                <AlertCircle size={15} /> {status.message}
+            </p>
+        );
+    }
+    return null;
+}
 
 export default function SettingsPage() {
-    const [tab, setTab] = useState<SettingsTab>("profile");
-    const [name, setName] = useState("John Doe");
-    const [email, setEmail] = useState("john@example.com");
+    const { user, profile } = useAuth();
     const { theme, setTheme } = useTheme();
-    const [mounted, setMounted] = useState(false);
-    useEffect(() => setMounted(true), []);
-    const [language, setLanguage] = useState("en");
-    const [notifications, setNotifications] = useState({ email: true, product: true, marketing: false });
+    const [tab, setTab] = useState<SettingsTab>("profile");
+
+    // Profile. The draft stays null until the field is edited, so a late-arriving
+    // auth profile fills the input without an effect syncing state to props.
+    const [nameDraft, setNameDraft] = useState<string | null>(null);
+    const [profileStatus, setProfileStatus] = useState<Status>({ kind: "idle" });
+    const name = nameDraft ?? profile?.fullName ?? user?.displayName ?? "";
+
+    // Password
+    const [currentPassword, setCurrentPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [passwordStatus, setPasswordStatus] = useState<Status>({ kind: "idle" });
+
+    // Preferences persist locally until there is a backend to store them against.
+    const [prefs, setPrefs] = useState<Preferences>(loadPreferences);
+
+    const savePreferences = (next: Preferences) => {
+        setPrefs(next);
+        try {
+            localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify(next));
+        } catch {
+            // Storage unavailable (private mode) — the in-memory value still applies.
+        }
+    };
+
+    const handleSaveProfile = async () => {
+        if (!user) return;
+        if (!name.trim()) {
+            setProfileStatus({ kind: "error", message: "Name can't be empty." });
+            return;
+        }
+
+        setProfileStatus({ kind: "saving" });
+        try {
+            await updateUserProfile(user, name.trim());
+            setProfileStatus({ kind: "saved" });
+        } catch (err) {
+            setProfileStatus({
+                kind: "error",
+                message: err instanceof Error ? err.message : "Could not save your profile.",
+            });
+        }
+    };
+
+    const handleChangePassword = async () => {
+        if (newPassword.length < 8) {
+            setPasswordStatus({ kind: "error", message: "New password must be at least 8 characters." });
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            setPasswordStatus({ kind: "error", message: "New passwords do not match." });
+            return;
+        }
+
+        setPasswordStatus({ kind: "saving" });
+        try {
+            await changePassword(currentPassword, newPassword);
+            setPasswordStatus({ kind: "saved" });
+            setCurrentPassword("");
+            setNewPassword("");
+            setConfirmPassword("");
+        } catch (err) {
+            const code = (err as { code?: string })?.code;
+            const message =
+                code === "auth/wrong-password" || code === "auth/invalid-credential"
+                    ? "Your current password is incorrect."
+                    : code === "auth/too-many-requests"
+                        ? "Too many attempts. Try again later."
+                        : err instanceof Error
+                            ? err.message
+                            : "Could not update your password.";
+            setPasswordStatus({ kind: "error", message });
+        }
+    };
+
+    const inputClass =
+        "w-full px-4 py-2.5 rounded-xl border border-card text-fg bg-card focus:outline-none focus:border-[var(--primary)] transition-colors";
+    const buttonClass =
+        "px-5 py-2.5 rounded-full bg-[var(--primary)] text-white text-sm font-medium hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center gap-2";
+
+    const canUsePassword = hasPasswordProvider(user);
 
     return (
         <div>
@@ -30,24 +155,45 @@ export default function SettingsPage() {
                         <div className="space-y-4 max-w-md">
                             <h2 className="text-lg font-semibold text-fg mb-4">Profile</h2>
                             <div>
-                                <label className="block text-sm font-medium text-fg mb-1.5">Full name</label>
+                                <label htmlFor="fullName" className="block text-sm font-medium text-fg mb-1.5">
+                                    Full name
+                                </label>
                                 <input
+                                    id="fullName"
                                     value={name}
-                                    onChange={(e) => setName(e.target.value)}
-                                    className="w-full px-4 py-2.5 rounded-xl border border-card text-fg focus:outline-none focus:border-[var(--primary)] transition-colors"
+                                    onChange={(e) => {
+                                        setNameDraft(e.target.value);
+                                        setProfileStatus({ kind: "idle" });
+                                    }}
+                                    className={inputClass}
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-fg mb-1.5">Email</label>
+                                <label htmlFor="email" className="block text-sm font-medium text-fg mb-1.5">
+                                    Email
+                                </label>
                                 <input
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full px-4 py-2.5 rounded-xl border border-card text-fg focus:outline-none focus:border-[var(--primary)] transition-colors"
+                                    id="email"
+                                    value={user?.email ?? ""}
+                                    readOnly
+                                    disabled
+                                    className={`${inputClass} opacity-60 cursor-not-allowed`}
                                 />
+                                <p className="text-xs text-muted mt-1.5">
+                                    Your email is tied to your sign-in and can&apos;t be changed here.
+                                </p>
                             </div>
-                            <button className="px-5 py-2.5 rounded-full bg-[var(--primary)] text-white text-sm font-medium hover:bg-[var(--primary-hover)] transition-colors">
-                                Save Changes
-                            </button>
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={handleSaveProfile}
+                                    disabled={profileStatus.kind === "saving" || !user}
+                                    className={buttonClass}
+                                >
+                                    {profileStatus.kind === "saving" && <Loader2 size={15} className="animate-spin" />}
+                                    {profileStatus.kind === "saving" ? "Saving..." : "Save Changes"}
+                                </button>
+                                <StatusMessage status={profileStatus} savedLabel="Profile updated" />
+                            </div>
                         </div>
                     )}
 
@@ -59,17 +205,21 @@ export default function SettingsPage() {
                                     { id: "light", label: "Light", icon: Sun },
                                     { id: "dark", label: "Dark", icon: Moon },
                                     { id: "system", label: "System", icon: Monitor },
-                                ].map((opt) => (
-                                    <button
-                                        key={opt.id}
-                                        onClick={() => setTheme(opt.id as "light" | "dark" | "system")}
-                                        className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-colors ${theme === opt.id ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-card"
-                                            }`}
-                                    >
-                                        <opt.icon size={20} className={theme === opt.id ? "text-[var(--primary)]" : "text-muted"} />
-                                        <span className="text-sm text-fg">{opt.label}</span>
-                                    </button>
-                                ))}
+                                ].map((opt) => {
+                                    const active = theme === opt.id;
+
+                                    return (
+                                        <button
+                                            key={opt.id}
+                                            onClick={() => setTheme(opt.id as "light" | "dark" | "system")}
+                                            className={`flex flex-col items-center gap-2 p-4 rounded-xl border transition-colors ${active ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-card"
+                                                }`}
+                                        >
+                                            <opt.icon size={20} className={active ? "text-[var(--primary)]" : "text-muted"} />
+                                            <span className="text-sm text-fg">{opt.label}</span>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
                     )}
@@ -78,77 +228,166 @@ export default function SettingsPage() {
                         <div className="max-w-md space-y-4">
                             <h2 className="text-lg font-semibold text-fg mb-4">Notifications</h2>
                             {[
-                                { key: "email", label: "Email notifications", desc: "Receive updates about your chats and documents" },
-                                { key: "product", label: "Product updates", desc: "New features and improvements" },
-                                { key: "marketing", label: "Marketing emails", desc: "Tips, offers, and promotions" },
-                            ].map((item) => (
-                                <div key={item.key} className="flex items-center justify-between py-2">
-                                    <div>
-                                        <p className="text-sm font-medium text-fg">{item.label}</p>
-                                        <p className="text-xs text-muted">{item.desc}</p>
-                                    </div>
-                                    <button
-                                        onClick={() =>
-                                            setNotifications((prev) => ({ ...prev, [item.key]: !prev[item.key as keyof typeof prev] }))
-                                        }
-                                        className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${notifications[item.key as keyof typeof notifications] ? "bg-[var(--primary)]" : "bg-[var(--card-border)]"
-                                            }`}
-                                    >
-                                        <span
-                                            className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-card transition-transform ${notifications[item.key as keyof typeof notifications] ? "translate-x-5" : "translate-x-0"
+                                { key: "email" as const, label: "Email notifications", desc: "Receive updates about your chats and documents" },
+                                { key: "product" as const, label: "Product updates", desc: "New features and improvements" },
+                                { key: "marketing" as const, label: "Marketing emails", desc: "Tips, offers, and promotions" },
+                            ].map((item) => {
+                                const enabled = prefs.notifications[item.key];
+
+                                return (
+                                    <div key={item.key} className="flex items-center justify-between py-2">
+                                        <div>
+                                            <p className="text-sm font-medium text-fg">{item.label}</p>
+                                            <p className="text-xs text-muted">{item.desc}</p>
+                                        </div>
+                                        <button
+                                            role="switch"
+                                            aria-checked={enabled}
+                                            aria-label={item.label}
+                                            onClick={() =>
+                                                savePreferences({
+                                                    ...prefs,
+                                                    notifications: { ...prefs.notifications, [item.key]: !enabled },
+                                                })
+                                            }
+                                            className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${enabled ? "bg-[var(--primary)]" : "bg-[var(--card-border)]"
                                                 }`}
-                                        />
-                                    </button>
-                                </div>
-                            ))}
+                                        >
+                                            <span
+                                                className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-card transition-transform ${enabled ? "translate-x-5" : "translate-x-0"
+                                                    }`}
+                                            />
+                                        </button>
+                                    </div>
+                                );
+                            })}
+                            <p className="text-xs text-muted pt-2">
+                                Saved on this device until notification delivery is connected.
+                            </p>
                         </div>
                     )}
 
                     {tab === "password" && (
                         <div className="space-y-4 max-w-md">
                             <h2 className="text-lg font-semibold text-fg mb-4">Change Password</h2>
-                            <div>
-                                <label className="block text-sm font-medium text-fg mb-1.5">Current password</label>
-                                <input type="password" className="w-full px-4 py-2.5 rounded-xl border border-card text-fg focus:outline-none focus:border-[var(--primary)] transition-colors" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-fg mb-1.5">New password</label>
-                                <input type="password" className="w-full px-4 py-2.5 rounded-xl border border-card text-fg focus:outline-none focus:border-[var(--primary)] transition-colors" />
-                            </div>
-                            <button className="px-5 py-2.5 rounded-full bg-[var(--primary)] text-white text-sm font-medium hover:bg-[var(--primary-hover)] transition-colors">
-                                Update Password
-                            </button>
+
+                            {!canUsePassword ? (
+                                <p className="text-sm text-muted">
+                                    You signed in with a social provider, so your password is managed there rather
+                                    than by PDFAI.
+                                </p>
+                            ) : (
+                                <>
+                                    <div>
+                                        <label htmlFor="currentPassword" className="block text-sm font-medium text-fg mb-1.5">
+                                            Current password
+                                        </label>
+                                        <input
+                                            id="currentPassword"
+                                            type="password"
+                                            autoComplete="current-password"
+                                            value={currentPassword}
+                                            onChange={(e) => {
+                                                setCurrentPassword(e.target.value);
+                                                setPasswordStatus({ kind: "idle" });
+                                            }}
+                                            className={inputClass}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="newPassword" className="block text-sm font-medium text-fg mb-1.5">
+                                            New password
+                                        </label>
+                                        <input
+                                            id="newPassword"
+                                            type="password"
+                                            autoComplete="new-password"
+                                            value={newPassword}
+                                            onChange={(e) => {
+                                                setNewPassword(e.target.value);
+                                                setPasswordStatus({ kind: "idle" });
+                                            }}
+                                            className={inputClass}
+                                        />
+                                        <p className="text-xs text-muted mt-1.5">At least 8 characters.</p>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-fg mb-1.5">
+                                            Confirm new password
+                                        </label>
+                                        <input
+                                            id="confirmPassword"
+                                            type="password"
+                                            autoComplete="new-password"
+                                            value={confirmPassword}
+                                            onChange={(e) => {
+                                                setConfirmPassword(e.target.value);
+                                                setPasswordStatus({ kind: "idle" });
+                                            }}
+                                            className={inputClass}
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={handleChangePassword}
+                                            disabled={
+                                                passwordStatus.kind === "saving" ||
+                                                !currentPassword ||
+                                                !newPassword ||
+                                                !confirmPassword
+                                            }
+                                            className={buttonClass}
+                                        >
+                                            {passwordStatus.kind === "saving" && (
+                                                <Loader2 size={15} className="animate-spin" />
+                                            )}
+                                            {passwordStatus.kind === "saving" ? "Updating..." : "Update Password"}
+                                        </button>
+                                        <StatusMessage status={passwordStatus} savedLabel="Password updated" />
+                                    </div>
+                                </>
+                            )}
                         </div>
                     )}
 
                     {tab === "language" && (
                         <div className="max-w-md">
                             <h2 className="text-lg font-semibold text-fg mb-4">Language</h2>
+                            <label htmlFor="language" className="block text-sm font-medium text-fg mb-1.5">
+                                Interface language
+                            </label>
                             <select
-                                value={language}
-                                onChange={(e) => setLanguage(e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl border border-card text-fg focus:outline-none focus:border-[var(--primary)] transition-colors"
+                                id="language"
+                                value={prefs.language}
+                                onChange={(e) => savePreferences({ ...prefs, language: e.target.value })}
+                                className={inputClass}
                             >
                                 <option value="en">English</option>
                                 <option value="ur">Urdu</option>
                                 <option value="es">Spanish</option>
                                 <option value="fr">French</option>
                             </select>
+                            <p className="text-xs text-muted mt-2">
+                                Saved on this device. Translations arrive with the localisation work.
+                            </p>
                         </div>
                     )}
+
                     {tab === "billing" && (
                         <div className="max-w-md">
-                            <h2 className="text-lg font-semibold text-fg mb-4">Subscription & Billing</h2>
+                            <h2 className="text-lg font-semibold text-fg mb-4">Subscription &amp; Billing</h2>
                             <div className="p-4 rounded-xl border border-card mb-4">
                                 <p className="text-sm text-muted">Current plan</p>
-                                <p className="text-lg font-semibold text-fg">Free</p>
+                                <p className="text-lg font-semibold text-fg">
+                                    {profile?.plan === "paid" ? "Paid" : "Free"}
+                                </p>
                             </div>
-                            <a
+                            <Link
                                 href="/pricing"
                                 className="inline-block px-5 py-2.5 rounded-full bg-[var(--primary)] text-white text-sm font-medium hover:bg-[var(--primary-hover)] transition-colors"
                             >
-                                Upgrade Plan
-                            </a>
+                                {profile?.plan === "paid" ? "Manage Plan" : "Upgrade Plan"}
+                            </Link>
                         </div>
                     )}
                 </div>

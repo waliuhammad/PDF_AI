@@ -11,31 +11,19 @@ import {
 import { DocumentCard } from "@/components/documents/document-card";
 import { DocumentRow } from "@/components/documents/document-row";
 import { UploadModal } from "@/components/documents/upload-modal";
-
-interface Doc {
-    id: string;
-    name: string;
-    size: string;
-    sizeBytes: number;
-    date: string;
-    timestamp: number;
-    favorite: boolean;
-}
-
-const initialDocs: Doc[] = [
-    { id: "1", name: "Research Paper - Neural Networks.pdf", size: "2.4 MB", sizeBytes: 2.4, date: "2 hours ago", timestamp: Date.now() - 2 * 3600000, favorite: true },
-    { id: "2", name: "Company Financial Report Q3.pdf", size: "5.1 MB", sizeBytes: 5.1, date: "Yesterday", timestamp: Date.now() - 86400000, favorite: false },
-    { id: "3", name: "Contract Agreement Draft.pdf", size: "890 KB", sizeBytes: 0.87, date: "3 days ago", timestamp: Date.now() - 3 * 86400000, favorite: false },
-    { id: "4", name: "Product Roadmap 2026.pdf", size: "1.2 MB", sizeBytes: 1.2, date: "5 days ago", timestamp: Date.now() - 5 * 86400000, favorite: true },
-    { id: "5", name: "Legal Terms & Conditions.pdf", size: "640 KB", sizeBytes: 0.64, date: "1 week ago", timestamp: Date.now() - 7 * 86400000, favorite: false },
-    { id: "6", name: "Marketing Strategy Deck.pdf", size: "3.8 MB", sizeBytes: 3.8, date: "2 weeks ago", timestamp: Date.now() - 14 * 86400000, favorite: false },
-];
+import { useLibrary } from "@/lib/store";
+import { formatRelativeTime } from "@/lib/utils";
 
 type SortOption = "newest" | "oldest" | "name" | "size";
 type FilterOption = "all" | "favorites";
 
 export default function DocumentsPage() {
-    const [docs, setDocs] = useState<Doc[]>(initialDocs);
+    const documents = useLibrary((s) => s.documents);
+    const addDocuments = useLibrary((s) => s.addDocuments);
+    const removeDocument = useLibrary((s) => s.removeDocument);
+    const renameDocument = useLibrary((s) => s.renameDocument);
+    const toggleFavorite = useLibrary((s) => s.toggleFavorite);
+
     const [view, setView] = useState<"grid" | "list">("grid");
     const [search, setSearch] = useState("");
     const [sort, setSort] = useState<SortOption>("newest");
@@ -44,7 +32,7 @@ export default function DocumentsPage() {
     const [showUpload, setShowUpload] = useState(false);
 
     const filteredDocs = useMemo(() => {
-        let result = [...docs];
+        let result = [...documents];
 
         if (search.trim()) {
             result = result.filter((d) => d.name.toLowerCase().includes(search.toLowerCase()));
@@ -65,40 +53,17 @@ export default function DocumentsPage() {
                 result.sort((a, b) => a.name.localeCompare(b.name));
                 break;
             case "size":
-                result.sort((a, b) => b.sizeBytes - a.sizeBytes);
+                result.sort((a, b) => b.sizeMb - a.sizeMb);
                 break;
         }
 
         return result;
-    }, [docs, search, sort, filter]);
+    }, [documents, search, sort, filter]);
 
-    const toggleFavorite = (id: string) => {
-        setDocs((prev) => prev.map((d) => (d.id === id ? { ...d, favorite: !d.favorite } : d)));
-    };
-
-    const deleteDoc = (id: string) => {
-        setDocs((prev) => prev.filter((d) => d.id !== id));
-    };
-
-    const addUploadedDocs = (uploaded: { name: string; size: string; bytes: number }[]) => {
-        const now = Date.now();
-        const newDocs: Doc[] = uploaded.map((f, i) => ({
-            id: `${now}-${i}`,
-            name: f.name,
-            size: f.size,
-            // Existing rows store this in MB, so match that unit rather than raw bytes.
-            sizeBytes: f.bytes / (1024 * 1024),
-            date: "Just now",
-            timestamp: now,
-            favorite: false,
-        }));
-        setDocs((prev) => [...newDocs, ...prev]);
-    };
-
-    const renameDoc = (id: string) => {
-        const newName = prompt("Enter new name:");
-        if (!newName) return;
-        setDocs((prev) => prev.map((d) => (d.id === id ? { ...d, name: newName } : d)));
+    const handleRename = (id: string, currentName: string) => {
+        const newName = prompt("Enter new name:", currentName);
+        if (!newName?.trim()) return;
+        renameDocument(id, newName.trim());
     };
 
     const sortLabels: Record<SortOption, string> = {
@@ -113,7 +78,9 @@ export default function DocumentsPage() {
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h1 className="text-2xl font-bold text-fg">My Documents</h1>
-                    <p className="text-muted text-sm mt-1">{filteredDocs.length} documents</p>
+                    <p className="text-muted text-sm mt-1">
+                        {filteredDocs.length} {filteredDocs.length === 1 ? "document" : "documents"}
+                    </p>
                 </div>
                 <button
                     onClick={() => setShowUpload(true)}
@@ -199,7 +166,11 @@ export default function DocumentsPage() {
             {/* Content */}
             {filteredDocs.length === 0 ? (
                 <div className="text-center py-16">
-                    <p className="text-muted text-sm">No documents found.</p>
+                    <p className="text-muted text-sm">
+                        {documents.length === 0
+                            ? "No documents yet — upload your first PDF to get started."
+                            : "No documents match your search."}
+                    </p>
                 </div>
             ) : view === "grid" ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -208,11 +179,11 @@ export default function DocumentsPage() {
                             key={doc.id}
                             name={doc.name}
                             size={doc.size}
-                            date={doc.date}
+                            date={formatRelativeTime(doc.timestamp)}
                             favorite={doc.favorite}
                             onToggleFavorite={() => toggleFavorite(doc.id)}
-                            onDelete={() => deleteDoc(doc.id)}
-                            onRename={() => renameDoc(doc.id)}
+                            onDelete={() => removeDocument(doc.id)}
+                            onRename={() => handleRename(doc.id, doc.name)}
                         />
                     ))}
                 </div>
@@ -223,11 +194,11 @@ export default function DocumentsPage() {
                             key={doc.id}
                             name={doc.name}
                             size={doc.size}
-                            date={doc.date}
+                            date={formatRelativeTime(doc.timestamp)}
                             favorite={doc.favorite}
                             onToggleFavorite={() => toggleFavorite(doc.id)}
-                            onDelete={() => deleteDoc(doc.id)}
-                            onRename={() => renameDoc(doc.id)}
+                            onDelete={() => removeDocument(doc.id)}
+                            onRename={() => handleRename(doc.id, doc.name)}
                         />
                     ))}
                 </div>
@@ -236,7 +207,9 @@ export default function DocumentsPage() {
             {showUpload && (
                 <UploadModal
                     onClose={() => setShowUpload(false)}
-                    onUploadComplete={addUploadedDocs}
+                    onUploadComplete={(files) =>
+                        addDocuments(files.map((f) => ({ name: f.name, bytes: f.bytes })))
+                    }
                 />
             )}
         </div>
