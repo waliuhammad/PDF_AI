@@ -26,17 +26,17 @@ const productLinks: FooterLink[] = [
 
 
 const companyLinks: FooterLink[] = [
-    { label: "About" },
-    { label: "Contact" },
+    { label: "About", href: "/about" },
+    { label: "Contact", href: "/contact" },
     { label: "Pricing", href: "/pricing" },
-    { label: "Blog" },
+    { label: "Blog", href: "/blog" },
 ];
 
 
 const legalLinks: FooterLink[] = [
-    { label: "Privacy Policy" },
-    { label: "Terms of Service" },
-    { label: "Security" },
+    { label: "Privacy Policy", href: "/privacy" },
+    { label: "Terms of Service", href: "/terms" },
+    { label: "Security", href: "/security" },
 ];
 
 
