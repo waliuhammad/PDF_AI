@@ -4,7 +4,10 @@ import {
     signInWithPopup,
     GoogleAuthProvider,
     FacebookAuthProvider,
+    GithubAuthProvider,
+    TwitterAuthProvider,
     OAuthProvider,
+    type AuthProvider,
     type User,
 } from "firebase/auth";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
@@ -18,17 +21,26 @@ export interface RegisterInput {
     phoneNumber: string;
 }
 
+/**
+ * Best-effort: the account already exists in Firebase Auth by the time this
+ * runs, so a Firestore failure (rules, quota, offline) must not surface as a
+ * failed sign-in. Matches how getUserProfile already tolerates Firestore.
+ */
 async function createUserDocIfNotExists(user: User, extra?: Record<string, unknown>) {
-    const userRef = doc(db, "users", user.uid);
-    const existing = await getDoc(userRef);
-    if (!existing.exists()) {
-        await setDoc(userRef, {
-            fullName: user.displayName ?? extra?.fullName ?? "",
-            email: user.email,
-            phone: extra?.phone ?? null,
-            plan: "free",
-            createdAt: serverTimestamp(),
-        });
+    try {
+        const userRef = doc(db, "users", user.uid);
+        const existing = await getDoc(userRef);
+        if (!existing.exists()) {
+            await setDoc(userRef, {
+                fullName: user.displayName ?? extra?.fullName ?? "",
+                email: user.email,
+                phone: extra?.phone ?? null,
+                plan: "free",
+                createdAt: serverTimestamp(),
+            });
+        }
+    } catch (err) {
+        console.warn("Could not create the user document in Firestore:", err);
     }
 }
 
@@ -42,23 +54,29 @@ export async function registerWithEmail(input: RegisterInput) {
     return credential.user;
 }
 
-export async function signInWithGoogle() {
-    const provider = new GoogleAuthProvider();
-    const credential = await signInWithPopup(auth, provider);
-    await createUserDocIfNotExists(credential.user);
-    return credential.user;
+export type SocialProviderId = "google" | "facebook" | "github" | "twitter" | "apple";
+
+function buildProvider(id: SocialProviderId): AuthProvider {
+    switch (id) {
+        case "google":
+            return new GoogleAuthProvider();
+        case "facebook":
+            return new FacebookAuthProvider();
+        case "github":
+            return new GithubAuthProvider();
+        case "twitter":
+            return new TwitterAuthProvider();
+        case "apple":
+            return new OAuthProvider("apple.com");
+    }
 }
 
-export async function signInWithFacebook() {
-    const provider = new FacebookAuthProvider();
-    const credential = await signInWithPopup(auth, provider);
-    await createUserDocIfNotExists(credential.user);
-    return credential.user;
-}
-
-export async function signInWithApple() {
-    const provider = new OAuthProvider("apple.com");
-    const credential = await signInWithPopup(auth, provider);
+/**
+ * Each provider must also be enabled in the Firebase console; if it isn't,
+ * Firebase returns auth/operation-not-allowed, which the caller surfaces.
+ */
+export async function signInWithSocial(id: SocialProviderId) {
+    const credential = await signInWithPopup(auth, buildProvider(id));
     await createUserDocIfNotExists(credential.user);
     return credential.user;
 }

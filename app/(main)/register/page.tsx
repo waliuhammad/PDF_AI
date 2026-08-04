@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Mail, Lock, User, Eye, EyeOff, FileText, Phone } from "lucide-react";
-import { registerWithEmail, signInWithGoogle, signInWithFacebook, signInWithApple } from "@/lib/firebase/auth";
+import { registerWithEmail, signInWithSocial, type SocialProviderId } from "@/lib/firebase/auth";
 import { COUNTRY_CODES } from "@/lib/countryCodes";
+import { SocialAuth } from "@/components/auth/social-auth";
+import { TermsAgreement } from "@/components/auth/terms-agreement";
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -15,6 +17,7 @@ export default function RegisterPage() {
     const [password, setPassword] = useState("");
     const [dialCode, setDialCode] = useState(COUNTRY_CODES[0].dialCode);
     const [phoneNumber, setPhoneNumber] = useState("");
+    const [agreed, setAgreed] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -32,16 +35,25 @@ export default function RegisterPage() {
         }
     };
 
-    const handleSocial = async (provider: "google" | "facebook" | "apple") => {
+    const handleSocial = async (provider: SocialProviderId) => {
+        if (!agreed) {
+            setError("Please accept the Terms of Service and Privacy Policy to continue.");
+            return;
+        }
         setError(null);
         setLoading(true);
         try {
-            if (provider === "google") await signInWithGoogle();
-            if (provider === "facebook") await signInWithFacebook();
-            if (provider === "apple") await signInWithApple();
+            await signInWithSocial(provider);
             router.push("/dashboard");
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Sign-in failed. Please try again.");
+            const code = (err as { code?: string })?.code;
+            if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
+                setError(null);
+            } else if (code === "auth/operation-not-allowed") {
+                setError("That sign-up method isn't enabled for this app yet.");
+            } else {
+                setError(err instanceof Error ? err.message : "Sign-up failed. Please try again.");
+            }
         } finally {
             setLoading(false);
         }
@@ -57,39 +69,6 @@ export default function RegisterPage() {
 
                 <h1 className="text-xl sm:text-2xl font-bold text-fg mb-2">Create your account</h1>
                 <p className="text-muted text-sm mb-6 sm:mb-8">Start using every PDF tool for free</p>
-
-                <div className="grid grid-cols-3 gap-2 mb-6">
-                    <button
-                        type="button"
-                        onClick={() => handleSocial("google")}
-                        disabled={loading}
-                        className="flex items-center justify-center py-2.5 rounded-xl border border-card text-sm font-medium text-fg hover:bg-bg transition-colors disabled:opacity-60"
-                    >
-                        Google
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => handleSocial("facebook")}
-                        disabled={loading}
-                        className="flex items-center justify-center py-2.5 rounded-xl border border-card text-sm font-medium text-fg hover:bg-bg transition-colors disabled:opacity-60"
-                    >
-                        Facebook
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => handleSocial("apple")}
-                        disabled={loading}
-                        className="flex items-center justify-center py-2.5 rounded-xl border border-card text-sm font-medium text-fg hover:bg-bg transition-colors disabled:opacity-60"
-                    >
-                        Apple
-                    </button>
-                </div>
-
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="flex-1 h-px bg-card" />
-                    <span className="text-xs text-muted">or sign up with email</span>
-                    <div className="flex-1 h-px bg-card" />
-                </div>
 
                 {error && (
                     <div className="mb-4 px-3 py-2 rounded-lg bg-red-50 text-[var(--primary)] text-xs">{error}</div>
@@ -177,14 +156,18 @@ export default function RegisterPage() {
                         </div>
                     </div>
 
+                    <TermsAgreement checked={agreed} onChange={setAgreed} id="register-terms" />
+
                     <button
                         type="submit"
-                        disabled={loading}
-                        className="w-full py-3 rounded-xl bg-[var(--primary)] text-white font-medium hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-60"
+                        disabled={loading || !agreed}
+                        className="w-full py-3 rounded-xl bg-[var(--primary)] text-white font-medium hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                         {loading ? "Creating account..." : "Create Account"}
                     </button>
                 </form>
+
+                <SocialAuth action="Sign up" disabled={loading} onSelect={handleSocial} />
 
                 <p className="text-center text-sm text-muted mt-6">
                     Already have an account?{" "}

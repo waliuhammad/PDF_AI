@@ -4,13 +4,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Mail, Lock, Eye, EyeOff, FileText } from "lucide-react";
-import { signInWithEmail, signInWithGoogle, signInWithFacebook, signInWithApple } from "@/lib/firebase/auth";
+import { signInWithEmail, signInWithSocial, type SocialProviderId } from "@/lib/firebase/auth";
+import { SocialAuth } from "@/components/auth/social-auth";
+import { TermsAgreement } from "@/components/auth/terms-agreement";
 
 export default function LoginPage() {
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [agreed, setAgreed] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -21,23 +24,32 @@ export default function LoginPage() {
         try {
             await signInWithEmail(email, password);
             router.push("/dashboard");
-        } catch (err) {
+        } catch {
             setError("Invalid email or password. Please try again.");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleSocial = async (provider: "google" | "facebook" | "apple") => {
+    const handleSocial = async (provider: SocialProviderId) => {
+        if (!agreed) {
+            setError("Please accept the Terms of Service and Privacy Policy to continue.");
+            return;
+        }
         setError(null);
         setLoading(true);
         try {
-            if (provider === "google") await signInWithGoogle();
-            if (provider === "facebook") await signInWithFacebook();
-            if (provider === "apple") await signInWithApple();
+            await signInWithSocial(provider);
             router.push("/dashboard");
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Sign-in failed. Please try again.");
+            const code = (err as { code?: string })?.code;
+            if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
+                setError(null);
+            } else if (code === "auth/operation-not-allowed") {
+                setError("That sign-in method isn't enabled for this app yet.");
+            } else {
+                setError(err instanceof Error ? err.message : "Sign-in failed. Please try again.");
+            }
         } finally {
             setLoading(false);
         }
@@ -53,39 +65,6 @@ export default function LoginPage() {
 
                 <h1 className="text-xl sm:text-2xl font-bold text-fg mb-2">Welcome back</h1>
                 <p className="text-muted text-sm mb-6 sm:mb-8">Log in to continue to your account</p>
-
-                <div className="grid grid-cols-3 gap-2 mb-6">
-                    <button
-                        type="button"
-                        onClick={() => handleSocial("google")}
-                        disabled={loading}
-                        className="flex items-center justify-center py-2.5 rounded-xl border border-card text-sm font-medium text-fg hover:bg-bg transition-colors disabled:opacity-60"
-                    >
-                        Google
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => handleSocial("facebook")}
-                        disabled={loading}
-                        className="flex items-center justify-center py-2.5 rounded-xl border border-card text-sm font-medium text-fg hover:bg-bg transition-colors disabled:opacity-60"
-                    >
-                        Facebook
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => handleSocial("apple")}
-                        disabled={loading}
-                        className="flex items-center justify-center py-2.5 rounded-xl border border-card text-sm font-medium text-fg hover:bg-bg transition-colors disabled:opacity-60"
-                    >
-                        Apple
-                    </button>
-                </div>
-
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="flex-1 h-px bg-card" />
-                    <span className="text-xs text-muted">or log in with email</span>
-                    <div className="flex-1 h-px bg-card" />
-                </div>
 
                 {error && (
                     <div className="mb-4 px-3 py-2 rounded-lg bg-red-50 text-[var(--primary)] text-xs">{error}</div>
@@ -134,17 +113,21 @@ export default function LoginPage() {
                         </div>
                     </div>
 
+                    <TermsAgreement checked={agreed} onChange={setAgreed} id="login-terms" />
+
                     <button
                         type="submit"
-                        disabled={loading}
-                        className="w-full py-3 rounded-xl bg-[var(--primary)] text-white font-medium hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-60"
+                        disabled={loading || !agreed}
+                        className="w-full py-3 rounded-xl bg-[var(--primary)] text-white font-medium hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                         {loading ? "Logging in..." : "Log In"}
                     </button>
                 </form>
 
+                <SocialAuth action="Log in" disabled={loading} onSelect={handleSocial} />
+
                 <p className="text-center text-sm text-muted mt-6">
-                    Don't have an account?{" "}
+                    Don&apos;t have an account?{" "}
                     <Link href="/register" className="text-[var(--primary)] hover:underline">
                         Sign up
                     </Link>
