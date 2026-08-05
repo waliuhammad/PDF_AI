@@ -17,6 +17,8 @@ import {
     ShieldCheck,
     Presentation,
     ImagePlus,
+    Languages,
+    BrainCircuit,
     type LucideIcon,
 } from "lucide-react";
 
@@ -151,6 +153,22 @@ export const tools: Tool[] = [
         description: "Generate document summaries instantly.",
         icon: Sparkles,
         href: "/summarize-pdf",
+        category: "AI Tools",
+        badge: "AI",
+    },
+    {
+        name: "Translate PDF",
+        description: "Translate documents into other languages.",
+        icon: Languages,
+        href: "/translate-pdf",
+        category: "AI Tools",
+        badge: "New",
+    },
+    {
+        name: "AI Insights",
+        description: "Pull out key points, people, dates and actions.",
+        icon: BrainCircuit,
+        href: "/ai-insights",
         category: "AI Tools",
         badge: "AI",
     },

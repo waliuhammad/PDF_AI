@@ -70,3 +70,40 @@ export async function summarizeDocument(file: File, length: "short" | "medium" |
     const { points } = (await response.json()) as { points: string[] };
     return points;
 }
+
+export const TRANSLATE_LANGUAGES = [
+    "Arabic", "Chinese (Simplified)", "Dutch", "English", "French", "German",
+    "Hindi", "Italian", "Japanese", "Korean", "Portuguese", "Russian",
+    "Spanish", "Turkish", "Urdu",
+] as const;
+
+export async function translateDocument(file: File, language: string) {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("language", language);
+
+    const response = await fetch("/api/ai/translate", { method: "POST", body: form });
+    if (!response.ok) throw await readError(response, "Couldn't translate that document.");
+
+    const { text } = (await response.json()) as { text: string };
+    return text;
+}
+
+export interface DocumentInsights {
+    summary: string;
+    keyPoints: string[];
+    entities: { name: string; kind: string }[];
+    dates: { date: string; context: string }[];
+    actionItems: string[];
+}
+
+export async function analyzeDocument(file: File) {
+    const form = new FormData();
+    form.append("file", file);
+
+    const response = await fetch("/api/ai/insights", { method: "POST", body: form });
+    if (!response.ok) throw await readError(response, "Couldn't analyse that document.");
+
+    const { insights } = (await response.json()) as { insights: DocumentInsights };
+    return insights;
+}

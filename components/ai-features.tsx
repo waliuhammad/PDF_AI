@@ -15,36 +15,42 @@ import {
 const features = [
     {
         title: "AI Chat",
+        href: "/chats",
         description: "Ask questions about any PDF and receive accurate answers instantly.",
         icon: MessageSquare,
         badge: "AI",
     },
     {
         title: "AI Summary",
+        href: "/summarize-pdf",
         description: "Generate concise summaries from lengthy reports, books and documents.",
         icon: Sparkles,
         badge: "Popular",
     },
     {
         title: "OCR Scanner",
+        href: "/ocr",
         description: "Convert scanned PDFs and images into fully editable searchable text.",
         icon: ScanText,
         badge: "OCR",
     },
     {
         title: "Translate PDF",
+        href: "/translate-pdf",
         description: "Translate documents into multiple languages while preserving formatting.",
         icon: Languages,
         badge: "New",
     },
     {
         title: "Extract Tables",
+        href: "/pdf-to-excel",
         description: "Extract tables directly into Excel with intelligent formatting.",
         icon: Table2,
         badge: "Smart",
     },
     {
         title: "AI Insights",
+        href: "/ai-insights",
         description: "Automatically identify important information and document highlights.",
         icon: BrainCircuit,
         badge: "Pro",
@@ -93,8 +99,9 @@ export function AIFeatures() {
                         const Icon = feature.icon;
 
                         return (
+                            <Link key={feature.title} href={feature.href} className="block h-full">
                             <motion.div
-                                key={feature.title}
+
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
@@ -143,6 +150,7 @@ export function AIFeatures() {
                                     <ArrowRight size={16} />
                                 </div>
                             </motion.div>
+                            </Link>
                         );
                     })}
 
