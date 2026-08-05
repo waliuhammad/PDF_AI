@@ -34,8 +34,10 @@ export interface StoredDocument {
     contentType: string;
     storagePath: string;
     favorite: boolean;
-    /** Anthropic Files API id, set the first time this document is sent to the AI. */
+    /** AI provider file reference, set the first time this document is sent to the AI. */
     aiFileId: string | null;
+    /** When the AI provider expires that reference; it must be re-uploaded after. */
+    aiFileExpiresAt: number | null;
     /** Milliseconds since epoch. Null only in the brief window before the
      *  server timestamp resolves on a locally-added document. */
     createdAt: number | null;
@@ -72,6 +74,7 @@ export function watchDocuments(
                         storagePath: data.storagePath ?? "",
                         favorite: !!data.favorite,
                         aiFileId: data.aiFileId ?? null,
+                        aiFileExpiresAt: data.aiFileExpiresAt ?? null,
                         createdAt: createdAt ? createdAt.toMillis() : null,
                     };
                 })
@@ -124,6 +127,7 @@ export function uploadDocument(
                         storagePath,
                         favorite: false,
                         aiFileId: null,
+                        aiFileExpiresAt: null,
                         createdAt: serverTimestamp(),
                     });
 
@@ -135,6 +139,7 @@ export function uploadDocument(
                         storagePath,
                         favorite: false,
                         aiFileId: null,
+                        aiFileExpiresAt: null,
                         createdAt: Date.now(),
                     });
                 } catch (err) {
@@ -174,7 +179,12 @@ export function getDocumentUrl(storagePath: string) {
     return getDownloadURL(ref(storage, storagePath));
 }
 
-/** Remembers the Anthropic file id so the document is only uploaded once. */
-export async function setDocumentAiFileId(uid: string, id: string, aiFileId: string) {
-    await updateDoc(doc(documentsCollection(uid), id), { aiFileId });
+/** Remembers the AI file reference so the document is only re-uploaded when it expires. */
+export async function setDocumentAiFileId(
+    uid: string,
+    id: string,
+    aiFileId: string,
+    aiFileExpiresAt: number
+) {
+    await updateDoc(doc(documentsCollection(uid), id), { aiFileId, aiFileExpiresAt });
 }

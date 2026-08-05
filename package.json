@@ -10,8 +10,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.115.0",
     "@base-ui/react": "^1.6.0",
+    "@google/genai": "^2.15.0",
     "@pdfsmaller/pdf-decrypt": "^1.0.1",
     "@pdfsmaller/pdf-encrypt-lite": "^1.2.0",
     "@swc/helpers": "^0.5.23",

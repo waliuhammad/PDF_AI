@@ -1,14 +1,5 @@
-import Anthropic from "@anthropic-ai/sdk";
 import { NextRequest, NextResponse } from "next/server";
-import {
-    describeError,
-    FALLBACK_BETA,
-    FILES_BETA,
-    getAnthropic,
-    MODEL,
-    NOT_CONFIGURED,
-    readReply,
-} from "@/lib/anthropic";
+import { describeError, documentPart, getGemini, MODEL, NOT_CONFIGURED } from "@/lib/gemini";
 
 export const runtime = "nodejs";
 
@@ -20,8 +11,8 @@ export const LANGUAGES = [
 ] as const;
 
 export async function POST(req: NextRequest) {
-    const anthropic = getAnthropic();
-    if (!anthropic) return NextResponse.json(NOT_CONFIGURED, { status: 501 });
+    const ai = getGemini();
+    if (!ai) return NextResponse.json(NOT_CONFIGURED, { status: 501 });
 
     try {
         const form = await req.formData().catch(() => null);
@@ -42,39 +33,33 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Choose a language from the list." }, { status: 400 });
         }
 
-        const uploaded = await anthropic.beta.files.upload({ file, betas: [FILES_BETA] });
+        const base64 = Buffer.from(await file.arrayBuffer()).toString("base64");
 
-        const messages: Anthropic.Beta.BetaMessageParam[] = [
-            {
-                role: "user",
-                content: [
-                    { type: "document", source: { type: "file", file_id: uploaded.id } },
-                    {
-                        type: "text",
-                        text: `Translate this document into ${target}.
+        const interaction = await ai.interactions.create({
+            model: MODEL,
+            input: [
+                documentPart({ base64 }),
+                {
+                    type: "text",
+                    text: `Translate this document into ${target}.
 
 Keep the document's structure: preserve headings, paragraph breaks, lists and
 table rows in the same order. Translate the content only — leave names, code,
 URLs and numbers as they are. Return the translation on its own, with no
 preamble and no notes about the translation.`,
-                    },
-                ],
-            },
-        ];
-
-        const message = await anthropic.beta.messages.create({
-            model: MODEL,
-            max_tokens: 16000,
-            messages,
-            output_config: { effort: "medium" },
-            fallbacks: "default",
-            betas: [FILES_BETA, FALLBACK_BETA],
+                },
+            ],
         });
 
-        const reply = readReply(message);
-        if (!reply.ok) return NextResponse.json({ error: reply.text }, { status: 422 });
+        const text = (interaction.output_text ?? "").trim();
+        if (!text) {
+            return NextResponse.json(
+                { error: "No translation came back. The document may be empty or unreadable." },
+                { status: 422 }
+            );
+        }
 
-        return NextResponse.json({ language: target, text: reply.text });
+        return NextResponse.json({ language: target, text });
     } catch (err) {
         console.error("AI translate failed:", err);
         return NextResponse.json({ error: describeError(err) }, { status: 502 });

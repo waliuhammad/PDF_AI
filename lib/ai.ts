@@ -11,13 +11,22 @@ async function readError(response: Response, fallback: string) {
 }
 
 /**
- * Returns the Anthropic file id for a document, uploading it the first time.
+ * Returns the AI file reference for a document, uploading it the first time.
  *
  * Sending the PDF once and referencing it by id afterwards is what keeps a long
  * conversation cheap — otherwise every question re-uploads the whole file.
  */
 export async function ensureAiFileId(uid: string, document: StoredDocument) {
-    if (document.aiFileId) return document.aiFileId;
+    // The provider expires uploaded files, so a stored reference is a cache
+    // with a shelf life rather than a permanent id. Re-upload once it lapses,
+    // with a margin so a long conversation cannot expire mid-answer.
+    const MARGIN_MS = 10 * 60 * 1000;
+    const usable =
+        document.aiFileId &&
+        document.aiFileExpiresAt &&
+        document.aiFileExpiresAt - MARGIN_MS > Date.now();
+
+    if (usable) return document.aiFileId as string;
 
     const url = await getDocumentUrl(document.storagePath);
     const blob = await fetch(url).then((r) => {
@@ -31,11 +40,11 @@ export async function ensureAiFileId(uid: string, document: StoredDocument) {
     const response = await fetch("/api/ai/upload", { method: "POST", body: form });
     if (!response.ok) throw await readError(response, "Couldn't prepare the document for the AI.");
 
-    const { fileId } = (await response.json()) as { fileId: string };
+    const { fileId, expiresAt } = (await response.json()) as { fileId: string; expiresAt: number };
 
     // Best-effort: a failed write just means we upload again next time.
-    await setDocumentAiFileId(uid, document.id, fileId).catch((err) =>
-        console.warn("Could not record the AI file id:", err)
+    await setDocumentAiFileId(uid, document.id, fileId, expiresAt).catch((err) =>
+        console.warn("Could not record the AI file reference:", err)
     );
 
     return fileId;

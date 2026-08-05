@@ -51,13 +51,14 @@ that depends on them. Notably, the `plan` field is **not** client-writable —
 otherwise anyone could grant themselves a paid subscription from the browser
 console.
 
-### Anthropic (optional — enables the AI features)
+### Gemini (optional — enables the AI features)
 
 ```
-ANTHROPIC_API_KEY=sk-ant-...
+GEMINI_API_KEY=...
 ```
 
-Powers chat-with-PDF and AI summaries. **Server-side only** — it is deliberately
+Powers chat-with-PDF, summaries, translation and the grammar checker. Free tier
+keys come from https://aistudio.google.com/apikey. **Server-side only** — it is deliberately
 not prefixed with `NEXT_PUBLIC_`, which would ship your key to every visitor.
 Without it, the AI routes return HTTP 501 and the rest of the app works
 normally.
@@ -87,10 +88,10 @@ app/
         dashboard, documents, chats, settings
   api/
     merge-pdf, split-pdf, …     server-side PDF processing
-    ai/{chat,summarize,upload}  Claude-backed AI routes
+    ai/{chat,summarize,…}       Gemini-backed AI routes
 lib/
   firebase/                     auth, documents, chats — the data layer
-  anthropic.ts                  server-only AI client
+  gemini.ts                     server-only AI client
   ai.ts                         client-side AI calls
 ```
 
@@ -150,14 +151,10 @@ CI runs both on every pull request, and rejects committed conflict markers.
 Things that are deliberately unfinished, so nobody rediscovers them the hard way:
 
 - **No authentication on the API routes.** Every `/api/*` route is open,
-  including the AI ones — which cost money per call. Needs verified Firebase ID
+  including the AI ones — which draw on your Gemini quota per call. Needs verified Firebase ID
   tokens before this goes anywhere public.
 - **No billing.** The Pricing page and the `plan` field exist, but nothing moves
   a user between plans and no limits are enforced.
-- **`/ocr`** is listed as a tool but has no page — it renders as a
-  non-clickable "Soon" card rather than a broken link.
-- **`verify-otp` and the contact form** are complete UIs that say plainly they
-  aren't connected yet.
 - **Privacy, Terms and Security** are structural skeletons behind a visible
   "not legal advice" notice. They need real copy before launch.
 - **No tests.**
