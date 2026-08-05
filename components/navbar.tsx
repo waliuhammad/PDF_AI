@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ThemeToggle } from "./theme-toggle";
 
 const navLinks = [
-  { name: "Home", href: "#" },
+  { name: "Home", href: "#hero" },
   { name: "Tools", href: "#tools" },
   { name: "How it Works", href: "#how-it-works" },
   { name: "Pricing", href: "#pricing" },
@@ -18,6 +18,30 @@ const navLinks = [
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const [activeHash, setActiveHash] = useState("");
+
+  const handleNavClick = (
+    e: React.MouseEvent<HTMLAnchorElement>,
+    href: string
+  ) => {
+    if (href.startsWith("#")) {
+      e.preventDefault();
+      const targetId = href.replace("#", "");
+
+      if (targetId === "hero") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        window.history.pushState(null, "", "#hero");
+        setActiveHash("#hero");
+        return;
+      }
+
+      const element = document.getElementById(targetId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+        window.history.pushState(null, "", href);
+        setActiveHash(href);
+      }
+    }
+  };
 
   useEffect(() => {
     setActiveHash(window.location.hash || "#");
@@ -78,7 +102,7 @@ export function Navbar() {
               <Link
                 key={item.name}
                 href={item.href}
-                onClick={() => setActiveHash(item.href)}
+                onClick={(e) => handleNavClick(e, item.href)}
                 className={`relative pb-1 text-sm font-medium transition ${
                   active ? "text-primary" : "text-muted hover:text-fg"
                 }`}
@@ -147,9 +171,9 @@ export function Navbar() {
                   <Link
                     key={item.name}
                     href={item.href}
-                    onClick={() => {
+                    onClick={(e) => {
                       setOpen(false);
-                      setActiveHash(item.href);
+                      handleNavClick(e, item.href);
                     }}
                     className={`block rounded-xl px-4 py-3 transition ${
                       active

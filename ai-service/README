@@ -1,0 +1,124 @@
+# AI Service
+
+This service provides the AI features for the **PDF_AI** project.
+
+## Completed Features
+
+* PDF Parser
+* Text Cleaning
+* Text Chunking
+* Embedding Generation
+* ChromaDB Vector Storage
+* Chat with PDF (RAG)
+* Grammar & Spell Checker
+* AI Summary
+* AI Translation
+* OCR (Images & Scanned PDFs)
+
+---
+
+## Install Dependencies
+
+```bash
+npm install
+```
+
+---
+
+## Environment Variables
+
+Create a `.env` file in the project root.
+
+```env
+PORT=8001
+GOOGLE_API_KEY=YOUR_GEMINI_API_KEY
+CHROMA_HOST=localhost
+CHROMA_PORT=8000
+GEMINI_MODEL=gemini-3.5-flash
+```
+
+---
+
+## Run AI Service
+
+```bash
+npm run dev
+```
+
+---
+
+## Install ChromaDB (if not installed)
+
+```bash
+pip install chromadb
+```
+
+If the `chroma` command is not recognized after installation, use the installed executable directly.
+
+---
+
+## Run ChromaDB
+
+```powershell
+& "$env:LOCALAPPDATA\Python\pythoncore-3.14-64\Scripts\chroma.exe"
+```
+
+When running successfully, Chroma will be available at:
+
+```
+http://localhost:8000
+```
+
+---
+
+## API Endpoints
+
+* `POST /api/parse`
+* `POST /api/chat`
+* `POST /api/summary`
+* `POST /api/grammar`
+* `POST /api/translate`
+* `POST /api/ocr`
+
+---
+
+## Git Commands
+
+Check status
+
+```bash
+git status
+```
+
+Stage files
+
+```bash
+git add .
+```
+
+Commit
+
+```bash
+git commit -m "Your commit message"
+```
+
+Push changes
+
+```bash
+git push origin main
+```
+
+Pull latest changes
+
+```bash
+git pull origin main
+```
+
+---
+
+## Notes
+
+* Start **ChromaDB** before using the Chat (RAG) feature.
+* Start the AI Service using `npm run dev`.
+* OCR supports **PDF, PNG, JPG, JPEG, and WEBP** files.
+* Temporary OCR files are deleted automatically after processing.

@@ -40,3 +40,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+chroma/
+ai-service/uploads/*
+!ai-service/uploads/.gitkeep
+ai-service/.env
+node_modules/
+ai-service/node_modules/

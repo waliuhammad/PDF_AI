@@ -14,7 +14,7 @@ import {
 
 export function Hero() {
     return (
-        <section className="relative overflow-hidden py-14 lg:py-20">
+        <section id="hero" className="relative overflow-hidden py-14 lg:py-20">
 
             {/* Background */}
             <div className="absolute inset-0 -z-10 overflow-hidden">
@@ -31,7 +31,7 @@ export function Hero() {
                     transition={{ duration: .6 }}
                 >
                     <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3.5 py-1.5 text-xs font-medium text-primary">
-                        <Sparkles size={14} />
+                     <Sparkles size={14} />
                         AI Powered PDF Workspace
                     </div>
 
