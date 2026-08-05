@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
-    BrainCircuit,
+    SpellCheck,
     Sparkles,
     ScanText,
     Languages,
@@ -49,10 +49,10 @@ const features = [
         badge: "Smart",
     },
     {
-        title: "AI Insights",
-        href: "/ai-insights",
-        description: "Automatically identify important information and document highlights.",
-        icon: BrainCircuit,
+        title: "AI Grammar Checker",
+        href: "/grammar-check",
+        description: "Catch spelling, grammar and phrasing problems across a document.",
+        icon: SpellCheck,
         badge: "Pro",
     },
 ];

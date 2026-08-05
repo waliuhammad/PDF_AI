@@ -89,21 +89,25 @@ export async function translateDocument(file: File, language: string) {
     return text;
 }
 
-export interface DocumentInsights {
-    summary: string;
-    keyPoints: string[];
-    entities: { name: string; kind: string }[];
-    dates: { date: string; context: string }[];
-    actionItems: string[];
+export interface GrammarIssue {
+    excerpt: string;
+    suggestion: string;
+    explanation: string;
+    kind: string;
 }
 
-export async function analyzeDocument(file: File) {
+export interface GrammarReport {
+    assessment: string;
+    issues: GrammarIssue[];
+}
+
+export async function checkGrammar(file: File) {
     const form = new FormData();
     form.append("file", file);
 
-    const response = await fetch("/api/ai/insights", { method: "POST", body: form });
-    if (!response.ok) throw await readError(response, "Couldn't analyse that document.");
+    const response = await fetch("/api/ai/grammar", { method: "POST", body: form });
+    if (!response.ok) throw await readError(response, "Couldn't check that document.");
 
-    const { insights } = (await response.json()) as { insights: DocumentInsights };
-    return insights;
+    const { report } = (await response.json()) as { report: GrammarReport };
+    return report;
 }

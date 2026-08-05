@@ -18,7 +18,7 @@ import {
     Presentation,
     ImagePlus,
     Languages,
-    BrainCircuit,
+    SpellCheck,
     type LucideIcon,
 } from "lucide-react";
 
@@ -165,10 +165,10 @@ export const tools: Tool[] = [
         badge: "New",
     },
     {
-        name: "AI Insights",
-        description: "Pull out key points, people, dates and actions.",
-        icon: BrainCircuit,
-        href: "/ai-insights",
+        name: "AI Grammar Checker",
+        description: "Find spelling, grammar and phrasing problems.",
+        icon: SpellCheck,
+        href: "/grammar-check",
         category: "AI Tools",
         badge: "AI",
     },

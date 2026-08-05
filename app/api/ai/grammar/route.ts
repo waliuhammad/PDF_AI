@@ -12,41 +12,33 @@ import {
 export const runtime = "nodejs";
 
 /**
- * Constrains the reply to a known shape, so the page can render sections
- * directly instead of parsing prose and guessing where each part begins.
+ * Constrains the reply so the page can render each issue as a row with the
+ * original text beside the correction, instead of parsing prose and guessing
+ * which part is the quote and which is the fix.
  */
 const SCHEMA = {
     type: "object",
     properties: {
-        summary: { type: "string" },
-        keyPoints: { type: "array", items: { type: "string" } },
-        entities: {
+        assessment: { type: "string" },
+        issues: {
             type: "array",
             items: {
                 type: "object",
                 properties: {
-                    name: { type: "string" },
-                    kind: { type: "string", enum: ["person", "organisation", "place", "other"] },
+                    excerpt: { type: "string" },
+                    suggestion: { type: "string" },
+                    explanation: { type: "string" },
+                    kind: {
+                        type: "string",
+                        enum: ["spelling", "grammar", "punctuation", "style", "clarity"],
+                    },
                 },
-                required: ["name", "kind"],
+                required: ["excerpt", "suggestion", "explanation", "kind"],
                 additionalProperties: false,
             },
         },
-        dates: {
-            type: "array",
-            items: {
-                type: "object",
-                properties: {
-                    date: { type: "string" },
-                    context: { type: "string" },
-                },
-                required: ["date", "context"],
-                additionalProperties: false,
-            },
-        },
-        actionItems: { type: "array", items: { type: "string" } },
     },
-    required: ["summary", "keyPoints", "entities", "dates", "actionItems"],
+    required: ["assessment", "issues"],
     additionalProperties: false,
 } as const;
 
@@ -77,11 +69,15 @@ export async function POST(req: NextRequest) {
                     { type: "document", source: { type: "file", file_id: uploaded.id } },
                     {
                         type: "text",
-                        text: `Pull out the important information from this document.
+                        text: `Proofread this document.
 
-Draw only on what the document says — leave a section empty rather than
-inferring or filling it in. Dates should include why each one matters, and
-action items should only be things the document actually asks someone to do.`,
+For each problem, quote the original wording exactly as it appears so the
+writer can find it, give the corrected version, and say briefly what was wrong.
+
+Report real errors and phrasing that genuinely impedes the reader. Do not
+report matters of preference where the original is already correct, and do not
+invent problems to fill the list — a clean document should come back with an
+empty list and an assessment that says so.`,
                     },
                 ],
             },
@@ -112,17 +108,16 @@ action items should only be things the document actually asks someone to do.`,
             .join("");
 
         try {
-            return NextResponse.json({ insights: JSON.parse(raw) });
+            return NextResponse.json({ report: JSON.parse(raw) });
         } catch {
-            // The schema makes this unlikely, but a truncated reply would land here.
-            console.error("Insights returned unparseable output:", raw.slice(0, 200));
+            console.error("Grammar check returned unparseable output:", raw.slice(0, 200));
             return NextResponse.json(
-                { error: "The analysis came back incomplete. Try again." },
+                { error: "The check came back incomplete. Try again." },
                 { status: 502 }
             );
         }
     } catch (err) {
-        console.error("AI insights failed:", err);
+        console.error("AI grammar check failed:", err);
         return NextResponse.json({ error: describeError(err) }, { status: 502 });
     }
 }
