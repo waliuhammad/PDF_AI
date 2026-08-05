@@ -33,7 +33,7 @@ ${question}
 `;
 
   const response = await ai.models.generateContent({
-   model: "gemini-3.5-flash",
+   model: env.GEMINI_MODEL,
     contents: prompt,
   });
 
