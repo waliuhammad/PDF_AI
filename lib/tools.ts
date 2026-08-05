@@ -145,7 +145,6 @@ export const tools: Tool[] = [
         href: "/ocr",
         category: "AI Tools",
         badge: "AI",
-        comingSoon: true,
     },
     {
         name: "AI Summary",

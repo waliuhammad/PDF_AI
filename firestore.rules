@@ -36,6 +36,33 @@ service cloud.firestore {
       }
     }
 
+    // Messages from the public contact form. Anyone may send one — the form is
+    // on a public page — but nobody can read, edit or delete them from the
+    // client, so the inbox is only visible in the console or to a server.
+    //
+    // The shape is validated here rather than trusted from the browser: without
+    // these constraints the collection is an open write endpoint that anything
+    // could fill with arbitrary documents.
+    match /contactMessages/{messageId} {
+      allow read, update, delete: if false;
+
+      allow create: if request.resource.data.keys().hasOnly(
+                         ['name', 'email', 'subject', 'message', 'createdAt']
+                       )
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0
+                    && request.resource.data.name.size() <= 100
+                    && request.resource.data.email is string
+                    && request.resource.data.email.size() > 0
+                    && request.resource.data.email.size() <= 200
+                    && request.resource.data.subject is string
+                    && request.resource.data.subject.size() <= 200
+                    && request.resource.data.message is string
+                    && request.resource.data.message.size() > 0
+                    && request.resource.data.message.size() <= 5000
+                    && request.resource.data.createdAt == request.time;
+    }
+
     // Anything not matched above is denied by default.
   }
 }

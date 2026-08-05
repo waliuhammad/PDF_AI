@@ -27,7 +27,7 @@ export default function RegisterPage() {
         setLoading(true);
         try {
             await registerWithEmail({ fullName: name, email, password, phoneDialCode: dialCode, phoneNumber });
-            router.push("/dashboard");
+            router.push("/verify-email");
         } catch (err) {
             setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
         } finally {

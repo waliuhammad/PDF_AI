@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react";
+import { submitContactMessage } from "@/lib/firebase/contact";
 
 export function ContactForm() {
     const [name, setName] = useState("");
@@ -10,6 +11,7 @@ export function ContactForm() {
     const [message, setMessage] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [sent, setSent] = useState(false);
 
     const isValid =
         name.trim() !== "" && /^\S+@\S+\.\S+$/.test(email) && message.trim() !== "";
@@ -21,10 +23,47 @@ export function ContactForm() {
         setSubmitting(true);
         setError(null);
 
-        // No message endpoint exists yet — say so rather than pretend it sent.
-        setError("Message sending isn't connected yet. This form is ready for the backend.");
-        setSubmitting(false);
+        try {
+            await submitContactMessage({ name, email, subject, message });
+            setSent(true);
+            setName("");
+            setEmail("");
+            setSubject("");
+            setMessage("");
+        } catch (err) {
+            const denied =
+                err instanceof Error && err.message.includes("insufficient permissions");
+            setError(
+                denied
+                    ? "Messages can't be received yet — the database rules still need publishing."
+                    : "Couldn't send that just now. Please try again."
+            );
+        } finally {
+            setSubmitting(false);
+        }
     };
+
+    if (sent) {
+        return (
+            <div className="max-w-xl rounded-2xl border border-card bg-card p-6">
+                <div className="flex items-start gap-3">
+                    <CheckCircle2 size={20} className="text-green-600 shrink-0 mt-0.5" />
+                    <div>
+                        <p className="font-medium text-fg">Thanks — your message is with us.</p>
+                        <p className="text-sm text-muted mt-1">
+                            We&apos;ll reply to the email address you gave.
+                        </p>
+                        <button
+                            onClick={() => setSent(false)}
+                            className="mt-4 text-sm text-[var(--primary)] hover:underline"
+                        >
+                            Send another message
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     const inputClass =
         "w-full px-4 py-2.5 rounded-xl border border-card bg-card text-fg placeholder:text-muted text-sm focus:outline-none focus:border-[var(--primary)] transition-colors";
