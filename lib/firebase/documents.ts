@@ -34,10 +34,6 @@ export interface StoredDocument {
     contentType: string;
     storagePath: string;
     favorite: boolean;
-    /** AI provider file reference, set the first time this document is sent to the AI. */
-    aiFileId: string | null;
-    /** When the AI provider expires that reference; it must be re-uploaded after. */
-    aiFileExpiresAt: number | null;
     /** Milliseconds since epoch. Null only in the brief window before the
      *  server timestamp resolves on a locally-added document. */
     createdAt: number | null;
@@ -73,8 +69,6 @@ export function watchDocuments(
                         contentType: data.contentType ?? "application/octet-stream",
                         storagePath: data.storagePath ?? "",
                         favorite: !!data.favorite,
-                        aiFileId: data.aiFileId ?? null,
-                        aiFileExpiresAt: data.aiFileExpiresAt ?? null,
                         createdAt: createdAt ? createdAt.toMillis() : null,
                     };
                 })
@@ -126,8 +120,6 @@ export function uploadDocument(
                         contentType: file.type || "application/octet-stream",
                         storagePath,
                         favorite: false,
-                        aiFileId: null,
-                        aiFileExpiresAt: null,
                         createdAt: serverTimestamp(),
                     });
 
@@ -138,8 +130,6 @@ export function uploadDocument(
                         contentType: file.type || "application/octet-stream",
                         storagePath,
                         favorite: false,
-                        aiFileId: null,
-                        aiFileExpiresAt: null,
                         createdAt: Date.now(),
                     });
                 } catch (err) {
@@ -177,14 +167,4 @@ export async function setDocumentFavorite(uid: string, id: string, favorite: boo
 /** Short-lived signed URL for viewing or downloading the file. */
 export function getDocumentUrl(storagePath: string) {
     return getDownloadURL(ref(storage, storagePath));
-}
-
-/** Remembers the AI file reference so the document is only re-uploaded when it expires. */
-export async function setDocumentAiFileId(
-    uid: string,
-    id: string,
-    aiFileId: string,
-    aiFileExpiresAt: number
-) {
-    await updateDoc(doc(documentsCollection(uid), id), { aiFileId, aiFileExpiresAt });
 }

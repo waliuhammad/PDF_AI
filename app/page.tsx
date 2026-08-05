@@ -3,7 +3,6 @@ import { Hero } from "@/components/hero";
 import { TrustedBy } from "@/components/trusted-by";
 import { Stats } from "@/components/stats";
 import { ToolsGrid } from "@/components/tools-grid";
-import { AIFeatures } from "@/components/ai-features";
 import { HowItWorks } from "@/components/how-it-works";
 import Pricing from "@/components/pricing";
 import Testimonials from "@/components/testimonials";
@@ -23,8 +22,6 @@ export default function Home() {
       <Stats />
 
       <ToolsGrid />
-
-      <AIFeatures />
 
       <HowItWorks />
 

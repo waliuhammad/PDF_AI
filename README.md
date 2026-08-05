@@ -1,7 +1,6 @@
 # PDFAI
 
-A PDF toolkit with AI features: convert, edit, organise and secure PDFs, plus
-chat-with-your-document and AI summaries.
+A PDF toolkit: convert, edit, organise and secure PDF files.
 
 Built with Next.js 16 (App Router), React 19, Tailwind v4, and Firebase.
 
@@ -37,7 +36,7 @@ Open http://localhost:3000.
 
 ### Firebase (required)
 
-Powers sign-in, the document library, and chats. Fill the `NEXT_PUBLIC_FIREBASE_*`
+Powers sign-in and the document library. Fill the `NEXT_PUBLIC_FIREBASE_*`
 values in `.env.local` from your Firebase project settings.
 
 **The security rules must also be published**, or every read and write is
@@ -50,18 +49,6 @@ The rules are version-controlled here so they're reviewable alongside the code
 that depends on them. Notably, the `plan` field is **not** client-writable —
 otherwise anyone could grant themselves a paid subscription from the browser
 console.
-
-### Gemini (optional — enables the AI features)
-
-```
-GEMINI_API_KEY=...
-```
-
-Powers chat-with-PDF, summaries, translation and the grammar checker. Free tier
-keys come from https://aistudio.google.com/apikey. **Server-side only** — it is deliberately
-not prefixed with `NEXT_PUBLIC_`, which would ship your key to every visitor.
-Without it, the AI routes return HTTP 501 and the rest of the app works
-normally.
 
 ### ConvertAPI (optional — enables three tools)
 
@@ -85,14 +72,11 @@ app/
       merge-pdf, split-pdf, …   the PDF tools — usable without an account
       tools/                    the tool hub
       (protected)/              requires sign-in
-        dashboard, documents, chats, settings
+        dashboard, documents, settings
   api/
     merge-pdf, split-pdf, …     server-side PDF processing
-    ai/{chat,summarize,…}       Gemini-backed AI routes
 lib/
-  firebase/                     auth, documents, chats — the data layer
-  gemini.ts                     server-only AI client
-  ai.ts                         client-side AI calls
+  firebase/                     auth, documents — the data layer
 ```
 
 **Route groups in parentheses don't appear in the URL.** `(protected)` exists
@@ -104,8 +88,6 @@ visitors arriving from the marketing pages can still use them.
 ```
 users/{uid}                              profile
 users/{uid}/documents/{docId}            document metadata
-users/{uid}/chats/{chatId}               conversation
-users/{uid}/chats/{chatId}/messages/{id} messages
 
 Storage:  users/{uid}/{docId}/{filename}
 ```
@@ -150,9 +132,8 @@ CI runs both on every pull request, and rejects committed conflict markers.
 
 Things that are deliberately unfinished, so nobody rediscovers them the hard way:
 
-- **No authentication on the API routes.** Every `/api/*` route is open,
-  including the AI ones — which draw on your Gemini quota per call. Needs verified Firebase ID
-  tokens before this goes anywhere public.
+- **No authentication on the API routes.** Every `/api/*` route is open. Needs
+  verified Firebase ID tokens before this goes anywhere public.
 - **No billing.** The Pricing page and the `plan` field exist, but nothing moves
   a user between plans and no limits are enforced.
 - **Privacy, Terms and Security** are structural skeletons behind a visible
