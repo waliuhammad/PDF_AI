@@ -346,7 +346,7 @@ export default function EditPdfPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto w-full text-slate-900 dark:text-slate-200">
+    <div className="max-w-5xl mx-auto w-full text-slate-900 dark:text-slate-200">
       {!fileDetails ? (
         <div className="max-w-4xl mx-auto p-8 rounded-3xl bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800/80 shadow-2xl transition-colors">
           {/* Header Section */}

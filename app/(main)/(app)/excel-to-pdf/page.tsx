@@ -137,8 +137,8 @@ export default function ExcelToPdf(): JSX.Element {
   const previewSlicedData = currentSheet ? getSlicedData(currentSheet.data) : [];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0b0e14] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 antialiased selection:bg-slate-900 dark:selection:bg-slate-700 selection:text-white">
-      <div className="max-w-4xl w-full space-y-8 bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800/80 p-8 rounded-3xl shadow-xl dark:shadow-2xl backdrop-blur-xl">
+ <div className="text-slate-900 dark:text-slate-100 flex flex-col items-center antialiased selection:bg-slate-900 dark:selection:bg-slate-700 selection:text-white">
+      <div className="max-w-5xl w-full space-y-8 bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800/80 p-8 rounded-3xl shadow-xl dark:shadow-2xl backdrop-blur-xl">
         
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold tracking-wide uppercase">

@@ -78,8 +78,8 @@ export default function WordToPdfPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#070b14] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 transition-colors">
-      <div className="max-w-3xl mx-auto w-full bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800/80 rounded-3xl p-8 sm:p-12 shadow-2xl transition-colors">
+ <div className="text-slate-900 dark:text-slate-100 flex flex-col items-center transition-colors">
+      <div className="max-w-5xl mx-auto w-full bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800/80 rounded-3xl p-8 sm:p-12 shadow-2xl transition-colors">
         <div className="text-center mb-8 lg:mb-10">
           <div className="w-12 h-12 lg:w-14 lg:h-14 mx-auto rounded-2xl bg-purple-50 dark:bg-cyan-950/60 border border-purple-200 dark:border-cyan-800/40 flex items-center justify-center mb-4">
             <FileText className="text-purple-900 dark:text-cyan-400" size={24} />

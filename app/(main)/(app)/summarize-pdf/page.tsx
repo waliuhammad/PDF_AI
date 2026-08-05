@@ -56,7 +56,7 @@ export default function SummarizePdfPage() {
     };
 
     return (
-        <div className="max-w-3xl mx-auto">
+        <div className="max-w-5xl mx-auto">
             <div className="text-center mb-10">
                 <div className="w-14 h-14 mx-auto rounded-2xl bg-red-50 flex items-center justify-center mb-4">
                     <Sparkles className="text-[var(--primary)]" size={26} />

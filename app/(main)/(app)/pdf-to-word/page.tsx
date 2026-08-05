@@ -166,7 +166,7 @@ export default function PdfToWordPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto w-full px-4 py-6">
+    <div className="max-w-5xl mx-auto w-full px-4 py-6">
       <div className="text-center mb-8">
         <div className="w-14 h-14 mx-auto rounded-2xl bg-purple-900/10 dark:bg-cyan-500/10 flex items-center justify-center mb-3 border border-purple-900/20 dark:border-cyan-500/20">
           <FileSpreadsheet className="text-purple-900 dark:text-cyan-400" size={28} />
