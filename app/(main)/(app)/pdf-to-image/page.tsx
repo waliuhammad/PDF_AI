@@ -224,8 +224,8 @@ export default function PdfToImageConverter() {
   };
 
   return (
- <div className="text-slate-900 dark:text-slate-100 transition-colors">
-      <div className="max-w-5xl mx-auto space-y-8">
+    <main className="min-h-screen bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-12 px-4 sm:px-6 lg:px-8 transition-colors">
+      <div className="max-w-3xl mx-auto space-y-8">
         
         {/* Header Badge & Title */}
         <div className="text-center space-y-3">
@@ -399,6 +399,6 @@ export default function PdfToImageConverter() {
 
         </div>
       </div>
-    </div>
+    </main>
   );
 }

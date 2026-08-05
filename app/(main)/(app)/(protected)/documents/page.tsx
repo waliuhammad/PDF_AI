@@ -11,22 +11,18 @@ import {
 import { DocumentCard } from "@/components/documents/document-card";
 import { DocumentRow } from "@/components/documents/document-row";
 import { UploadModal } from "@/components/documents/upload-modal";
-import { useDocuments } from "@/hooks/useDocuments";
+import { useLibrary } from "@/lib/store";
 import { formatRelativeTime } from "@/lib/utils";
 
 type SortOption = "newest" | "oldest" | "name" | "size";
 type FilterOption = "all" | "favorites";
 
 export default function DocumentsPage() {
-    const {
-        documents,
-        loading,
-        error,
-        upload,
-        remove: removeDocument,
-        rename: renameDocument,
-        toggleFavorite,
-    } = useDocuments();
+    const documents = useLibrary((s) => s.documents);
+    const addDocuments = useLibrary((s) => s.addDocuments);
+    const removeDocument = useLibrary((s) => s.removeDocument);
+    const renameDocument = useLibrary((s) => s.renameDocument);
+    const toggleFavorite = useLibrary((s) => s.toggleFavorite);
 
     const [view, setView] = useState<"grid" | "list">("grid");
     const [search, setSearch] = useState("");
@@ -48,10 +44,10 @@ export default function DocumentsPage() {
 
         switch (sort) {
             case "newest":
-                result.sort((a, b) => (b.timestamp ?? Infinity) - (a.timestamp ?? Infinity));
+                result.sort((a, b) => b.timestamp - a.timestamp);
                 break;
             case "oldest":
-                result.sort((a, b) => (a.timestamp ?? Infinity) - (b.timestamp ?? Infinity));
+                result.sort((a, b) => a.timestamp - b.timestamp);
                 break;
             case "name":
                 result.sort((a, b) => a.name.localeCompare(b.name));
@@ -167,18 +163,8 @@ export default function DocumentsPage() {
                 </div>
             </div>
 
-            {error && (
-                <div className="mb-4 px-4 py-3 rounded-xl border border-red-500/40 bg-red-500/10 text-sm text-red-600">
-                    {error}
-                </div>
-            )}
-
             {/* Content */}
-            {loading ? (
-                <div className="text-center py-16">
-                    <p className="text-muted text-sm">Loading your documents...</p>
-                </div>
-            ) : filteredDocs.length === 0 ? (
+            {filteredDocs.length === 0 ? (
                 <div className="text-center py-16">
                     <p className="text-muted text-sm">
                         {documents.length === 0
@@ -193,7 +179,7 @@ export default function DocumentsPage() {
                             key={doc.id}
                             name={doc.name}
                             size={doc.size}
-                            date={doc.timestamp ? formatRelativeTime(doc.timestamp) : "Just now"}
+                            date={formatRelativeTime(doc.timestamp)}
                             favorite={doc.favorite}
                             onToggleFavorite={() => toggleFavorite(doc.id)}
                             onDelete={() => removeDocument(doc.id)}
@@ -208,7 +194,7 @@ export default function DocumentsPage() {
                             key={doc.id}
                             name={doc.name}
                             size={doc.size}
-                            date={doc.timestamp ? formatRelativeTime(doc.timestamp) : "Just now"}
+                            date={formatRelativeTime(doc.timestamp)}
                             favorite={doc.favorite}
                             onToggleFavorite={() => toggleFavorite(doc.id)}
                             onDelete={() => removeDocument(doc.id)}
@@ -219,7 +205,12 @@ export default function DocumentsPage() {
             )}
 
             {showUpload && (
-                <UploadModal onClose={() => setShowUpload(false)} onUpload={upload} />
+                <UploadModal
+                    onClose={() => setShowUpload(false)}
+                    onUploadComplete={(files) =>
+                        addDocuments(files.map((f) => ({ name: f.name, bytes: f.bytes })))
+                    }
+                />
             )}
         </div>
     );

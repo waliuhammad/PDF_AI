@@ -261,7 +261,7 @@ export default function MergePdfPage() {
     : "";
 
   return (
-    <div className="max-w-5xl mx-auto w-full px-4 py-8 text-[#222430] dark:text-white bg-white dark:bg-transparent transition-colors">
+    <div className="max-w-7xl mx-auto w-full px-4 py-8 text-[#222430] dark:text-white bg-white dark:bg-transparent transition-colors">
       <div className="text-center mb-8">
         <div 
           className="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center mb-3 shadow-inner bg-white dark:bg-[#1e2029] border border-[#222430]/20 dark:border-white/20 text-[#222430] dark:text-white"

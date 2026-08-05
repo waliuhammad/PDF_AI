@@ -20,8 +20,8 @@ const productLinks: FooterLink[] = [
     { label: "Merge PDF", href: "/merge-pdf" },
     { label: "Compress PDF", href: "/compress-pdf" },
     { label: "PDF Converter", href: "/tools?category=Convert" },
-    { label: "Split PDF", href: "/split-pdf" },
-    { label: "Protect PDF", href: "/protect-pdf" },
+    { label: "OCR Scanner" },
+    { label: "AI PDF Chat", href: "/chats" },
 ];
 
 

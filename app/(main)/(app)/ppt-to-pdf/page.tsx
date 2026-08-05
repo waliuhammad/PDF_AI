@@ -76,8 +76,8 @@ export default function PptToPdfPage() {
   };
 
   return (
- <div className="text-slate-900 dark:text-slate-100 flex flex-col items-center selection:bg-slate-900 dark:selection:bg-sky-500 selection:text-white">
-      <div className="max-w-5xl w-full bg-white dark:bg-[#111827] rounded-3xl shadow-2xl p-10 border border-slate-200 dark:border-slate-800 flex flex-col items-center">
+    <main className="min-h-screen bg-white dark:bg-[#0B0F19] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 selection:bg-slate-900 dark:selection:bg-sky-500 selection:text-white">
+      <div className="max-w-3xl w-full bg-white dark:bg-[#111827] rounded-3xl shadow-2xl p-10 border border-slate-200 dark:border-slate-800 flex flex-col items-center">
         
         {/* Badge */}
         <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 text-slate-700 dark:text-sky-400 text-xs font-semibold tracking-wide uppercase mb-6 shadow-sm">
@@ -137,6 +137,6 @@ export default function PptToPdfPage() {
         </div>
 
       </div>
-    </div>
+    </main>
   );
 }

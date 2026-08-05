@@ -276,7 +276,7 @@ export default function SplitPdfPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto w-full px-4">
+    <div className="max-w-6xl mx-auto w-full px-4">
       <div className="text-center mb-8">
         <div className="w-14 h-14 mx-auto rounded-2xl bg-white dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] flex items-center justify-center mb-3 text-slate-900 dark:text-white shadow-sm">
           <Scissors size={28} />

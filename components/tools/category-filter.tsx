@@ -13,6 +13,7 @@ const categories = [
     "All Tools",
     "Convert",
     "Edit",
+    "AI Tools",
     "Security",
     "Organize",
 ];

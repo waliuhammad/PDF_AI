@@ -136,9 +136,9 @@ export default function ProtectPdfPage() {
     };
 
     return (
- <div className="text-slate-900 dark:text-slate-100 flex flex-col items-center transition-colors">
+        <div className="min-h-screen bg-white dark:bg-[#070b14] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 transition-colors">
             {!file ? (
-                <div className="max-w-5xl w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800/80 rounded-3xl p-8 shadow-2xl space-y-6">
+                <div className="max-w-xl w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800/80 rounded-3xl p-8 shadow-2xl space-y-6">
                     <div className="text-center space-y-3">
                         <div className="inline-flex items-center space-x-1.5 text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-cyan-400 bg-purple-50 dark:bg-cyan-950/60 px-3 py-1.5 rounded-full border border-purple-200 dark:border-cyan-800/40">
                             <Sparkles size={13} />

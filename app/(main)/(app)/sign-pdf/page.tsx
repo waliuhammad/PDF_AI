@@ -197,8 +197,8 @@ export default function SignPdfPage() {
   const isFormValid = mode === "type" ? signatureText.trim().length > 0 : true;
 
   return (
- <div className="text-slate-900 dark:text-slate-100 flex items-center font-sans transition-colors">
-      <div className="w-full max-w-5xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800/80 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-slate-100 flex items-center justify-center p-4 font-sans transition-colors">
+      <div className="w-full max-w-4xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800/80 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
         
         {!file ? (
           <>

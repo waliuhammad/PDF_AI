@@ -6,6 +6,7 @@ import { useState } from "react";
 import {
     LayoutDashboard,
     FileText,
+    MessageSquare,
     Wrench,
     Settings,
     LogOut,
@@ -21,6 +22,7 @@ import { useAuth } from "@/hooks/useAuth";
 const navItems = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { label: "My Documents", href: "/documents", icon: FileText },
+    { label: "Chats", href: "/chats", icon: MessageSquare },
     { label: "Tools", href: "/tools", icon: Wrench },
     { label: "Settings", href: "/settings", icon: Settings },
 ];
@@ -115,7 +117,7 @@ export function Sidebar() {
                         <Sparkles size={15} className="text-fg shrink-0" />
                         <span className="text-sm font-semibold text-fg">Upgrade to Pro</span>
                     </div>
-                    <p className="text-xs text-muted mb-2">Unlock unlimited conversions & more.</p>
+                    <p className="text-xs text-muted mb-2">Unlock unlimited chats & more.</p>
                     <Link
                         href="/pricing"
                         onClick={() => isMobile && setOpen(false)}

@@ -1,7 +1,6 @@
 import {
     createUserWithEmailAndPassword,
     updateProfile,
-    sendEmailVerification,
     signInWithPopup,
     GoogleAuthProvider,
     FacebookAuthProvider,
@@ -52,40 +51,7 @@ export async function registerWithEmail(input: RegisterInput) {
         fullName: input.fullName,
         phone: `${input.phoneDialCode}${input.phoneNumber}`,
     });
-
-    // Best-effort: the account exists either way, and a failed send is
-    // recoverable from the verification screen's resend button.
-    await sendVerificationEmail().catch((err) =>
-        console.warn("Could not send the verification email:", err)
-    );
-
     return credential.user;
-}
-
-/**
- * Sends Firebase's verification email to the signed-in user.
- *
- * Firebase verifies by emailed link, not by a numeric code — there is no
- * built-in one-time-password flow for email. Supporting a 6-digit code would
- * mean generating and storing codes and running our own mail delivery.
- */
-export async function sendVerificationEmail() {
-    const user = auth.currentUser;
-    if (!user) throw new Error("You need to be signed in to verify your email.");
-    if (user.emailVerified) return;
-
-    await sendEmailVerification(user, {
-        url: `${window.location.origin}/dashboard`, // where the link lands afterwards
-    });
-}
-
-/** Re-reads the account so a verification completed elsewhere is picked up. */
-export async function refreshEmailVerified() {
-    const user = auth.currentUser;
-    if (!user) return false;
-
-    await user.reload();
-    return auth.currentUser?.emailVerified ?? false;
 }
 
 export type SocialProviderId = "google" | "facebook" | "github" | "twitter" | "apple";
