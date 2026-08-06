@@ -3,7 +3,7 @@ import multer from "multer";
 
 import { processPDF } from "../modules/pipeline";
 import { retrieveRelevantChunks } from "../modules/retriever";
-import { generateAnswer, joinChunks } from "../modules/generator";
+import { generateAnswer, joinChunks, AiBusyError } from "../modules/generator";
 
 const router = Router();
 
@@ -74,6 +74,15 @@ router.post("/", async (req, res) => {
     });
   } catch (error) {
     console.error(error);
+
+    // A rate limit is not a failed question — say so, and say for how long.
+    if (error instanceof AiBusyError) {
+      if (error.retryAfterSeconds) res.setHeader("Retry-After", String(error.retryAfterSeconds));
+      return res.status(429).json({
+        success: false,
+        message: error.message,
+      });
+    }
 
     return res.status(500).json({
       success: false,

@@ -14,6 +14,33 @@ export function joinChunks(chunks: RetrievedChunk[]): string {
   return chunks.map((chunk) => chunk.content).join(CHUNK_SEPARATOR);
 }
 
+/**
+ * Gemini turned the request away for now rather than failing.
+ *
+ * Worth its own type: the routes were reporting a rate limit as a 500 with
+ * "Summary generation failed.", which tells the user their document is the
+ * problem when the fix is to wait a moment.
+ */
+export class AiBusyError extends Error {
+  readonly retryAfterSeconds?: number;
+
+  constructor(message: string, retryAfterSeconds?: number) {
+    super(message);
+    this.name = "AiBusyError";
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}
+
+/** 429 is the quota/rate limit; 503 is Google being unavailable. Both pass. */
+function busyRetryDelay(error: unknown): number | null {
+  const status = (error as { status?: number })?.status;
+  if (status !== 429 && status !== 503) return null;
+
+  // The SDK carries the server's suggested delay as "retryDelay": "15s".
+  const match = JSON.stringify(error ?? "").match(/"retryDelay"\s*:\s*"(\d+(?:\.\d+)?)s"/);
+  return match ? Math.ceil(Number(match[1])) : 0;
+}
+
 async function callGemini(prompt: string): Promise<GeneratorResult> {
   try {
     const response = await ai.models.generateContent({
@@ -26,9 +53,18 @@ async function callGemini(prompt: string): Promise<GeneratorResult> {
     };
   } catch (error) {
     console.error("Gemini Error:", error);
-    throw new Error(
-      "The AI service is temporarily busy. Please try again in a few seconds."
-    );
+
+    const delay = busyRetryDelay(error);
+    if (delay !== null) {
+      throw new AiBusyError(
+        delay > 0
+          ? `The AI service is busy. Please try again in about ${delay} seconds.`
+          : "The AI service is busy. Please try again in a few seconds.",
+        delay || undefined
+      );
+    }
+
+    throw new Error("The AI service could not process this document.");
   }
 }
 

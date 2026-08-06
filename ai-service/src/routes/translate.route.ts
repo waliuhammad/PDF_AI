@@ -2,6 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import { extractText } from "../modules/pipeline";
 import { translateDocument } from "../modules/translate";
+import { AiBusyError } from "../modules/generator";
 
 const router = Router();
 
@@ -53,6 +54,15 @@ router.post("/", upload.single("file"), async (req, res) => {
 
   } catch (error) {
     console.error(error);
+
+    // A rate limit is not a failed document — say so, and say for how long.
+    if (error instanceof AiBusyError) {
+      if (error.retryAfterSeconds) res.setHeader("Retry-After", String(error.retryAfterSeconds));
+      return res.status(429).json({
+        success: false,
+        message: error.message,
+      });
+    }
 
     return res.status(500).json({
       success: false,

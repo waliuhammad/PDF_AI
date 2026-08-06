@@ -16,6 +16,25 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Environment variables
+
+Put these in `.env.local`. Most tools run without any of them; each entry says
+what stops working when it is missing.
+
+| Variable | Needed for | Without it |
+| --- | --- | --- |
+| `NEXT_PUBLIC_FIREBASE_*` | Accounts, saved documents, chats | Sign-in and the whole signed-in area fail |
+| `AI_SERVICE_URL` | Summary, translate, grammar, OCR, chat | Falls back to `http://localhost:8001` |
+| `CONVERTAPI_SECRET` | Word to PDF, PDF to Word | Both return 503 and the tools are unusable |
+| `NEXT_PUBLIC_SITE_URL` | `sitemap.xml`, canonical URLs, OG tags | Falls back to `http://localhost:3000`, so a deployed site publishes localhost links |
+
+`NEXT_PUBLIC_*` values are baked in at build time, so changing one means
+rebuilding, not just restarting.
+
+The AI tools also need the separate service in `ai-service/` running, with its
+own `.env` holding `GOOGLE_API_KEY`. Chat additionally needs a Chroma server on
+`CHROMA_PORT`; summary, translate and grammar do not.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

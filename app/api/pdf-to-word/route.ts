@@ -3,10 +3,15 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(req: NextRequest) {
   const secret = process.env.CONVERTAPI_SECRET;
 
+  // Not a server fault and not the visitor's problem to decode — a missing key
+  // means the tool is switched off, so say that and log the real reason.
   if (!secret || secret === "YOUR_ACTUAL_SECRET_HERE") {
+    console.error(
+      "pdf-to-word: CONVERTAPI_SECRET is not set, so Word conversion is unavailable."
+    );
     return NextResponse.json(
-      { error: "Missing valid CONVERTAPI_SECRET in environment variables." },
-      { status: 500 }
+      { error: "Word conversion is not available right now. Please try again later." },
+      { status: 503 }
     );
   }
 

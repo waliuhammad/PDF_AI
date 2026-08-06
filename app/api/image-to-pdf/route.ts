@@ -17,9 +17,20 @@ const PAGE_SIZES = {
     letter: [612, 792],
 } as const;
 
-// pdf-lib can only embed JPEG and PNG. Anything else has to be reported
-// rather than silently dropped, or the user gets a PDF missing pages.
-const EMBEDDABLE = ["image/jpeg", "image/jpg", "image/png"];
+/**
+ * pdf-lib can only embed JPEG and PNG. Anything else has to be reported rather
+ * than silently dropped, or the user gets a PDF missing pages.
+ *
+ * Decided from the bytes, not from file.type: that header is whatever the
+ * client claimed, it is empty for uploads from tools that do not set it, and a
+ * renamed file lies about it. A valid PNG was being turned away for having no
+ * Content-Type.
+ */
+function sniff(bytes: Uint8Array): "png" | "jpeg" | null {
+    if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return "png";
+    if (bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff) return "jpeg";
+    return null;
+}
 
 export async function POST(req: NextRequest) {
     try {
@@ -34,12 +45,21 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "No images uploaded." }, { status: 400 });
         }
 
-        const unsupported = files.filter((f) => !EMBEDDABLE.includes(f.type.toLowerCase()));
+        // Read every file once, up front, so an unsupported one is caught
+        // before any of the PDF is built.
+        const loaded = await Promise.all(
+            files.map(async (file) => {
+                const bytes = new Uint8Array(await file.arrayBuffer());
+                return { file, bytes, kind: sniff(bytes) };
+            })
+        );
+
+        const unsupported = loaded.filter((item) => item.kind === null);
         if (unsupported.length > 0) {
             return NextResponse.json(
                 {
                     error: `Only JPEG and PNG images can be converted. Unsupported: ${unsupported
-                        .map((f) => f.name)
+                        .map((item) => item.file.name)
                         .join(", ")}`,
                 },
                 { status: 415 }
@@ -52,10 +72,9 @@ export async function POST(req: NextRequest) {
 
         const pdfDoc = await PDFDocument.create();
 
-        for (const file of files) {
-            const bytes = new Uint8Array(await file.arrayBuffer());
-            const isPng = file.type.toLowerCase() === "image/png";
-            const image = isPng ? await pdfDoc.embedPng(bytes) : await pdfDoc.embedJpg(bytes);
+        for (const { bytes, kind } of loaded) {
+            const image =
+                kind === "png" ? await pdfDoc.embedPng(bytes) : await pdfDoc.embedJpg(bytes);
 
             if (pageSize === "fit") {
                 // One page exactly the size of the image — no letterboxing.
