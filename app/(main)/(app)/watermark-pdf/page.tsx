@@ -24,11 +24,8 @@ import {
   Trash2,
   CheckCircle2,
 } from "lucide-react";
-import * as pdfjsLib from "pdfjs-dist";
-
-if (typeof window !== "undefined") {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-}
+import type * as PdfjsLib from "pdfjs-dist";
+import { loadPdfjs } from "@/lib/pdf-libs";
 
 type Position =
   | "top-left"
@@ -73,7 +70,7 @@ export default function WatermarkPdfPage() {
 
   // PDF Preview State
   const [numPages, setNumPages] = useState<number>(0);
-  const [pdfDoc, setPdfDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
+  const [pdfDoc, setPdfDoc] = useState<PdfjsLib.PDFDocumentProxy | null>(null);
   const [renderedPages, setRenderedPages] = useState<{ [pageNumber: number]: string } | null>(null);
   const [isRendering, setIsRendering] = useState<boolean>(false);
 
@@ -100,6 +97,7 @@ export default function WatermarkPdfPage() {
 
     try {
       const arrayBuffer = await f.arrayBuffer();
+      const pdfjsLib = await loadPdfjs();
       const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) });
       const loadedPdf = await loadingTask.promise;
       setPdfDoc(loadedPdf);
@@ -501,7 +499,9 @@ export default function WatermarkPdfPage() {
                       />
                       {imagePreview ? (
                         <div className="flex flex-col items-center gap-2">
-                          <img src={imagePreview} alt="Watermark Preview" className="h-16 object-contain rounded" />
+                          {/* Fixed box: without a width the drop zone resized to
+                              whatever shape of logo was picked. */}
+                          <img src={imagePreview} alt="Watermark Preview" className="h-16 w-32 object-contain rounded" />
                           <span className="text-xs text-slate-900 dark:text-purple-400 font-medium">Change Image</span>
                         </div>
                       ) : (

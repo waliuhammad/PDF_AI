@@ -2,12 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { Upload, FileText, X, Scissors, Download, Loader2 } from "lucide-react";
-import { PDFDocument } from "pdf-lib";
-import * as pdfjsLib from "pdfjs-dist";
-
-if (typeof window !== "undefined") {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-}
+import { loadPdfLib, loadPdfjs } from "@/lib/pdf-libs";
 
 export default function SplitPdfPage() {
   const [rawFile, setRawFile] = useState<File | null>(null);
@@ -50,6 +45,7 @@ export default function SplitPdfPage() {
   const generateThumbnails = async (file: File) => {
     try {
       const arrayBuffer = await file.arrayBuffer();
+      const pdfjsLib = await loadPdfjs();
       const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
       const pdfDoc = await loadingTask.promise;
       const numPages = pdfDoc.numPages;
@@ -86,6 +82,7 @@ export default function SplitPdfPage() {
 
     try {
       const arrayBuffer = await f.arrayBuffer();
+      const { PDFDocument } = await loadPdfLib();
       const pdf = await PDFDocument.load(arrayBuffer);
       const totalPages = pdf.getPageCount();
 

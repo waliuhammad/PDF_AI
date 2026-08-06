@@ -10,12 +10,8 @@ import {
   Trash2,
   CheckCircle2,
 } from "lucide-react";
-import * as pdfjsLib from "pdfjs-dist";
-
-// Configure local fallback worker using unpkg or cdnjs properly without inline importScripts block issues
-if (typeof window !== "undefined") {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-}
+import type * as PdfjsLib from "pdfjs-dist";
+import { loadPdfjs } from "@/lib/pdf-libs";
 
 export default function PdfToWordPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -26,7 +22,7 @@ export default function PdfToWordPage() {
 
   // Preview State
   const [numPages, setNumPages] = useState<number>(0);
-  const [pdfDoc, setPdfDoc] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
+  const [pdfDoc, setPdfDoc] = useState<PdfjsLib.PDFDocumentProxy | null>(null);
   const [renderedPages, setRenderedPages] = useState<{ [pageNumber: number]: string } | null>(null);
   const [isRendering, setIsRendering] = useState<boolean>(false);
 
@@ -53,6 +49,7 @@ export default function PdfToWordPage() {
 
     try {
       const arrayBuffer = await file.arrayBuffer();
+      const pdfjsLib = await loadPdfjs();
       const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer) });
       const loadedPdf = await loadingTask.promise;
       setPdfDoc(loadedPdf);

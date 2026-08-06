@@ -13,9 +13,21 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
-  title: "PDFAI",
+  metadataBase: new URL(siteUrl),
+  // Each tool sets only its own title; this frames it.
+  title: {
+    default: "PDFAI — Every PDF tool you need, in one place",
+    template: "%s | PDFAI",
+  },
   description: "Every PDF tool you need, in one place.",
+  openGraph: {
+    siteName: "PDFAI",
+    type: "website",
+    url: siteUrl,
+  },
 };
 
 export default function RootLayout({

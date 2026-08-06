@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, JSX } from "react";
 import { FileText, Trash2, Download, UploadCloud, ShieldCheck, Sparkles, FileSpreadsheet } from "lucide-react";
-import * as XLSX from "xlsx";
+import { loadXlsx } from "@/lib/pdf-libs";
 
 export default function PdfToExcel(): JSX.Element {
   const [file, setFile] = useState<File | null>(null);
@@ -53,8 +53,10 @@ export default function PdfToExcel(): JSX.Element {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleDownloadExcel = (): void => {
+  const handleDownloadExcel = async (): Promise<void> => {
     if (!extractedRows || extractedRows.length === 0) return;
+
+    const XLSX = await loadXlsx();
 
     const worksheet = XLSX.utils.aoa_to_sheet(extractedRows);
     const workbook = XLSX.utils.book_new();
