@@ -3,7 +3,7 @@ import multer from "multer";
 
 import { processPDF } from "../modules/pipeline";
 import { retrieveRelevantChunks } from "../modules/retriever";
-import { generateAnswer } from "../modules/generator";
+import { generateAnswer, joinChunks } from "../modules/generator";
 
 const router = Router();
 
@@ -62,7 +62,7 @@ router.post("/", async (req, res) => {
     // Generate answer with Gemini
     const generation = await generateAnswer(
       question,
-      retrieval.chunks
+      joinChunks(retrieval.chunks)
     );
 
     return res.status(200).json({

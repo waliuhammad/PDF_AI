@@ -1,49 +1,62 @@
 import { parsePDF } from "../parser";
 import { cleanText } from "../cleaner";
 import { chunkText } from "../chunking";
-import { PipelineResult } from "./pipeline.types";
+import { ExtractionResult, PipelineResult } from "./pipeline.types";
 import { generateEmbedding } from "../embeddings";
 import {
   clearCollection,
   storeEmbeddings,
 } from "../vectordb";
 
-export async function processPDF(
+/**
+ * Read a PDF into text. No embeddings, no vector store, so no Chroma server —
+ * which is all a tool needs when it works on the whole document rather than
+ * searching it.
+ */
+export async function extractText(
   buffer: Buffer
-): Promise<PipelineResult> {
+): Promise<ExtractionResult> {
   const parser = await parsePDF(buffer);
 
   const cleaner = cleanText(parser.text);
 
   const chunker = await chunkText(cleaner.cleanedText);
-console.log("Parser text length:", parser.text.length);
 
-console.log("Cleaned text length:", cleaner.cleanedText.length);
+  return { parser, cleaner, chunker };
+}
 
-console.log("Chunks:", chunker.chunks.length);
+/**
+ * Extraction plus embedding and storage, for retrieval-backed chat.
+ *
+ * Note that clearCollection() wipes the whole collection first, so only one
+ * document is searchable at a time and a second upload discards the first.
+ */
+export async function processPDF(
+  buffer: Buffer
+): Promise<PipelineResult> {
+  const extraction = await extractText(buffer);
+
   const embeddings = await Promise.all(
-    chunker.chunks.map((chunk) => generateEmbedding(chunk.content))
+    extraction.chunker.chunks.map((chunk) => generateEmbedding(chunk.content))
   );
 
   // Remove previous PDF chunks (development mode)
   await clearCollection();
 
   const vectordb = await storeEmbeddings(
-    chunker.chunks.map((chunk) => `chunk-${chunk.id}`),
+    extraction.chunker.chunks.map((chunk) => `chunk-${chunk.id}`),
 
-    chunker.chunks.map((chunk) => chunk.content),
+    extraction.chunker.chunks.map((chunk) => chunk.content),
 
     embeddings.map((item) => item.embedding),
 
-    chunker.chunks.map((chunk) => ({
+    extraction.chunker.chunks.map((chunk) => ({
       chunkId: chunk.id,
     }))
   );
 
   return {
-    parser,
-    cleaner,
-    chunker,
+    ...extraction,
     embeddings,
     vectordb,
   };

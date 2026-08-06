@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import { processPDF } from "../modules/pipeline";
+import { extractText } from "../modules/pipeline";
 import { generateSummary } from "../modules/summary";
 
 const router = Router();
@@ -18,11 +18,18 @@ router.post("/", upload.single("file"), async (req, res) => {
       });
     }
 
-    // Parse the uploaded PDF and store its embeddings
-    await processPDF(req.file.buffer);
+    // Read the uploaded PDF
+    const extraction = await extractText(req.file.buffer);
 
-    // Generate the summary from the newly stored document
-    const result = await generateSummary();
+    if (extraction.chunker.chunks.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "This PDF contains no readable text.",
+      });
+    }
+
+    // Summarize the whole document
+    const result = await generateSummary(extraction.cleaner.cleanedText);
 
     return res.status(200).json({
       success: true,

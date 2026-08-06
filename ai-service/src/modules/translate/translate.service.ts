@@ -1,17 +1,12 @@
-import { retrieveRelevantChunks } from "../retriever";
-import { generateAnswer } from "../generator";
+import { generateFromDocument } from "../generator";
 import { TranslateResult } from "./translate.types";
 
 export async function translateDocument(
-  language: string
+  language: string,
+  documentText: string
 ): Promise<TranslateResult> {
 
-  const retriever = await retrieveRelevantChunks(
-    "Provide the complete document.",
-    20
-  );
-
-  const generator = await generateAnswer(
+  const generator = await generateFromDocument(
     `Translate the uploaded PDF into ${language}.
 
 Rules:
@@ -20,7 +15,7 @@ Rules:
 - Do not summarize.
 - Do not omit any information.
 - Return only the translated text.`,
-    retriever.chunks
+    documentText
   );
 
   return {
