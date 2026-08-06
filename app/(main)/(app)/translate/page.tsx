@@ -2,7 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Languages, Sparkles, Copy, Loader2, Upload, FileText, X, ArrowRight } from "lucide-react";
-
+import LanguageSelect from "@/components/language-select";   // ← add this line
 export default function PdfTranslatorPage() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [fileMeta, setFileMeta] = useState<{ name: string; size: string } | null>(null);
@@ -97,18 +97,7 @@ setTranslatedText(result);
                         <label className="text-xs font-semibold text-muted uppercase tracking-wider">
                             Upload Document
                         </label>
-                        <select
-                            value={targetLang}
-                            onChange={(e) => setTargetLang(e.target.value)}
-                            className="bg-black/20 border border-white/10 rounded-lg text-sm text-fg px-3 py-1.5 focus:outline-none focus:border-[var(--primary)]"
-                        >
-                            <option value="Spanish">Spanish</option>
-                            <option value="French">French</option>
-                            <option value="German">German</option>
-                            <option value="Urdu">Urdu</option>
-                            <option value="Arabic">Arabic</option>
-                            <option value="Chinese">Chinese</option>
-                        </select>
+                        <LanguageSelect value={targetLang} onChange={setTargetLang} />
                     </div>
 
                     {!fileMeta ? (
