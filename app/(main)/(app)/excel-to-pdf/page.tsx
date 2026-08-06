@@ -2,9 +2,7 @@
 
 import React, { useState, useRef, JSX } from "react";
 import { FileSpreadsheet, Trash2, Download, UploadCloud, ShieldCheck, Sparkles, Layers, Sliders } from "lucide-react";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as XLSX from "xlsx";
+import { loadJsPdfWithAutoTable, loadXlsx } from "@/lib/pdf-libs";
 
 interface SheetData {
   name: string;
@@ -39,9 +37,10 @@ export default function ExcelToPdf(): JSX.Element {
     setLoading(true);
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       try {
         const data = new Uint8Array(event.target?.result as ArrayBuffer);
+        const XLSX = await loadXlsx();
         const workbook = XLSX.read(data, { type: "array" });
 
         const parsedSheets: SheetData[] = workbook.SheetNames.map((name) => {
@@ -85,7 +84,7 @@ export default function ExcelToPdf(): JSX.Element {
     return slicedRows.map((row) => row.slice(sCol, eCol));
   };
 
-  const handleConvertToPdf = (): void => {
+  const handleConvertToPdf = async (): Promise<void> => {
     if (sheets.length === 0) {
       setError("Please upload a spreadsheet first.");
       return;
@@ -95,6 +94,7 @@ export default function ExcelToPdf(): JSX.Element {
     setError(null);
 
     try {
+      const { jsPDF, autoTable } = await loadJsPdfWithAutoTable();
       const doc = new jsPDF({
         orientation: "landscape",
         unit: "mm",

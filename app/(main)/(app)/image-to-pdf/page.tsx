@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, JSX } from "react";
 import { Trash2, UploadCloud, Sparkles, Loader2, Image as ImageIcon, Layers, Plus, Sliders, Type } from "lucide-react";
-import { jsPDF } from "jspdf";
+import { loadJsPdf } from "@/lib/pdf-libs";
 
 interface TextAnnotation {
   id: string;
@@ -291,6 +291,7 @@ export default function ImageToPdf(): JSX.Element {
     setError(null);
 
     try {
+      const { jsPDF } = await loadJsPdf();
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",

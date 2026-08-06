@@ -1,11 +1,8 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import * as pdfjsLib from "pdfjs-dist";
 import { Upload, FileText, X, Lock, Download, Eye, EyeOff, Wand2, Copy, Check, Sparkles, ShieldCheck } from "lucide-react";
-
-// Set worker path for PDF.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+import { loadPdfjs } from "@/lib/pdf-libs";
 
 export default function ProtectPdfPage() {
     const [file, setFile] = useState<{ name: string; size: string; rawFile: File } | null>(null);
@@ -39,6 +36,7 @@ export default function ProtectPdfPage() {
 
         try {
             const arrayBuffer = await f.arrayBuffer();
+            const pdfjsLib = await loadPdfjs();
             const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
             const pdfDoc = await loadingTask.promise;
             setNumPages(pdfDoc.numPages);

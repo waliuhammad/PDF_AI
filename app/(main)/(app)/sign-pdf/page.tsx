@@ -2,11 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Upload, FileText, X, Download, ShieldCheck, Sparkles } from "lucide-react";
-import * as pdfjsLib from "pdfjs-dist";
-
-if (typeof window !== "undefined") {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
-}
+import type * as PdfjsLib from "pdfjs-dist";
+import { loadPdfjs } from "@/lib/pdf-libs";
 
 export default function SignPdfPage() {
   const [file, setFile] = useState<{ name: string; size: string; rawFile: File } | null>(null);
@@ -17,7 +14,7 @@ export default function SignPdfPage() {
   // PDF Preview and Advanced States
   const [numPages, setNumPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [pdfDocProxy, setPdfDocProxy] = useState<pdfjsLib.PDFDocumentProxy | null>(null);
+  const [pdfDocProxy, setPdfDocProxy] = useState<PdfjsLib.PDFDocumentProxy | null>(null);
   const [position, setPosition] = useState<"left" | "center" | "right">("right");
   const [signScope, setSignScope] = useState<"specific" | "all">("specific");
   
@@ -44,6 +41,7 @@ export default function SignPdfPage() {
 
     try {
       const arrayBuffer = await f.arrayBuffer();
+      const pdfjsLib = await loadPdfjs();
       const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
       const pdf = await loadingTask.promise;
       setPdfDocProxy(pdf);

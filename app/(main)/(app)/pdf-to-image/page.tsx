@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useRef, ChangeEvent, DragEvent, useEffect } from "react";
-import * as pdfjsLib from "pdfjs-dist";
-import JSZip from "jszip";
+import React, { useState, useRef, ChangeEvent, DragEvent } from "react";
+import { loadPdfjs, loadJsZip } from "@/lib/pdf-libs";
 import { 
   Upload, 
   FileText, 
@@ -26,6 +25,7 @@ const FORMAT_OPTIONS = [
 
 // Helper: Get PDF Page Count from ArrayBuffer
 async function getPdfPageCount(arrayBuffer: ArrayBuffer): Promise<number> {
+  const pdfjsLib = await loadPdfjs();
   const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer.slice(0)) });
   const pdf = await loadingTask.promise;
   return pdf.numPages;
@@ -39,6 +39,7 @@ async function convertPdfToImages(
   pageNumber: number,
   selectedFormat: typeof FORMAT_OPTIONS[number]
 ): Promise<{ blob: Blob; filename: string }> {
+  const pdfjsLib = await loadPdfjs();
   // Use a copy of the buffer slice to prevent detachment issues
   const loadingTask = pdfjsLib.getDocument({ data: new Uint8Array(arrayBuffer.slice(0)) });
   const pdf = await loadingTask.promise;
@@ -75,6 +76,7 @@ async function convertPdfToImages(
       filename: `${baseName}_page_${pageNumber}${ext}`,
     };
   } else {
+    const JSZip = await loadJsZip();
     const zip = new JSZip();
 
     for (let i = 1; i <= pdf.numPages; i++) {
@@ -114,11 +116,7 @@ export default function PdfToImageConverter() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Initialize PDF.js worker reliably on mount
-  useEffect(() => {
-    const version = pdfjsLib.version || "3.11.174";
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${version}/pdf.worker.min.js`;
-  }, []);
+  // The worker is configured by loadPdfjs(), when the library is first needed.
 
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault();

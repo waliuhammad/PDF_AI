@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
     LayoutDashboard,
@@ -16,8 +17,26 @@ import {
     ChevronLeft,
     ChevronRight,
 } from "lucide-react";
-import { logout } from "@/lib/firebase/auth";
-import { useAuth } from "@/hooks/useAuth";
+
+// Both come from the same module, so Firebase is fetched once, after hydration,
+// and never blocks the first load of a tool page.
+const SidebarUser = dynamic(
+    () => import("./sidebar-account").then((m) => m.SidebarUser),
+    { ssr: false }
+);
+
+const SidebarLogout = dynamic(
+    () => import("./sidebar-account").then((m) => m.SidebarLogout),
+    {
+        ssr: false,
+        // Hold the button's space so the sidebar does not shift when it arrives.
+        loading: () => (
+            <div className="flex items-center gap-2.5 px-3 py-2 text-base font-medium text-fg opacity-60">
+                <LogOut size={18} className="shrink-0" />
+            </div>
+        ),
+    }
+);
 
 const navItems = [
     { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -29,25 +48,8 @@ const navItems = [
 
 export function Sidebar() {
     const pathname = usePathname();
-    const router = useRouter();
-    const { user: firebaseUser, profile } = useAuth();
     const [open, setOpen] = useState(false); // Mobile drawer state
     const [collapsed, setCollapsed] = useState(false); // Desktop sidebar collapse state
-    const [loggingOut, setLoggingOut] = useState(false);
-
-    const handleLogout = async () => {
-        setLoggingOut(true);
-        try {
-            await logout();
-            router.push("/login");
-        } finally {
-            setLoggingOut(false);
-        }
-    };
-
-    const displayName = profile?.fullName || firebaseUser?.displayName || firebaseUser?.email?.split("@")[0] || "Guest";
-    const displayEmail = firebaseUser?.email || "";
-    const initial = displayName.charAt(0).toUpperCase();
 
     const content = (isMobile = false) => (
         <>
@@ -70,22 +72,7 @@ export function Sidebar() {
             </div>
 
             {/* User info */}
-            {firebaseUser && (
-                <div
-                    className={`flex items-center gap-2.5 px-2 py-2 mb-2 rounded-xl bg-[var(--background-secondary)] border border-card ${collapsed && !isMobile ? "justify-center px-0" : ""
-                        }`}
-                >
-                    <div className="w-8 h-8 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-sm font-semibold shrink-0">
-                        {initial}
-                    </div>
-                    {(!collapsed || isMobile) && (
-                        <div className="min-w-0">
-                            <p className="text-sm font-medium text-fg truncate">{displayName}</p>
-                            <p className="text-xs text-muted truncate">{displayEmail}</p>
-                        </div>
-                    )}
-                </div>
-            )}
+            <SidebarUser compact={collapsed && !isMobile} />
 
             <nav className="flex-1 space-y-2 overflow-hidden">
                 <div className="space-y-1">
@@ -128,16 +115,7 @@ export function Sidebar() {
                 </div>
             )}
 
-            <button
-                onClick={handleLogout}
-                disabled={loggingOut}
-                title={collapsed && !isMobile ? "Log out" : undefined}
-                className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-base font-medium text-fg hover:bg-[var(--background-secondary)] hover:text-fg transition-all disabled:opacity-60 ${collapsed && !isMobile ? "justify-center px-2" : ""
-                    }`}
-            >
-                <LogOut size={18} className="shrink-0" />
-                {(!collapsed || isMobile) && <span>{loggingOut ? "Logging out..." : "Log out"}</span>}
-            </button>
+            <SidebarLogout compact={collapsed && !isMobile} />
         </>
     );
 
