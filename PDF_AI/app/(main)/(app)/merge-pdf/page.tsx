@@ -1,0 +1,560 @@
+"use client";
+
+import {
+  Upload,
+  FileText,
+  Layers,
+  Download,
+  Loader2,
+  Trash2,
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  Maximize2,
+  RotateCw,
+  RotateCcw,
+  GripVertical,
+} from "lucide-react";
+import { useRef, useState } from "react";
+
+interface PDFSourceFile {
+  fileIndex: number;
+  file: File;
+  name: string;
+  size: string;
+  sizeBytes: number;
+  pageCount: number;
+}
+
+interface PageItem {
+  id: string;
+  fileIndex: number;
+  fileName: string;
+  localPageIndex: number;
+  rotation: number;
+}
+
+export default function MergePdfPage() {
+  const [sourceFiles, setSourceFiles] = useState<PDFSourceFile[]>([]);
+  const [pagesList, setPagesList] = useState<PageItem[]>([]);
+  const [activePreviewIndex, setActivePreviewIndex] = useState(0);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const [processing, setProcessing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const [draggedFileIndex, setDraggedFileIndex] = useState<number | null>(null);
+  const [dragOverFileIndex, setDragOverFileIndex] = useState<number | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const formatSize = (bytes: number) => {
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
+  const handleFilesAdded = async (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+
+    const newSourceFiles = [...sourceFiles];
+    const newPagesList = [...pagesList];
+
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[i];
+      if (file.type !== "application/pdf") continue;
+
+      try {
+        const buffer = await file.arrayBuffer();
+        const textDecoder = new TextDecoder();
+        const text = textDecoder.decode(buffer);
+        const matches = text.match(/\/Type\s*\/Page\b/g);
+        const pageCount = matches ? matches.length : 1;
+
+        const currentFileIndex = newSourceFiles.length;
+
+        newSourceFiles.push({
+          fileIndex: currentFileIndex,
+          file,
+          name: file.name,
+          size: formatSize(file.size),
+          sizeBytes: file.size,
+          pageCount,
+        });
+
+        for (let p = 0; p < pageCount; p++) {
+          newPagesList.push({
+            id: `${currentFileIndex}-${p}-${Math.random().toString(36).substring(2, 6)}`,
+            fileIndex: currentFileIndex,
+            fileName: file.name,
+            localPageIndex: p,
+            rotation: 0,
+          });
+        }
+      } catch (err) {
+        console.error("Error reading PDF:", err);
+      }
+    }
+
+    if (newSourceFiles.length === 0) {
+      setErrorMessage("Please select valid PDF files.");
+      return;
+    }
+
+    setSourceFiles(newSourceFiles);
+    setPagesList(newPagesList);
+    setErrorMessage(null);
+    setActivePreviewIndex(0);
+  };
+
+  const jumpToFile = (fileIndex: number) => {
+    const targetPageIndex = pagesList.findIndex((p) => p.fileIndex === fileIndex);
+    if (targetPageIndex !== -1) {
+      setActivePreviewIndex(targetPageIndex);
+    }
+  };
+
+  const handleDragStart = (e: React.DragEvent, fileIndex: number) => {
+    setDraggedFileIndex(fileIndex);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent, targetFileIndex: number) => {
+    e.preventDefault();
+    if (draggedFileIndex === null || draggedFileIndex === targetFileIndex) return;
+    setDragOverFileIndex(targetFileIndex);
+  };
+
+  const handleDrop = (e: React.DragEvent, targetFileIndex: number) => {
+    e.preventDefault();
+    if (draggedFileIndex === null || draggedFileIndex === targetFileIndex) {
+      setDraggedFileIndex(null);
+      setDragOverFileIndex(null);
+      return;
+    }
+
+    const updatedSourceFiles = [...sourceFiles];
+    const draggedIdx = updatedSourceFiles.findIndex((f) => f.fileIndex === draggedFileIndex);
+    const targetIdx = updatedSourceFiles.findIndex((f) => f.fileIndex === targetFileIndex);
+
+    if (draggedIdx === -1 || targetIdx === -1) return;
+
+    const [movedFile] = updatedSourceFiles.splice(draggedIdx, 1);
+    updatedSourceFiles.splice(targetIdx, 0, movedFile);
+
+    setSourceFiles(updatedSourceFiles);
+
+    const newPagesList: PageItem[] = [];
+    updatedSourceFiles.forEach((sf) => {
+      const matchingPages = pagesList.filter((p) => p.fileIndex === sf.fileIndex);
+      newPagesList.push(...matchingPages);
+    });
+
+    setPagesList(newPagesList);
+    setDraggedFileIndex(null);
+    setDragOverFileIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedFileIndex(null);
+    setDragOverFileIndex(null);
+  };
+
+  const removeFile = (fileIndex: number) => {
+    const updatedSourceFiles = sourceFiles.filter((f) => f.fileIndex !== fileIndex);
+    const updatedPagesList = pagesList.filter((p) => p.fileIndex !== fileIndex);
+
+    setSourceFiles(updatedSourceFiles);
+    setPagesList(updatedPagesList);
+
+    if (updatedPagesList.length > 0) {
+      setActivePreviewIndex(0);
+    }
+  };
+
+  const rotatePage = (index: number, direction: "cw" | "ccw") => {
+    const updated = [...pagesList];
+    const currentPage = updated[index];
+    if (!currentPage) return;
+
+    const delta = direction === "cw" ? 90 : -90;
+    currentPage.rotation = (currentPage.rotation + delta) % 360;
+    setPagesList(updated);
+  };
+
+  const removePage = (id: string) => {
+    const updated = pagesList.filter((p) => p.id !== id);
+    setPagesList(updated);
+    if (activePreviewIndex >= updated.length) {
+      setActivePreviewIndex(Math.max(0, updated.length - 1));
+    }
+  };
+
+  const clearAll = () => {
+    setSourceFiles([]);
+    setPagesList([]);
+    setActivePreviewIndex(0);
+    setErrorMessage(null);
+  };
+
+  const totalOriginalSize = sourceFiles.reduce((acc, f) => acc + f.sizeBytes, 0);
+  const estimatedFinalSize = formatSize(totalOriginalSize * 0.95);
+
+  const executeMerge = async () => {
+    if (sourceFiles.length < 2) {
+      setErrorMessage("Please upload at least 2 PDF files in order to merge documents.");
+      return;
+    }
+
+    if (pagesList.length < 2) {
+      setErrorMessage("Please keep at least 2 pages in your merged document.");
+      return;
+    }
+
+    setProcessing(true);
+    setErrorMessage(null);
+
+    try {
+      const formData = new FormData();
+      sourceFiles.forEach((sf) => {
+        formData.append("files", sf.file);
+      });
+
+      const pageOrderPayload = pagesList.map((p) => ({
+        fileIndex: p.fileIndex,
+        pageIndex: p.localPageIndex,
+        rotation: p.rotation,
+      }));
+      formData.append("pageOrder", JSON.stringify(pageOrderPayload));
+
+      const response = await fetch("/api/merge-pdf", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        setErrorMessage(errorData.error || "Failed to merge PDFs.");
+        setProcessing(false);
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `merged_document_${Date.now()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setErrorMessage("An error occurred while merging your PDF files.");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const activePage = pagesList[activePreviewIndex];
+  const activeSourceFile = activePage ? sourceFiles.find((f) => f.fileIndex === activePage.fileIndex) : null;
+  const activePreviewUrl = activeSourceFile 
+    ? `${URL.createObjectURL(activeSourceFile.file)}#page=${activePage.localPageIndex + 1}&view=FitH,top&scrollbar=1&toolbar=0&navpanes=0` 
+    : "";
+
+  return (
+    <div className="max-w-7xl mx-auto w-full px-4 py-8 text-[#222430] dark:text-white bg-white dark:bg-transparent transition-colors">
+      <div className="text-center mb-8">
+        <div 
+          className="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center mb-3 shadow-inner bg-white dark:bg-[#1e2029] border border-[#222430]/20 dark:border-white/20 text-[#222430] dark:text-white"
+        >
+          <Layers size={28} />
+        </div>
+        <h1 className="text-2xl lg:text-3xl font-extrabold tracking-tight text-[#222430] dark:text-white">Merge, Rotate & Reorder PDF Pages</h1>
+        <p className="text-[#222430]/70 dark:text-white/80 text-sm mt-1.5 max-w-lg mx-auto">
+          Visually inspect layout structure, preview clear pages in large format with native scrolling, rotate pages in both directions, and sequence your final PDF output.
+        </p>
+      </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="application/pdf"
+        multiple
+        hidden
+        onChange={(e) => handleFilesAdded(e.target.files)}
+      />
+
+      {sourceFiles.length === 0 ? (
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDraggingFile(true);
+          }}
+          onDragLeave={() => setIsDraggingFile(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDraggingFile(false);
+            handleFilesAdded(e.dataTransfer.files);
+          }}
+          onClick={() => fileInputRef.current?.click()}
+          className={`cursor-pointer rounded-3xl p-16 text-center transition-all border border-[#222430]/10 dark:border-[#1e2029] bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white shadow-xl ${
+            isDraggingFile ? "scale-[1.01]" : "opacity-95 hover:opacity-100"
+          }`}
+        >
+          <div 
+            className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-sm border border-[#222430]/10 dark:border-white/20 bg-[#222430]/5 dark:bg-[#1e2029] text-[#222430] dark:text-white"
+          >
+            <Upload size={26} />
+          </div>
+          <p className="font-semibold text-lg text-[#222430] dark:text-white">Click to browse or drag & drop PDFs</p>
+          <p className="text-[#222430]/60 dark:text-white/80 text-sm mt-1">Upload multiple documents to start combining and re-sequencing pages</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* Sidebar Card */}
+          <div 
+            className="lg:col-span-5 border border-[#222430]/15 dark:border-white/20 rounded-3xl p-4 shadow-sm flex flex-col h-[600px] bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white transition-colors"
+          >
+            <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#222430]/10 dark:border-white/20">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#222430]/70 dark:text-white">Source Files ({sourceFiles.length})</span>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="p-1 rounded-lg border border-[#222430]/10 dark:border-white/20 bg-[#222430]/5 dark:bg-[#1e2029] text-[#222430] dark:text-white hover:bg-[#222430]/10 dark:hover:bg-white dark:hover:text-[#222430] transition-colors"
+                title="Add More PDFs"
+              >
+                <Plus size={16} />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto space-y-3 px-2 pt-1">
+              {sourceFiles.map((sf) => {
+                const isSelected = activeSourceFile?.fileIndex === sf.fileIndex;
+                const isBeingDragged = draggedFileIndex === sf.fileIndex;
+                const isDragOver = dragOverFileIndex === sf.fileIndex;
+
+                return (
+                  <div
+                    key={sf.fileIndex}
+                    draggable
+                    onDragStart={(e) => handleDragStart(e, sf.fileIndex)}
+                    onDragOver={(e) => handleDragOver(e, sf.fileIndex)}
+                    onDrop={(e) => handleDrop(e, sf.fileIndex)}
+                    onDragEnd={handleDragEnd}
+                    onClick={() => jumpToFile(sf.fileIndex)}
+                    className={`py-4 px-4 rounded-2xl border border-[#222430]/20 dark:border-white/30 cursor-pointer transition-all flex items-center gap-3 relative group text-[#222430] dark:text-white overflow-hidden w-full box-border shadow-sm ${
+                      isSelected ? "ring-2 ring-[#222430] dark:ring-white bg-[#222430]/5 dark:bg-[#262833]" : "bg-white dark:bg-[#1e2029] hover:bg-[#222430]/5 dark:hover:bg-white/5"
+                    } ${
+                      isBeingDragged ? "opacity-40 border-dashed" : ""
+                    } ${
+                      isDragOver ? "border-t-2 border-t-[#222430] dark:border-t-white scale-[1.02]" : ""
+                    }`}
+                  >
+                    <div 
+                      className="cursor-grab active:cursor-grabbing p-1 shrink-0 text-[#222430]/50 dark:text-white/50 hover:text-[#222430] dark:hover:text-white transition-colors"
+                      title="Drag up or down to reorder"
+                    >
+                      <GripVertical size={16} />
+                    </div>
+
+                    <div className="w-9 h-9 rounded-xl border border-[#222430]/20 dark:border-white/30 bg-[#222430]/5 dark:bg-white/5 flex items-center justify-center shrink-0 text-[#222430] dark:text-white">
+                      <FileText size={18} />
+                    </div>
+                    
+                    <div className="min-w-0 flex-1 overflow-hidden pr-1">
+                      <p className="text-xs font-bold truncate text-[#222430] dark:text-white w-full tracking-tight">{sf.name}</p>
+                      <p className="text-[11px] mt-0.5 text-[#222430]/60 dark:text-white/70 font-medium">{sf.size} • {sf.pageCount} pages</p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeFile(sf.fileIndex);
+                      }}
+                      className="p-2 rounded-xl border border-[#222430]/15 dark:border-white/20 bg-white dark:bg-[#1e2029] transition-all shrink-0 text-[#222430]/70 dark:text-white/70 hover:text-red-600 dark:hover:text-red-400 hover:border-red-500/50 hover:bg-red-500/10 shadow-sm"
+                      title="Delete File"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Right Preview Panel */}
+          <div className="lg:col-span-7 space-y-6">
+            {pagesList.length > 0 && (
+              <div 
+                className="border border-[#222430]/15 dark:border-white/20 rounded-3xl p-6 shadow-md space-y-6 bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white transition-colors"
+              >
+                <div className="flex items-center justify-between pb-3 border-b border-[#222430]/10 dark:border-white/20">
+                  <div className="flex items-center gap-2">
+                    <Eye size={18} className="text-[#222430] dark:text-white" />
+                    <span className="text-sm font-extrabold text-[#222430] dark:text-white">Page Viewer</span>
+                  </div>
+                  <div 
+                    className="px-3 py-1 rounded-full font-bold text-xs border border-[#222430]/10 dark:border-white/20 bg-[#222430]/5 dark:bg-[#1e2029] text-[#222430] dark:text-white"
+                  >
+                    Sequence Position #{activePreviewIndex + 1} of {pagesList.length}
+                  </div>
+                </div>
+
+                <div 
+                  className="flex flex-col items-center justify-center p-6 rounded-2xl border border-[#222430]/10 dark:border-white/20 bg-[#222430]/5 dark:bg-[#1e2029] relative min-h-[440px]"
+                >
+                  <div className="w-full flex flex-col items-center">
+                    <div 
+                      style={{ 
+                        transform: `rotate(${activePage ? activePage.rotation : 0}deg)` 
+                      }}
+                      className="w-full max-w-sm h-[360px] rounded-2xl shadow-xl border border-[#222430]/10 dark:border-white/20 bg-white dark:bg-[#1e2029] overflow-auto relative flex flex-col items-center transition-transform duration-300 pointer-events-auto p-2"
+                    >
+                      {activePreviewUrl ? (
+                        <div className="w-full h-full min-h-[480px] flex flex-col items-center justify-start pt-2">
+                          <object
+                            data={activePreviewUrl}
+                            type="application/pdf"
+                            className="w-full h-full min-h-[480px] pointer-events-auto"
+                          >
+                            <iframe
+                              src={activePreviewUrl}
+                              className="w-full h-full min-h-[480px] pointer-events-auto"
+                              title="PDF Scrollable Preview"
+                            />
+                          </object>
+                        </div>
+                      ) : (
+                        <Loader2 className="animate-spin text-[#222430] dark:text-white m-auto" size={28} />
+                      )}
+                      
+                      <div 
+                        className="absolute top-3 right-3 border border-[#222430]/10 dark:border-white/20 bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white text-[11px] font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 pointer-events-none shadow-sm z-10"
+                      >
+                        <Maximize2 size={12} /> Scrollable View
+                      </div>
+                    </div>
+
+                    {activePage && (
+                      <div className="mt-4 text-center space-y-1">
+                        <p className="text-sm font-bold truncate max-w-xs text-[#222430] dark:text-white">
+                          Source File: <span className="text-[#222430]/70 dark:text-white/80">{activePage.fileName}</span>
+                        </p>
+                        <p className="text-xs text-[#222430]/60 dark:text-white/80">
+                          Original Document Page: <strong className="text-[#222430] dark:text-white">{activePage.localPageIndex + 1}</strong>
+                          {activePage.rotation !== 0 && <span className="ml-2 text-[#222430] dark:text-white font-semibold">({activePage.rotation}° Rotated)</span>}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex items-center justify-between pointer-events-none">
+                    <button
+                      type="button"
+                      disabled={activePreviewIndex === 0}
+                      onClick={() => setActivePreviewIndex((prev) => Math.max(0, prev - 1))}
+                      className="w-10 h-10 rounded-full border border-[#222430]/15 dark:border-white/25 shadow-lg flex items-center justify-center bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white disabled:opacity-20 pointer-events-auto hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] transition-all active:scale-95"
+                      title="Previous Page"
+                    >
+                      <ChevronLeft size={20} />
+                    </button>
+                    <button
+                      type="button"
+                      disabled={activePreviewIndex === pagesList.length - 1}
+                      onClick={() => setActivePreviewIndex((prev) => Math.min(pagesList.length - 1, prev + 1))}
+                      className="w-10 h-10 rounded-full border border-[#222430]/15 dark:border-white/25 shadow-lg flex items-center justify-center bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white disabled:opacity-20 pointer-events-auto hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] transition-all active:scale-95"
+                      title="Next Page"
+                    >
+                      <ChevronRight size={20} />
+                    </button>
+                  </div>
+                </div>
+
+                {activePage && (
+                  <div 
+                    className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl border border-[#222430]/10 dark:border-white/20 bg-[#222430]/5 dark:bg-[#1e2029] shadow-inner text-[#222430] dark:text-white"
+                  >
+                    <div className="text-xs font-medium text-[#222430] dark:text-white">
+                      Rotate view or remove page:
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => rotatePage(activePreviewIndex, "ccw")}
+                        className="py-2.5 px-3 rounded-xl border border-[#222430]/10 dark:border-white/20 bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white text-xs font-bold flex items-center gap-1 hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] transition-all shadow-sm"
+                        title="Rotate -90°"
+                      >
+                        <RotateCcw size={14} /> -90°
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => rotatePage(activePreviewIndex, "cw")}
+                        className="py-2.5 px-3 rounded-xl border border-[#222430]/10 dark:border-white/20 bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white text-xs font-bold flex items-center gap-1 hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] transition-all shadow-sm"
+                        title="Rotate +90°"
+                      >
+                        <RotateCw size={14} /> +90°
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removePage(activePage.id)}
+                        className="p-2.5 rounded-xl border border-[#222430]/10 dark:border-white/20 bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] transition-colors ml-1"
+                        title="Remove Page"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div 
+              className="p-5 rounded-2xl border border-[#222430]/15 dark:border-white/20 bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white grid grid-cols-3 gap-4 text-center shadow-sm transition-colors"
+            >
+              <div>
+                <p className="text-[#222430]/60 dark:text-white/80 text-xs font-semibold">Total Final Pages</p>
+                <p className="text-base font-extrabold mt-1 text-[#222430] dark:text-white">{pagesList.length} Pages</p>
+              </div>
+              <div>
+                <p className="text-[#222430]/60 dark:text-white/80 text-xs font-semibold">Original Combined Size</p>
+                <p className="text-base font-extrabold mt-1 text-[#222430] dark:text-white">{formatSize(totalOriginalSize)}</p>
+              </div>
+              <div>
+                <p className="text-[#222430]/60 dark:text-white/80 text-xs font-semibold">Estimated Output Size</p>
+                <p className="text-[#222430] dark:text-white text-base font-extrabold mt-1">{estimatedFinalSize}</p>
+              </div>
+            </div>
+
+            {errorMessage && (
+              <div 
+                className="p-4 rounded-xl border border-red-500/30 bg-red-500/10 text-red-600 dark:text-red-400 text-sm font-semibold text-center transition-all animate-shake"
+              >
+                ⚠️ {errorMessage}
+              </div>
+            )}
+
+            <div className="flex items-center gap-4 pt-2">
+              <button
+                type="button"
+                onClick={clearAll}
+                className="py-4 px-8 rounded-2xl border border-[#222430]/15 dark:border-white/20 bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] font-bold text-sm transition-colors shadow-sm"
+              >
+                Clear All
+              </button>
+              
+              <button
+                type="button"
+                onClick={executeMerge}
+                disabled={processing}
+                className="flex-1 py-4 px-6 rounded-2xl border border-[#222430]/20 bg-[#222430] text-white hover:bg-[#2f3242] dark:bg-[#2b1b3d] dark:text-white dark:hover:bg-[#382451] font-extrabold text-base shadow-xl disabled:opacity-40 flex items-center justify-center gap-2.5 transition-all cursor-pointer"
+              >
+                {processing ? <Loader2 className="animate-spin" size={20} /> : <Download size={20} />}
+                {processing ? "Merging PDFs..." : `Merge & Download Final PDF (${pagesList.length} Pages)`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
