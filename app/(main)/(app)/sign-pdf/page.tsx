@@ -25,6 +25,10 @@ export default function SignPdfPage() {
   const [penColor, setPenColor] = useState("#0f172a");
   const [isDrawing, setIsDrawing] = useState(false);
 
+  // Signing happens on the server, so the button needs a pending and error state.
+  const [signing, setSigning] = useState(false);
+  const [signError, setSignError] = useState<string | null>(null);
+
   const inputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -182,16 +186,50 @@ export default function SignPdfPage() {
     if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
   };
 
-  const handleDownload = () => {
-    if (!file) return;
-    const url = URL.createObjectURL(file.rawFile);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `signed_${file.name}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+  const handleDownload = async () => {
+    if (!file || signing) return;
+
+    setSigning(true);
+    setSignError(null);
+
+    try {
+      const body = new FormData();
+      body.append("file", file.rawFile);
+      body.append("signMode", mode);
+      body.append("pageNumber", String(currentPage));
+      body.append("position", position);
+      body.append("signScope", signScope);
+
+      if (mode === "draw") {
+        const canvas = canvasRef.current;
+        if (!canvas) throw new Error("Draw your signature first.");
+        body.append("signatureImage", canvas.toDataURL("image/png"));
+      } else {
+        body.append("signatureText", signatureText);
+      }
+
+      const res = await fetch("/api/sign-pdf", { method: "POST", body });
+
+      if (!res.ok) {
+        // The route reports failures as JSON; anything else means it fell over.
+        const detail = await res.json().catch(() => null);
+        throw new Error(detail?.error || `Signing failed (${res.status}).`);
+      }
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${file.name.replace(/\.[^/.]+$/, "")}-signed.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setSignError(err instanceof Error ? err.message : "Could not sign the document.");
+    } finally {
+      setSigning(false);
+    }
   };
 
   const isFormValid = mode === "type" ? signatureText.trim().length > 0 : true;
@@ -426,11 +464,18 @@ export default function SignPdfPage() {
               <button
                 type="button"
                 onClick={handleDownload}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full text-white font-medium transition-colors text-sm shadow-lg bg-[#0d1322] border border-slate-700 hover:bg-[#131b2e] cursor-pointer"
+                disabled={!isFormValid || signing}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full text-white font-medium transition-colors text-sm shadow-lg bg-[#0d1322] border border-slate-700 hover:bg-[#131b2e] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <Download size={18} />
-                Download Signed PDF
+                {signing ? "Signing…" : "Download Signed PDF"}
               </button>
+
+              {signError && (
+                <p className="mt-3 text-sm text-red-500" role="alert">
+                  {signError}
+                </p>
+              )}
             </div>
           </div>
         )}
