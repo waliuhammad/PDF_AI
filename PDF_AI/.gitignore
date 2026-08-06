@@ -39,13 +39,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-chroma/
-chroma_data/
-ai-service/uploads/*
-!ai-service/uploads/.gitkeep
-ai-service/.env
-node_modules/
-ai-service/node_modules/
-ai-service/README
-ai-service/src/config/env.ts
-ai-service/src/modules/generator/generator.service.ts

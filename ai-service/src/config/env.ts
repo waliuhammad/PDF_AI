@@ -13,6 +13,7 @@ export const env = {
   CHROMA_PORT: Number(process.env.CHROMA_PORT || "8000"),
 };
 
+
 if (!env.GOOGLE_API_KEY) {
   throw new Error("GOOGLE_API_KEY is missing in .env");
 }

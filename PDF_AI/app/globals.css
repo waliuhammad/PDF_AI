@@ -1,0 +1,135 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Enables `dark:` variants whenever the `.dark` class is present on <html> (next-themes) */
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --radius: 16px;
+
+  --background: #FFFFFF;
+  --background-secondary: #F7F6FD;
+  --foreground: #16141F;
+
+  --card: #FFFFFF;
+  --card-foreground: #16141F;
+  --card-border: #E7E5F0;
+
+  --popover: #FFFFFF;
+  --popover-foreground: #16141F;
+
+  --primary: #6D5DE0;
+  --primary-hover: #5A4BCC;
+  --primary-foreground: #FFFFFF;
+
+  --secondary: #F3F1FC;
+  --secondary-foreground: #322B57;
+
+  --muted: #F4F5F7;
+  --muted-foreground: #6B7280;
+
+  --accent: #EEEBFC;
+  --accent-foreground: #4B3FBF;
+
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+
+  --border: #E7E5F0;
+  --input: #E7E5F0;
+  --ring: #6D5DE0;
+}
+
+.dark {
+  --background: #1A1B24;
+  --background-secondary: #20212C;
+  --foreground: #E7E5F1;
+
+  --card: #23242F;
+  --card-foreground: #E7E5F1;
+  --card-border: #33333F;
+
+  --popover: #23242F;
+  --popover-foreground: #E7E5F1;
+
+  --primary: #8478EE;
+  --primary-hover: #9488F2;
+  --primary-foreground: #FFFFFF;
+
+  --secondary: #2A2B38;
+  --secondary-foreground: #C7C4DC;
+
+  --muted: #282933;
+  --muted-foreground: #9B99AC;
+
+  --accent: #2C2A45;
+  --accent-foreground: #BEB6EC;
+
+  --destructive: #F0716F;
+  --destructive-foreground: #1A0505;
+
+  --border: #33333F;
+  --input: #33333F;
+  --ring: #8478EE;
+}
+
+/* Maps the CSS variables above to Tailwind utilities: bg-primary, text-foreground,
+   border-border, bg-card, bg-secondary, bg-muted, bg-destructive, etc. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 8px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Legacy utility classes kept for backward-compatibility with existing components */
+.text-fg {
+  color: var(--foreground);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.bg-card {
+  background-color: var(--card);
+}
+
+.border-card {
+  border-color: var(--card-border);
+}
+
+.bg-primary-tint {
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
+}

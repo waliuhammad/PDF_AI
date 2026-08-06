@@ -1,0 +1,644 @@
+"use client";
+
+import React, { useState, useRef, useEffect } from "react";
+import { Upload, FileText, X, Scissors, Download, Loader2 } from "lucide-react";
+import { PDFDocument } from "pdf-lib";
+import * as pdfjsLib from "pdfjs-dist";
+
+if (typeof window !== "undefined") {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+}
+
+export default function SplitPdfPage() {
+  const [rawFile, setRawFile] = useState<File | null>(null);
+  const [fileDetails, setFileDetails] = useState<{ name: string; size: string } | null>(null);
+  const [pageCount, setPageCount] = useState<number>(0);
+  const [thumbnails, setThumbnails] = useState<string[]>([]);
+  const [isDragging, setIsDragging] = useState(false);
+  const [splitMode, setSplitMode] = useState<"range" | "every">("range");
+  const [fromPage, setFromPage] = useState("1");
+  const [toPage, setToPage] = useState("1");
+  const [everyN, setEveryN] = useState("1");
+  const [processing, setProcessing] = useState(false);
+  const [done, setDone] = useState(false);
+  const [downloadChoice, setDownloadChoice] = useState<"split" | "remaining" | "both">("split");
+  const [selectingFrom, setSelectingFrom] = useState(true);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  
+  const inputRef = useRef<HTMLInputElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Custom scrollbar thumb dragging states
+  const [isDraggingThumb, setIsDraggingThumb] = useState(false);
+  const [thumbTop, setThumbTop] = useState(0);
+  const [thumbHeight, setThumbHeight] = useState(40);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const dragStartY = useRef(0);
+  const startScrollTop = useRef(0);
+
+  const formatSize = (bytes: number) => {
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+  };
+
+  const handleModeChange = (mode: "range" | "every") => {
+    setSplitMode(mode);
+    setDone(false);
+    setErrorMessage(null);
+  };
+
+  const generateThumbnails = async (file: File) => {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+      const pdfDoc = await loadingTask.promise;
+      const numPages = pdfDoc.numPages;
+      setPageCount(numPages);
+
+      const thumbs: string[] = [];
+      for (let i = 1; i <= numPages; i++) {
+        const page = await pdfDoc.getPage(i);
+        const viewport = page.getViewport({ scale: 2.2 });
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+        canvas.height = viewport.height;
+        canvas.width = viewport.width;
+
+        if (context) {
+          await page.render({ canvasContext: context, viewport }).promise;
+          thumbs.push(canvas.toDataURL());
+        }
+      }
+      setThumbnails(thumbs);
+    } catch (err) {
+      console.error("Error generating real page thumbnails:", err);
+      setErrorMessage("Could not render actual page previews for this PDF.");
+    }
+  };
+
+  const handleFile = async (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+    const f = fileList[0];
+    if (f.type !== "application/pdf") {
+      setErrorMessage("Please select a valid PDF file.");
+      return;
+    }
+
+    try {
+      const arrayBuffer = await f.arrayBuffer();
+      const pdf = await PDFDocument.load(arrayBuffer);
+      const totalPages = pdf.getPageCount();
+
+      setRawFile(f);
+      setFileDetails({ name: f.name, size: formatSize(f.size) });
+      setDone(false);
+      setErrorMessage(null);
+      setDownloadChoice("split");
+      setFromPage("1");
+      setToPage(String(totalPages > 1 ? totalPages : 1));
+      setSelectingFrom(true);
+
+      await generateThumbnails(f);
+    } catch (err) {
+      console.error("Error reading PDF:", err);
+      setErrorMessage("Failed to read the selected PDF file.");
+    }
+  };
+
+  // Synchronize custom scrollbar thumb dimensions and position
+  const updateScrollbar = () => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    if (scrollHeight <= clientHeight) {
+      setThumbHeight(clientHeight);
+      setThumbTop(0);
+      return;
+    }
+
+    const calculatedThumbHeight = Math.max((clientHeight / scrollHeight) * clientHeight, 40);
+    const maxScrollTop = scrollHeight - clientHeight;
+    const maxThumbTop = clientHeight - calculatedThumbHeight;
+    const calculatedThumbTop = (scrollTop / maxScrollTop) * maxThumbTop;
+
+    setThumbHeight(calculatedThumbHeight);
+    setThumbTop(calculatedThumbTop);
+  };
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    updateScrollbar();
+    const handleScroll = () => updateScrollbar();
+    container.addEventListener("scroll", handleScroll);
+    window.addEventListener("resize", updateScrollbar);
+
+    return () => {
+      container.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", updateScrollbar);
+    };
+  }, [thumbnails]);
+
+  // Handle dragging the custom scrollbar thumb
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDraggingThumb || !scrollContainerRef.current || !trackRef.current) return;
+      
+      const container = scrollContainerRef.current;
+      const track = trackRef.current;
+      const trackRect = track.getBoundingClientRect();
+      
+      const deltaY = e.clientY - dragStartY.current;
+      const maxThumbTop = trackRect.height - thumbHeight;
+      if (maxThumbTop <= 0) return;
+
+      const newThumbTop = Math.min(Math.max(0, startScrollTop.current + deltaY), maxThumbTop);
+      const scrollRatio = newThumbTop / maxThumbTop;
+      container.scrollTop = scrollRatio * (container.scrollHeight - container.clientHeight);
+    };
+
+    const handleMouseUp = () => {
+      setIsDraggingThumb(false);
+    };
+
+    if (isDraggingThumb) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDraggingThumb, thumbHeight]);
+
+  const handleThumbMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsDraggingThumb(true);
+    dragStartY.current = e.clientY;
+    const container = scrollContainerRef.current;
+    if (!container || !trackRef.current) return;
+    const maxThumbTop = trackRef.current.clientHeight - thumbHeight;
+    if (maxThumbTop <= 0) return;
+    startScrollTop.current = (container.scrollTop / (container.scrollHeight - container.clientHeight)) * maxThumbTop;
+  };
+
+  const handleTrackClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === trackRef.current && scrollContainerRef.current) {
+      const container = scrollContainerRef.current;
+      const trackRect = trackRef.current.getBoundingClientRect();
+      const clickY = e.clientY - trackRect.top;
+      const ratio = clickY / trackRect.height;
+      container.scrollTop = ratio * (container.scrollHeight - container.clientHeight);
+    }
+  };
+
+  const handlePageClick = (page: number) => {
+    if (splitMode !== "range") return;
+    setDone(false);
+    setErrorMessage(null);
+    if (selectingFrom) {
+      setFromPage(String(page));
+      setToPage(String(page));
+      setSelectingFrom(false);
+    } else {
+      const from = Number(fromPage);
+      if (page >= from) {
+        setToPage(String(page));
+      } else {
+        setToPage(fromPage);
+        setFromPage(String(page));
+      }
+      setSelectingFrom(true);
+    }
+  };
+
+  const handleInitialSplit = () => {
+    setProcessing(true);
+    setErrorMessage(null);
+
+    setTimeout(() => {
+      setProcessing(false);
+      setDone(true);
+    }, 400);
+  };
+
+  const executeDownload = async (choice: "split" | "remaining" | "both") => {
+    if (!rawFile) return;
+    setProcessing(true);
+    setErrorMessage(null);
+
+    const downloadSingle = async (type: "split" | "remaining") => {
+      const formData = new FormData();
+      formData.append("file", rawFile);
+      formData.append("splitMode", splitMode);
+      formData.append("fromPage", fromPage);
+      formData.append("toPage", toPage);
+      formData.append("everyN", everyN);
+      formData.append("downloadChoice", type);
+
+      const response = await fetch("/api/split-pdf", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to split PDF. Check your selected page range.");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = type === "remaining" ? "remaining-pages.pdf" : "split-document.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    };
+
+    try {
+      if (choice === "both") {
+        await downloadSingle("split");
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        await downloadSingle("remaining");
+      } else {
+        await downloadSingle(choice);
+      }
+    } catch (err: any) {
+      setErrorMessage(err.message || "An unexpected error occurred while connecting to the server.");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  return (
+    <div className="max-w-6xl mx-auto w-full px-4">
+      <div className="text-center mb-8">
+        <div className="w-14 h-14 mx-auto rounded-2xl bg-white dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] flex items-center justify-center mb-3 text-slate-900 dark:text-white shadow-sm">
+          <Scissors size={28} />
+        </div>
+        <h1 className="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Split PDF Pages</h1>
+        <p className="text-slate-600 dark:text-[#9ca3af] text-sm mt-1.5 max-w-lg mx-auto">
+          Separate one PDF into multiple files, extract page ranges, or split documents easily.
+        </p>
+      </div>
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept="application/pdf"
+        hidden
+        onChange={(e) => handleFile(e.target.files)}
+      />
+
+      {!fileDetails ? (
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDragging(false);
+            handleFile(e.dataTransfer.files);
+          }}
+          onClick={() => inputRef.current?.click()}
+          className={`cursor-pointer rounded-[32px] p-16 h-[380px] flex flex-col items-center justify-center text-center transition-all bg-white dark:bg-[#1b1e29] border border-slate-200 dark:border-[#272c3a] shadow-xl ${
+            isDragging ? "border-slate-400 dark:border-white scale-[1.01]" : "hover:border-slate-300 dark:hover:border-[#333a4a]"
+          }`}
+        >
+          <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-[#232836] mx-auto flex items-center justify-center mb-4 text-slate-900 dark:text-white shadow-sm border border-slate-200 dark:border-[#32394a]">
+            <Upload size={26} />
+          </div>
+          <p className="text-slate-900 dark:text-white font-semibold text-lg">Click to browse or drag & drop PDFs</p>
+          <p className="text-slate-600 dark:text-[#9ca3af] text-sm mt-1">Upload a document to start splitting pages</p>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-[#111318] border border-slate-200 dark:border-[#222632] rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] flex items-center justify-center shrink-0 text-slate-900 dark:text-white">
+                <FileText size={20} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-slate-900 dark:text-white text-sm font-bold truncate">{fileDetails.name}</p>
+                <p className="text-xs text-slate-600 dark:text-[#9ca3af] mt-0.5">
+                  Size: <strong className="text-slate-900 dark:text-white">{fileDetails.size}</strong> • Pages: <strong className="text-slate-900 dark:text-white">{pageCount}</strong>
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setFileDetails(null);
+                setRawFile(null);
+                setDone(false);
+                setErrorMessage(null);
+                setThumbnails([]);
+              }}
+              className="py-1.5 px-3.5 rounded-xl bg-red-100 dark:bg-red-950/50 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 font-semibold text-xs flex items-center gap-1.5 transition-colors shrink-0"
+            >
+              <X size={15} /> Remove File
+            </button>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            {/* Left Side: Page Preview (Reduced width: col-span-5, removed left/right padding: px-0) */}
+            <div className="lg:col-span-5 bg-white dark:bg-[#111318] border border-slate-200 dark:border-[#222632] rounded-3xl py-3 px-0 shadow-md flex flex-col justify-between">
+              <div className="flex items-center justify-between pb-2 px-4 border-b border-slate-200 dark:border-[#222632]">
+                <span className="text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">Page Preview</span>
+                <span className="text-xs text-slate-500 dark:text-[#9ca3af]">Scroll down • Click to select</span>
+              </div>
+
+              {thumbnails.length > 0 ? (
+                <div className="relative flex items-stretch gap-2 my-2 px-2">
+                  <div
+                    ref={scrollContainerRef}
+                    className="flex-1 flex flex-col items-center gap-3 h-[360px] overflow-y-auto pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                  >
+                    {Array.from({ length: pageCount }, (_, i) => i + 1).map((page) => {
+                      const idx = page - 1;
+                      const inRange =
+                        !done &&
+                        splitMode === "range" &&
+                        page >= Number(fromPage) &&
+                        page <= Number(toPage);
+                      const isEdge =
+                        !done &&
+                        splitMode === "range" &&
+                        (page === Number(fromPage) || page === Number(toPage));
+
+                      return (
+                        <div
+                          key={page}
+                          onClick={() => !done && handlePageClick(page)}
+                          className={`cursor-pointer w-full max-w-[340px] h-[300px] rounded-2xl border p-0.5 flex flex-col items-center justify-between transition-all select-none shrink-0 ${
+                            isEdge
+                              ? "border-slate-900 dark:border-white bg-slate-50 dark:bg-[#181b22] shadow-md"
+                              : inRange
+                              ? "border-slate-400 dark:border-[#4a5568] bg-slate-50/50 dark:bg-[#181b22]/30"
+                              : "border-slate-200 dark:border-[#222632] bg-white dark:bg-[#111318] hover:border-slate-300 dark:hover:border-[#333a4a]"
+                          }`}
+                        >
+                          <div className="w-full flex items-center justify-between px-2 pt-1 mb-0.5 shrink-0">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${isEdge ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900" : "bg-slate-100 dark:bg-[#181b22] text-slate-700 dark:text-[#d1d5db]"}`}>
+                              Page {page} of {pageCount}
+                            </span>
+                            <span className="text-[10px] font-medium text-slate-500 dark:text-[#9ca3af]">
+                              {isEdge ? "Edge" : inRange ? "Selected" : "Click"}
+                            </span>
+                          </div>
+
+                          <div className="flex-1 w-full flex items-center justify-center bg-slate-100 dark:bg-[#0d0f13] rounded-xl overflow-hidden border border-slate-200 dark:border-[#222632] p-0 m-0">
+                            {thumbnails[idx] ? (
+                              <img src={thumbnails[idx]} alt={`Page ${page}`} className="object-cover h-full w-full rounded m-0 p-0 block" />
+                            ) : (
+                              <Loader2 className="animate-spin text-slate-400 dark:text-[#9ca3af]" size={20} />
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div
+                    ref={trackRef}
+                    onClick={handleTrackClick}
+                    className="relative w-2 bg-slate-200 dark:bg-[#181b22] rounded-full cursor-pointer my-1 shrink-0"
+                  >
+                    <div
+                      onMouseDown={handleThumbMouseDown}
+                      style={{
+                        height: `${thumbHeight}px`,
+                        transform: `translateY(${thumbTop}px)`,
+                      }}
+                      className={`absolute top-0 left-0 w-full rounded-full cursor-grab active:cursor-grabbing transition-colors ${
+                        isDraggingThumb
+                          ? "bg-slate-900 dark:bg-white"
+                          : "bg-slate-400 dark:bg-[#4a5568] hover:bg-slate-500 dark:hover:bg-[#718096]"
+                      }`}
+                    />
+                  </div>
+                </div>
+              ) : (
+                <div className="h-[360px] flex items-center justify-center text-slate-500 dark:text-[#9ca3af] my-2">
+                  <Loader2 className="animate-spin" size={24} />
+                </div>
+              )}
+
+              <div className="pt-2 px-4 border-t border-slate-200 dark:border-[#222632] flex items-center justify-between text-xs text-slate-500 dark:text-[#9ca3af]">
+                <span>Total pages: {pageCount}</span>
+                <span>Ready to split</span>
+              </div>
+            </div>
+
+            {/* Right Side: Split Configuration (Increased width: col-span-7) */}
+            <div className="lg:col-span-7 flex">
+              <div className="bg-white dark:bg-[#111318] border border-slate-200 dark:border-[#222632] rounded-3xl p-3 shadow-md flex flex-col justify-between w-full">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between pb-2 px-2 border-b border-slate-200 dark:border-[#222632]">
+                    <div className="flex items-center gap-2">
+                      <Scissors size={18} className="text-slate-900 dark:text-white" />
+                      <span className="text-sm font-extrabold text-slate-900 dark:text-white">Split Configuration</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 px-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleModeChange("range")}
+                        className={`flex-1 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                          splitMode === "range"
+                            ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
+                            : "bg-slate-100 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
+                        }`}
+                      >
+                        Extract Page Range
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleModeChange("every")}
+                        className={`flex-1 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                          splitMode === "every"
+                            ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
+                            : "bg-slate-100 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
+                        }`}
+                      >
+                        Split Every N Pages
+                      </button>
+                    </div>
+
+                    {splitMode === "range" ? (
+                      <div className="grid grid-cols-2 gap-3 pt-1">
+                        <div>
+                          <label className="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-[#9ca3af] block mb-1">From Page</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max={pageCount}
+                            value={fromPage}
+                            onChange={(e) => {
+                              setFromPage(e.target.value);
+                              setSelectingFrom(false);
+                              setDone(false);
+                              setErrorMessage(null);
+                            }}
+                            className="w-full bg-slate-50 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] rounded-xl px-3 py-2 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-slate-900 dark:focus:border-white"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-[#9ca3af] block mb-1">To Page</label>
+                          <input
+                            type="number"
+                            min="1"
+                            max={pageCount}
+                            value={toPage}
+                            onChange={(e) => {
+                              setToPage(e.target.value);
+                              setSelectingFrom(true);
+                              setDone(false);
+                              setErrorMessage(null);
+                            }}
+                            className="w-full bg-slate-50 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] rounded-xl px-3 py-2 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-slate-900 dark:focus:border-white"
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="pt-1">
+                        <label className="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-[#9ca3af] block mb-1">Pages per File</label>
+                        <input
+                          type="number"
+                          min="1"
+                          max={pageCount}
+                          value={everyN}
+                          onChange={(e) => {
+                            setEveryN(e.target.value);
+                            setDone(false);
+                            setErrorMessage(null);
+                          }}
+                          className="w-full bg-slate-50 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] rounded-xl px-3 py-2 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-slate-900 dark:focus:border-white"
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  {errorMessage && (
+                    <div className="mx-2 p-2.5 rounded-xl bg-red-100 dark:bg-red-950/50 border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 text-xs font-semibold text-center">
+                      {errorMessage}
+                    </div>
+                  )}
+                </div>
+
+                <div className="pt-3 px-2 mt-auto border-t border-slate-200 dark:border-[#222632]">
+                  {!done ? (
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFileDetails(null);
+                          setRawFile(null);
+                          setDone(false);
+                          setErrorMessage(null);
+                          setThumbnails([]);
+                        }}
+                        className="py-3 px-4 rounded-2xl border border-slate-200 dark:border-[#272b36] text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white font-bold text-xs transition-colors"
+                      >
+                        Clear All
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleInitialSplit}
+                        disabled={processing}
+                        className="flex-1 py-3 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
+                      >
+                        {processing ? <Loader2 className="animate-spin" size={18} /> : <Scissors size={18} />}
+                        {processing ? "Processing..." : "Proceed to Split Options"}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className="pb-1">
+                        <span className="text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">Download Options</span>
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setDownloadChoice("split")}
+                          className={`w-full px-4 py-2.5 rounded-xl text-xs font-bold transition-all text-left flex items-center justify-between ${
+                            downloadChoice === "split"
+                              ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
+                              : "bg-slate-100 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
+                          }`}
+                        >
+                          <span>Split Part</span>
+                          <span className="opacity-80 font-normal">({splitMode === "range" ? `${fromPage}–${toPage}` : `Every ${everyN}`})</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDownloadChoice("remaining")}
+                          className={`w-full px-4 py-2.5 rounded-xl text-xs font-bold transition-all text-left flex items-center justify-between ${
+                            downloadChoice === "remaining"
+                              ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
+                              : "bg-slate-100 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
+                          }`}
+                        >
+                          <span>Remaining Part</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDownloadChoice("both")}
+                          className={`w-full px-4 py-2.5 rounded-xl text-xs font-bold transition-all text-left flex items-center justify-between ${
+                            downloadChoice === "both"
+                              ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
+                              : "bg-slate-100 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
+                          }`}
+                        >
+                          <span>Both (Split & Remaining)</span>
+                          <span className="opacity-80 font-normal">(2 files)</span>
+                        </button>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setDone(false)}
+                          className="py-3 px-4 rounded-2xl border border-slate-200 dark:border-[#272b36] text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white font-bold text-xs transition-colors"
+                        >
+                          Back
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => executeDownload(downloadChoice)}
+                          disabled={processing}
+                          className="flex-1 py-3 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
+                        >
+                          {processing ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
+                          {processing
+                            ? "Downloading..."
+                            : `Download ${
+                                downloadChoice === "split"
+                                  ? "Split PDF"
+                                  : downloadChoice === "remaining"
+                                  ? "Remaining"
+                                  : "Both Files"
+                              }`}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
