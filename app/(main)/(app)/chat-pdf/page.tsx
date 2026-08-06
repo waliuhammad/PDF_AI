@@ -52,10 +52,10 @@ export default function ChatPdfPage() {
             formData.append("file", selectedFile);
 
             // Optional: Upload/initialize PDF session with your backend
-            const res = await fetch("/api/AI%20tools/chat-pdf/upload", {
-                method: "POST",
-                body: formData,
-            });
+           const res = await fetch("/api/chat/upload", {
+    method: "POST",
+    body: formData,
+});
 
             if (!res.ok) {
                 const data = await res.json().catch(() => ({}));
@@ -94,13 +94,15 @@ export default function ChatPdfPage() {
         setLoading(true);
 
         try {
-            const res = await fetch("/api/AI%20tools/chat-pdf", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ message: userMessage, history: messages, fileName: selectedFile?.name }),
-            });
+            const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: {
+        "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+        question: userMessage,
+    }),
+});
 
             const data = await res.json();
 
@@ -108,8 +110,15 @@ export default function ChatPdfPage() {
                 throw new Error(data.message || "Failed to get a response from AI.");
             }
 
-            const botReply = data.reply || data.response || data.message || JSON.stringify(data);
-            setMessages((prev) => [...prev, { role: "assistant", content: botReply }]);
+            const botReply = data.result.answer;
+
+setMessages((prev) => [
+    ...prev,
+    {
+        role: "assistant",
+        content: botReply,
+    },
+]);
         } catch (err: any) {
             setMessages((prev) => [
                 ...prev,

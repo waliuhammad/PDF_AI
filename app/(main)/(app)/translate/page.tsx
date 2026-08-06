@@ -44,13 +44,12 @@ export default function PdfTranslatorPage() {
         try {
             const formData = new FormData();
             formData.append("file", selectedFile);
-            formData.append("targetLanguage", targetLang);
+          formData.append("language", targetLang);
 
-            const res = await fetch("/api/AI%20tools/translate", {
-                method: "POST",
-                body: formData,
-            });
-
+            const res = await fetch("/api/translate", {
+  method: "POST",
+  body: formData,
+});
             const data = await res.json();
 
             if (!res.ok) {
@@ -58,8 +57,9 @@ export default function PdfTranslatorPage() {
             }
 
             // Adjust based on your Python backend's exact response key
-            const result = data.translatedText || data.reply || data.response || data.message || JSON.stringify(data);
-            setTranslatedText(result);
+            const result = data.result.translatedText;
+
+setTranslatedText(result);
         } catch (err: any) {
             setError(err.message || "Something went wrong connecting to the server.");
         } finally {

@@ -16,7 +16,11 @@ export async function processPDF(
   const cleaner = cleanText(parser.text);
 
   const chunker = await chunkText(cleaner.cleanedText);
+console.log("Parser text length:", parser.text.length);
 
+console.log("Cleaned text length:", cleaner.cleanedText.length);
+
+console.log("Chunks:", chunker.chunks.length);
   const embeddings = await Promise.all(
     chunker.chunks.map((chunk) => generateEmbedding(chunk.content))
   );

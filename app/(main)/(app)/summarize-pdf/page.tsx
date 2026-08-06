@@ -32,42 +32,43 @@ export default function SummarizePdfPage() {
     };
 
     const handleSummarize = async () => {
-        if (!selectedFile) return;
+    if (!selectedFile) return;
 
-        setProcessing(true);
-        setError(null);
+    setProcessing(true);
+    setError(null);
 
-        try {
-            const formData = new FormData();
-            formData.append("file", selectedFile);
+    try {
+        const formData = new FormData();
+        formData.append("file", selectedFile);
 
-            const res = await fetch("/api/summary", {
-                method: "POST",
-                body: formData,
-            });
+        const res = await fetch("/api/summary", {
+            method: "POST",
+            body: formData,
+        });
 
-            const data = await res.json();
+        const data = await res.json();
 
-            if (!res.ok) {
-                throw new Error(data.message || "Failed to generate summary.");
-            }
-
-            // Assumes your backend returns an array of strings or an object containing a summary array/string
-            // Adjust `data.summary` based on the exact format your Python AI service returns.
-            const resultSummary = Array.isArray(data.summary) 
-                ? data.summary 
-                : typeof data.summary === "string" 
-                ? data.summary.split("\n").filter(Boolean) 
-                : ["Summary generated successfully, but format was unexpected."];
-
-            setSummary(resultSummary);
-        } catch (err: any) {
-            setError(err.message || "Something went wrong connecting to the server.");
-        } finally {
-            setProcessing(false);
+        if (!res.ok) {
+            throw new Error(data.message || "Failed to generate summary.");
         }
-    };
 
+        const aiSummary = data.result.summary;
+
+        const resultSummary =
+            Array.isArray(aiSummary)
+                ? aiSummary
+                : typeof aiSummary === "string"
+                ? aiSummary.split("\n").filter(Boolean)
+                : ["No summary returned."];
+
+        setSummary(resultSummary);
+
+    } catch (err: any) {
+        setError(err.message || "Something went wrong connecting to the server.");
+    } finally {
+        setProcessing(false);
+    }
+};
     const handleCopy = () => {
         if (!summary) return;
         navigator.clipboard.writeText(summary.join("\n"));

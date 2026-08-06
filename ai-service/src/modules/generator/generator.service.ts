@@ -32,12 +32,20 @@ Question:
 ${question}
 `;
 
-  const response = await ai.models.generateContent({
-   model: "gemini-3.5-flash",
-    contents: prompt,
-  });
+  try {
+    const response = await ai.models.generateContent({
+      
+      model: env.GEMINI_MODEL,
+      contents: prompt,
+    });
 
-  return {
-    answer: response.text ?? "",
-  };
+    return {
+      answer: response.text ?? "",
+    };
+  }catch (error) {
+  console.error("Gemini Error:", error);
+
+  throw new Error(
+    "The AI service is temporarily busy. Please try again in a few seconds."
+  );
 }

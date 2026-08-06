@@ -40,18 +40,20 @@ export default function GrammarCheckerPage() {
 
         try {
             const formData = new FormData();
-            formData.append("file", selectedFile);
+formData.append("file", selectedFile);
 
-            const res = await fetch("/api/AI%20tools/grammar", {
-                method: "POST",
-                body: formData,
-            });
+const res = await fetch("/api/grammar", {
+    method: "POST",
+    body: formData,
+});
 
-            const data = await res.json();
+const data = await res.json();
 
-            if (!res.ok) {
-                throw new Error(data.message || "Failed to process document grammar correction.");
-            }
+if (!res.ok) {
+    throw new Error(
+        data.message || "Failed to process document grammar correction."
+    );
+}
 
             const result = data.correctedText || data.reply || data.response || data.message || JSON.stringify(data);
             setCorrectedText(result);

@@ -42,10 +42,10 @@ export default function OcrPdfPage() {
             formData.append("file", selectedFile);
 
             // Updated to match your API route folder structure: app/api/AI tools/ocr/route.ts
-            const res = await fetch("/api/AI tools/ocr", {
-                method: "POST",
-                body: formData,
-            });
+            const res = await fetch("/api/ocr", {
+  method: "POST",
+  body: formData,
+});
 
             const data = await res.json();
 
