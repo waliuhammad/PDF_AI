@@ -24,8 +24,95 @@ interface ImageFile {
   height: number;
   xPos: number;
   yPos: number;
+  page: number;
   texts: TextAnnotation[];
 }
+
+const PAGE_W = 210;
+const PAGE_H = 297;
+const MARGIN_TOP = 20;
+const MARGIN_BOTTOM = 15;
+const IMAGE_X = 35;
+const IMAGE_W = 140;
+const LABEL_OFFSET = 6;
+const IMAGE_GAP = 10;
+
+const newId = () => Math.random().toString(36).substring(2, 9);
+
+/** Fit an image to the column width, shrinking it if it is too tall for one page. */
+const fitToPage = (naturalW: number, naturalH: number): { width: number; height: number } => {
+  let width = IMAGE_W;
+  let height = (naturalH / naturalW) * width;
+  const maxHeight = PAGE_H - MARGIN_TOP - MARGIN_BOTTOM;
+
+  if (height > maxHeight) {
+    width = width * (maxHeight / height);
+    height = maxHeight;
+  }
+
+  return { width: Number(width.toFixed(1)), height: Number(height.toFixed(1)) };
+};
+
+/** Stack the next image below the previous one, moving to a new page when it no longer fits. */
+const placeAfter = (placed: ImageFile[], height: number): { page: number; yPos: number } => {
+  const last = placed[placed.length - 1];
+  if (!last) return { page: 0, yPos: MARGIN_TOP };
+
+  const yPos = last.yPos + last.height + IMAGE_GAP + LABEL_OFFSET;
+  if (yPos + height > PAGE_H - MARGIN_BOTTOM) {
+    return { page: last.page + 1, yPos: MARGIN_TOP };
+  }
+
+  return { page: last.page, yPos: Number(yPos.toFixed(1)) };
+};
+
+/**
+ * jsPDF reads the real bytes and only falls back to the format argument when it
+ * cannot recognise them — so an unrecognised file silently lands in the PDF as a
+ * broken JPEG. Name the format ourselves and rasterise anything jsPDF cannot decode.
+ */
+const sniffFormat = (dataUrl: string): string | null => {
+  const base64 = dataUrl.slice(dataUrl.indexOf(",") + 1);
+  const head = atob(base64.slice(0, 32));
+  const byte = (i: number) => head.charCodeAt(i);
+
+  if (byte(0) === 0xff && byte(1) === 0xd8 && byte(2) === 0xff) return "JPEG";
+  if (byte(0) === 0x89 && head.slice(1, 4) === "PNG") return "PNG";
+  if (head.slice(0, 6) === "GIF89a") return "GIF89A";
+  if (head.slice(0, 6) === "GIF87a") return "GIF87A";
+  if (head.slice(0, 2) === "BM") return "BMP";
+  if (head.slice(0, 4) === "RIFF" && head.slice(8, 12) === "WEBP") return "WEBP";
+
+  return null;
+};
+
+const readAsDataUrl = (file: File): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error(`Could not read "${file.name}".`));
+    reader.readAsDataURL(file);
+  });
+
+/** Redraw through a canvas so formats jsPDF has no decoder for (SVG, AVIF, HEIC) still work. */
+const rasteriseToPng = (previewUrl: string, name: string): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const img = new window.Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth || img.width || 1000;
+      canvas.height = img.naturalHeight || img.height || 1000;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        reject(new Error(`Could not render "${name}".`));
+        return;
+      }
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL("image/png"));
+    };
+    img.onerror = () => reject(new Error(`Could not render "${name}".`));
+    img.src = previewUrl;
+  });
 
 export default function ImageToPdf(): JSX.Element {
   const [images, setImages] = useState<ImageFile[]>([]);
@@ -37,78 +124,93 @@ export default function ImageToPdf(): JSX.Element {
   const addMoreInputRef = useRef<HTMLInputElement>(null);
 
   const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>, isAppending: boolean = false): void => {
-    if (e.target.files && e.target.files.length > 0) {
-      const newFiles = Array.from(e.target.files);
-      
-      const loadFilesAsync = async () => {
-        const validImages: ImageFile[] = [];
+    const input = e.target;
+    const newFiles = Array.from(input.files ?? []);
 
-        for (let i = 0; i < newFiles.length; i++) {
-          const file = newFiles[i];
-          if (file.type.startsWith("image/") || /\.(jpg|jpeg|png|webp|bmp|gif)$/i.test(file.name)) {
-            const previewUrl = URL.createObjectURL(file);
-            
-            const dims = await new Promise<{ w: number; h: number }>((resolve) => {
-              const img = new window.Image();
-              img.src = previewUrl;
-              img.onload = () => resolve({ w: img.width, h: img.height });
-              img.onerror = () => resolve({ w: 500, h: 500 });
-            });
+    // Clear the input so picking the same file again still fires a change event.
+    input.value = "";
 
-            const defaultW = 140;
-            const defaultH = (dims.h / dims.w) * defaultW;
-            const currentTotal = isAppending ? images.length + i : i;
-            
-            const defaultY = 20 + (currentTotal % 3) * 65;
+    if (newFiles.length === 0) return;
+    void loadFiles(newFiles, isAppending);
+  };
 
-            validImages.push({
-              id: Math.random().toString(36).substring(2, 9),
-              file,
-              previewUrl,
-              width: Number(defaultW.toFixed(1)),
-              height: Number(defaultH.toFixed(1)),
-              xPos: 35,
-              yPos: Number(defaultY.toFixed(1)),
-              texts: [
-                {
-                  id: Math.random().toString(36).substring(2, 9),
-                  text: `Image Label ${currentTotal + 1}`,
-                  x: 35,
-                  y: defaultY - 6 > 5 ? defaultY - 6 : 5,
-                  fontSize: 12,
-                  fontFamily: "helvetica",
-                  isBold: true,
-                  isItalic: false,
-                  color: "#000000",
-                },
-              ],
-            });
-          }
-        }
+  const loadFiles = async (newFiles: File[], isAppending: boolean): Promise<void> => {
+    const loaded: Array<{ id: string; labelId: string; file: File; previewUrl: string; width: number; height: number }> = [];
+    const rejected: string[] = [];
 
-        if (validImages.length === 0) {
-          setError("Please upload valid image files (PNG, JPG, WebP, BMP, GIF).");
-          return;
-        }
+    for (const file of newFiles) {
+      if (!file.type.startsWith("image/") && !/\.(jpg|jpeg|png|webp|bmp|gif)$/i.test(file.name)) {
+        rejected.push(file.name);
+        continue;
+      }
 
-        setError(null);
+      const previewUrl = URL.createObjectURL(file);
 
-        if (!isAppending) {
-          images.forEach((img) => URL.revokeObjectURL(img.previewUrl));
-          setImages(validImages);
-          setSelectedImageId(validImages[0]?.id || null);
-        } else {
-          setImages((prev) => {
-            const updated = [...prev, ...validImages];
-            if (!selectedImageId && updated.length > 0) {
-              setSelectedImageId(updated[0].id);
-            }
-            return updated;
-          });
-        }
-      };
+      const dims = await new Promise<{ w: number; h: number } | null>((resolve) => {
+        const img = new window.Image();
+        img.onload = () => resolve({ w: img.naturalWidth || img.width, h: img.naturalHeight || img.height });
+        img.onerror = () => resolve(null);
+        img.src = previewUrl;
+      });
 
-      loadFilesAsync();
+      // A file the browser cannot decode used to be kept at a made-up 500x500 and
+      // then broke the PDF instead. Turn it away here, by name.
+      if (!dims || !dims.w || !dims.h) {
+        URL.revokeObjectURL(previewUrl);
+        rejected.push(file.name);
+        continue;
+      }
+
+      loaded.push({ id: newId(), labelId: newId(), file, previewUrl, ...fitToPage(dims.w, dims.h) });
+    }
+
+    setError(
+      rejected.length > 0
+        ? `Could not read ${rejected.length === 1 ? "this file" : "these files"}: ${rejected.join(", ")}.`
+        : null
+    );
+
+    if (loaded.length === 0) return;
+
+    if (!isAppending) {
+      images.forEach((img) => URL.revokeObjectURL(img.previewUrl));
+    }
+
+    setImages((prev) => {
+      const next = isAppending ? [...prev] : [];
+
+      for (const item of loaded) {
+        const { page, yPos } = placeAfter(next, item.height);
+        next.push({
+          id: item.id,
+          file: item.file,
+          previewUrl: item.previewUrl,
+          width: item.width,
+          height: item.height,
+          xPos: IMAGE_X,
+          yPos,
+          page,
+          texts: [
+            {
+              id: item.labelId,
+              text: `Image Label ${next.length + 1}`,
+              x: IMAGE_X,
+              y: Math.max(yPos - LABEL_OFFSET, 5),
+              fontSize: 12,
+              fontFamily: "helvetica",
+              isBold: true,
+              isItalic: false,
+              color: "#000000",
+            },
+          ],
+        });
+      }
+
+      return next;
+    });
+
+    if (!isAppending || !selectedImageId) {
+      setSelectedImageId(loaded[0].id);
     }
   };
 
@@ -119,7 +221,7 @@ export default function ImageToPdf(): JSX.Element {
     setError(null);
   };
 
-  const handlePropertyChange = (field: "width" | "height" | "xPos" | "yPos", value: number) => {
+  const handlePropertyChange = (field: "width" | "height" | "xPos" | "yPos" | "page", value: number) => {
     if (!selectedImageId) return;
     setImages((prev) =>
       prev.map((img) => {
@@ -195,33 +297,31 @@ export default function ImageToPdf(): JSX.Element {
         format: "a4",
       });
 
-      for (let i = 0; i < images.length; i++) {
-        const item = images[i];
-        const imgData = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = (error) => reject(error);
-          reader.readAsDataURL(item.file);
-        });
+      for (let p = 0; p < usedPages.length; p++) {
+        if (p > 0) pdf.addPage();
 
-        let format = "JPEG";
-        if (item.file.type === "image/png") format = "PNG";
-        else if (item.file.type === "image/webp") format = "WEBP";
+        for (const item of images.filter((img) => img.page === usedPages[p])) {
+          const dataUrl = await readAsDataUrl(item.file);
+          const format = sniffFormat(dataUrl);
 
-        pdf.addImage(imgData, format, item.xPos, item.yPos, item.width, item.height);
+          if (format) {
+            pdf.addImage(dataUrl, format, item.xPos, item.yPos, item.width, item.height);
+          } else {
+            const png = await rasteriseToPng(item.previewUrl, item.file.name);
+            pdf.addImage(png, "PNG", item.xPos, item.yPos, item.width, item.height);
+          }
 
-        for (const t of item.texts) {
-          pdf.setFont(t.fontFamily);
-          
-          let fontStyle = "normal";
-          if (t.isBold && t.isItalic) fontStyle = "bolditalic";
-          else if (t.isBold) fontStyle = "bold";
-          else if (t.isItalic) fontStyle = "italic";
-          
-          pdf.setFont(t.fontFamily, fontStyle);
-          pdf.setFontSize(t.fontSize);
-          pdf.setTextColor(t.color);
-          pdf.text(t.text, t.x, t.y);
+          for (const t of item.texts) {
+            let fontStyle = "normal";
+            if (t.isBold && t.isItalic) fontStyle = "bolditalic";
+            else if (t.isBold) fontStyle = "bold";
+            else if (t.isItalic) fontStyle = "italic";
+
+            pdf.setFont(t.fontFamily, fontStyle);
+            pdf.setFontSize(t.fontSize);
+            pdf.setTextColor(t.color);
+            pdf.text(t.text, t.x, t.y);
+          }
         }
       }
 
@@ -234,6 +334,8 @@ export default function ImageToPdf(): JSX.Element {
   };
 
   const selectedImg = images.find((img) => img.id === selectedImageId);
+  // Only pages that actually hold something, so moving images around leaves no blanks.
+  const usedPages = Array.from(new Set(images.map((img) => img.page))).sort((a, b) => a - b);
 
   return (
     <div className="min-h-screen bg-white dark:bg-[#0b0e14] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 antialiased selection:bg-slate-900 dark:selection:bg-blue-500 selection:text-white">
@@ -242,11 +344,11 @@ export default function ImageToPdf(): JSX.Element {
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-blue-500/10 border border-slate-200 dark:border-blue-500/20 text-slate-700 dark:text-blue-400 text-xs font-semibold tracking-wide uppercase">
             <Sparkles className="w-3.5 h-3.5 text-slate-900 dark:text-blue-400" />
-            <span>Multi-Image Single Page Composition</span>
+            <span>Multi-Image Page Composition</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Combine Multiple Images on One PDF Page</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Combine Multiple Images into a PDF</h1>
           <p className="text-sm text-slate-600 dark:text-slate-400">
-            Arrange multiple images and custom text captions together on a single unified A4 page layout.
+            Arrange multiple images and custom text captions on an A4 layout. Images stack down the page and flow onto a new one once it is full.
           </p>
         </div>
 
@@ -256,7 +358,7 @@ export default function ImageToPdf(): JSX.Element {
               <UploadCloud className="w-8 h-8" />
             </div>
             <span className="font-semibold text-slate-900 dark:text-slate-200 text-base mb-1">
-              Click to upload multiple images for the same page
+              Click to upload multiple images
             </span>
             <span className="text-xs text-slate-500 dark:text-slate-400">Supports PNG, JPG, WebP, GIF, BMP</span>
             <input
@@ -322,43 +424,62 @@ export default function ImageToPdf(): JSX.Element {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-slate-50 dark:bg-[#182030] border border-slate-200 dark:border-slate-700/60 rounded-2xl p-6">
                 
                 {/* Visual Preview Box showing ALL images together on one page */}
-                <div className="flex flex-col items-center justify-center bg-slate-900/5 dark:bg-black/40 border border-slate-200 dark:border-slate-800 rounded-xl p-4 relative min-h-[320px]">
-                  <span className="absolute top-3 left-3 text-[11px] text-slate-500 dark:text-slate-400 uppercase font-mono tracking-wider">Unified A4 Page Preview</span>
-                  <div className="w-[150px] h-[212px] bg-white rounded shadow-lg dark:shadow-md relative overflow-hidden border border-slate-300">
-                    {images.map((img) => (
-                      <React.Fragment key={img.id}>
-                        <img
-                          src={img.previewUrl}
-                          alt=""
-                          style={{
-                            position: "absolute",
-                            left: `${(img.xPos / 210) * 100}%`,
-                            top: `${(img.yPos / 297) * 100}%`,
-                            width: `${(img.width / 210) * 100}%`,
-                            height: `${(img.height / 297) * 100}%`,
-                            objectFit: "fill",
-                            outline: img.id === selectedImageId ? "2px solid #0f172a" : "none",
-                          }}
-                        />
-                        {img.texts.map((t) => (
-                          <div
-                            key={t.id}
-                            style={{
-                              position: "absolute",
-                              left: `${(t.x / 210) * 100}%`,
-                              top: `${(t.y / 297) * 100}%`,
-                              fontSize: `${Math.max(8, t.fontSize * 0.6)}px`,
-                              fontFamily: t.fontFamily,
-                              fontWeight: t.isBold ? "bold" : "normal",
-                              fontStyle: t.isItalic ? "italic" : "normal",
-                              color: t.color,
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            {t.text}
-                          </div>
-                        ))}
-                      </React.Fragment>
+                <div className="flex flex-col items-center justify-center bg-slate-900/5 dark:bg-black/40 border border-slate-200 dark:border-slate-800 rounded-xl p-4 pt-10 relative min-h-[320px]">
+                  <span className="absolute top-3 left-3 text-[11px] text-slate-500 dark:text-slate-400 uppercase font-mono tracking-wider">
+                    A4 Preview &mdash; {usedPages.length} {usedPages.length === 1 ? "page" : "pages"}
+                  </span>
+                  <div className="flex gap-3 overflow-x-auto max-w-full pb-1">
+                    {usedPages.map((pageNo, pageIdx) => (
+                      <div key={pageNo} className="shrink-0 flex flex-col items-center gap-1.5">
+                        <div className="w-[150px] h-[212px] bg-white rounded shadow-lg dark:shadow-md relative overflow-hidden border border-slate-300">
+                          {images
+                            .filter((img) => img.page === pageNo)
+                            .map((img) => (
+                              <React.Fragment key={img.id}>
+                                <img
+                                  src={img.previewUrl}
+                                  alt=""
+                                  style={{
+                                    position: "absolute",
+                                    left: `${(img.xPos / PAGE_W) * 100}%`,
+                                    top: `${(img.yPos / PAGE_H) * 100}%`,
+                                    width: `${(img.width / PAGE_W) * 100}%`,
+                                    height: `${(img.height / PAGE_H) * 100}%`,
+                                    objectFit: "fill",
+                                    outline: img.id === selectedImageId ? "2px solid #0f172a" : "none",
+                                  }}
+                                />
+                                {img.texts.map((t) => (
+                                  <div
+                                    key={t.id}
+                                    style={{
+                                      position: "absolute",
+                                      left: `${(t.x / PAGE_W) * 100}%`,
+                                      top: `${(t.y / PAGE_H) * 100}%`,
+                                      fontSize: `${Math.max(8, t.fontSize * 0.6)}px`,
+                                      fontFamily: t.fontFamily,
+                                      fontWeight: t.isBold ? "bold" : "normal",
+                                      fontStyle: t.isItalic ? "italic" : "normal",
+                                      color: t.color,
+                                      whiteSpace: "nowrap",
+                                    }}
+                                  >
+                                    {t.text}
+                                  </div>
+                                ))}
+                              </React.Fragment>
+                            ))}
+                        </div>
+                        <span
+                          className={`text-[10px] font-mono ${
+                            selectedImg?.page === pageNo
+                              ? "text-slate-900 dark:text-blue-400 font-bold"
+                              : "text-slate-500 dark:text-slate-400"
+                          }`}
+                        >
+                          Page {pageIdx + 1}
+                        </span>
+                      </div>
                     ))}
                   </div>
                 </div>
@@ -406,6 +527,19 @@ export default function ImageToPdf(): JSX.Element {
                           type="number"
                           value={selectedImg.yPos}
                           onChange={(e) => handlePropertyChange("yPos", parseFloat(e.target.value) || 0)}
+                          className="w-full bg-white dark:bg-[#121824] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase">Page</label>
+                        <input
+                          type="number"
+                          min={1}
+                          step={1}
+                          value={selectedImg.page + 1}
+                          onChange={(e) =>
+                            handlePropertyChange("page", Math.max(0, Math.round(parseFloat(e.target.value) || 1) - 1))
+                          }
                           className="w-full bg-white dark:bg-[#121824] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                         />
                       </div>
@@ -551,7 +685,10 @@ export default function ImageToPdf(): JSX.Element {
                 ) : (
                   <>
                     <UploadCloud className="w-4 h-4 text-slate-300" />
-                    <span>Download Combined PDF Page ({images.length} Images)</span>
+                    <span>
+                      Download PDF ({images.length} {images.length === 1 ? "image" : "images"}, {usedPages.length}{" "}
+                      {usedPages.length === 1 ? "page" : "pages"})
+                    </span>
                   </>
                 )}
               </button>
