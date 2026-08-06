@@ -3,7 +3,7 @@ import multer from "multer";
 
 import { processPDF } from "../modules/pipeline";
 import { retrieveRelevantChunks } from "../modules/retriever";
-import { generateAnswer, joinChunks, AiBusyError } from "../modules/generator";
+import { generateAnswer, joinChunks } from "../modules/generator";
 
 const router = Router();
 
@@ -72,12 +72,11 @@ router.post("/", async (req, res) => {
       },
       retrievedChunks: retrieval.totalFound,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
 
-    // A rate limit is not a failed question — say so, and say for how long.
-    if (error instanceof AiBusyError) {
-      if (error.retryAfterSeconds) res.setHeader("Retry-After", String(error.retryAfterSeconds));
+    // Same as the other AI routes: a quota limit is not a failed question.
+    if (error?.status === 429) {
       return res.status(429).json({
         success: false,
         message: error.message,

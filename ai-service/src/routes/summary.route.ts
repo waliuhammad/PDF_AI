@@ -2,7 +2,6 @@ import { Router } from "express";
 import multer from "multer";
 import { extractText } from "../modules/pipeline";
 import { generateSummary } from "../modules/summary";
-import { AiBusyError } from "../modules/generator";
 
 const router = Router();
 
@@ -19,7 +18,7 @@ router.post("/", upload.single("file"), async (req, res) => {
       });
     }
 
-    // Read the uploaded PDF
+    // Parse + clean + chunk the uploaded PDF (no embeddings needed here)
     const extraction = await extractText(req.file.buffer);
 
     if (extraction.chunker.chunks.length === 0) {
@@ -29,19 +28,21 @@ router.post("/", upload.single("file"), async (req, res) => {
       });
     }
 
-    // Summarize the whole document
-    const result = await generateSummary(extraction.cleaner.cleanedText);
+    const documentText = extraction.chunker.chunks
+      .map((chunk) => chunk.content)
+      .filter(Boolean)
+      .join(" ");
+
+    const result = await generateSummary(documentText);
 
     return res.status(200).json({
       success: true,
       result,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
 
-    // A rate limit is not a failed document — say so, and say for how long.
-    if (error instanceof AiBusyError) {
-      if (error.retryAfterSeconds) res.setHeader("Retry-After", String(error.retryAfterSeconds));
+    if (error?.status === 429) {
       return res.status(429).json({
         success: false,
         message: error.message,
