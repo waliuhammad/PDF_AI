@@ -8,9 +8,20 @@ import { FaLinkedin, FaGithub, FaTwitter } from "react-icons/fa";
 import { DraftNotice } from "@/components/marketing/draft-notice";
 import { ThemeToggle } from "@/components/theme-toggle";
 
-const NAV_BG = "rgb(27, 26, 38)";
-const FOOTER_BG = "#13131a"; // Distinct, deeper dark tone for the footer
-const BORDER_COLOR = "rgba(255, 255, 255, 0.08)";
+/* These were inline style values, which no `dark:` variant can override — the
+ * page stayed dark in the light theme as a result. As classes they follow the
+ * theme; the dark half keeps exactly the colours the page had before. */
+const NAV_BG = "bg-white dark:bg-[rgb(27,26,38)]";
+const FOOTER_BG = "bg-slate-50 dark:bg-[#13131a]"; // Distinct, deeper tone for the footer
+const BORDER_COLOR = "border-slate-200 dark:border-white/10";
+
+/* Text and surface pairs, so the same intent reads once instead of 60 times. */
+const TEXT_STRONG = "text-slate-900 dark:text-white";
+const TEXT_BODY = "text-slate-600 dark:text-purple-200/70";
+const TEXT_MUTED = "text-slate-500 dark:text-purple-300/60";
+const TEXT_FAINT = "text-slate-400 dark:text-purple-300/40";
+const HOVER_STRONG = "hover:text-slate-900 dark:hover:text-white";
+const HOVER_SURFACE = "hover:bg-slate-100 dark:hover:bg-white/5";
 
 /* -------------------------------------------------------------------------- */
 /* NAVBAR COMPONENT                                                           */
@@ -44,13 +55,7 @@ export function Navbar() {
   }, []);
 
   return (
-    <header
-      className="sticky top-0 z-50 border-b text-white"
-      style={{
-        backgroundColor: NAV_BG,
-        borderColor: BORDER_COLOR,
-      }}
-    >
+    <header className={`sticky top-0 z-50 border-b ${NAV_BG} ${BORDER_COLOR} ${TEXT_STRONG}`}>
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-3">
@@ -59,8 +64,8 @@ export function Navbar() {
           </div>
 
           <div>
-            <h2 className="text-lg font-bold text-white leading-tight">PDF AI</h2>
-            <p className="text-xs text-purple-300/60 leading-none">Smart PDF Workspace</p>
+            <h2 className={`text-lg font-bold ${TEXT_STRONG} leading-tight`}>PDF AI</h2>
+            <p className={`text-xs ${TEXT_MUTED} leading-none`}>Smart PDF Workspace</p>
           </div>
         </Link>
 
@@ -83,8 +88,8 @@ export function Navbar() {
                 }}
                 className={`relative pb-1 text-sm font-medium transition ${
                   isHashMatch
-                    ? "text-purple-300"
-                    : "text-purple-200/60 hover:text-white"
+                    ? "text-purple-700 dark:text-purple-300"
+                    : `text-slate-600 dark:text-purple-200/60 ${HOVER_STRONG}`
                 }`}
               >
                 {item.name}
@@ -111,7 +116,7 @@ export function Navbar() {
 
           <Link
             href="/login"
-            className="rounded-full border border-white/20 px-4 py-1.5 text-xs font-semibold text-white transition hover:bg-white/10"
+            className={`rounded-full border border-slate-300 dark:border-white/20 px-4 py-1.5 text-xs font-semibold ${TEXT_STRONG} transition hover:bg-slate-100 dark:hover:bg-white/10`}
           >
             Login
           </Link>
@@ -127,7 +132,7 @@ export function Navbar() {
         {/* Mobile Menu Button */}
         <button
           onClick={() => setOpen(!open)}
-          className="rounded-lg p-2 text-purple-200 lg:hidden"
+          className="rounded-lg p-2 text-slate-700 dark:text-purple-200 lg:hidden"
         >
           {open ? <X size={24} /> : <Menu size={24} />}
         </button>
@@ -141,11 +146,7 @@ export function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -15 }}
             transition={{ duration: 0.2 }}
-            className="border-t text-white lg:hidden"
-            style={{
-              backgroundColor: NAV_BG,
-              borderColor: BORDER_COLOR,
-            }}
+            className={`border-t ${NAV_BG} ${BORDER_COLOR} ${TEXT_STRONG} lg:hidden`}
           >
             <div className="space-y-2 px-6 py-6">
               {navLinks.map((item) => {
@@ -166,8 +167,8 @@ export function Navbar() {
                     }}
                     className={`block rounded-xl px-4 py-3 transition ${
                       isHashMatch
-                        ? "bg-purple-900/30 text-purple-200"
-                        : "text-purple-200/60 hover:bg-white/5 hover:text-white"
+                        ? "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-200"
+                        : `text-slate-600 dark:text-purple-200/60 ${HOVER_SURFACE} ${HOVER_STRONG}`
                     }`}
                   >
                     {item.name}
@@ -176,7 +177,7 @@ export function Navbar() {
               })}
 
               <div className="mt-4 flex items-center justify-between">
-                <span className="text-sm text-purple-300/70">Appearance</span>
+                <span className={`text-sm ${TEXT_MUTED}`}>Appearance</span>
                 <ThemeToggle />
               </div>
 
@@ -184,7 +185,7 @@ export function Navbar() {
                 <Link
                   href="/login"
                   onClick={() => setOpen(false)}
-                  className="rounded-xl border border-white/20 py-3 text-center text-sm font-medium text-white transition hover:bg-white/5"
+                  className={`rounded-xl border border-slate-300 dark:border-white/20 py-3 text-center text-sm font-medium ${TEXT_STRONG} transition ${HOVER_SURFACE}`}
                 >
                   Login
                 </Link>
@@ -241,11 +242,11 @@ function FooterLinkList({ links }: { links: FooterLink[] }) {
       {links.map((link) => (
         <li key={link.label} className="text-sm">
           {link.href ? (
-            <Link href={link.href} className="text-purple-200/60 hover:text-white transition-colors">
+            <Link href={link.href} className={`text-slate-600 dark:text-purple-200/60 ${HOVER_STRONG} transition-colors`}>
               {link.label}
             </Link>
           ) : (
-            <span className="text-purple-200/30">{link.label}</span>
+            <span className="text-slate-400 dark:text-purple-200/30">{link.label}</span>
           )}
         </li>
       ))}
@@ -255,13 +256,7 @@ function FooterLinkList({ links }: { links: FooterLink[] }) {
 
 export function Footer() {
   return (
-    <footer
-      className="border-t px-6 py-16 text-white"
-      style={{
-        backgroundColor: FOOTER_BG,
-        borderColor: BORDER_COLOR,
-      }}
-    >
+    <footer className={`border-t px-6 py-16 ${FOOTER_BG} ${BORDER_COLOR} ${TEXT_STRONG}`}>
       <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-4">
         {/* Brand */}
         <div>
@@ -269,43 +264,40 @@ export function Footer() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#8b5cf6] text-white shadow-md shadow-purple-900/20">
               <FileText size={20} />
             </div>
-            <h2 className="text-xl font-bold text-white">PDF AI</h2>
+            <h2 className={`text-xl font-bold ${TEXT_STRONG}`}>PDF AI</h2>
           </div>
 
-          <p className="text-sm leading-relaxed text-purple-200/60">
+          <p className="text-sm leading-relaxed text-slate-600 dark:text-purple-200/60">
             All-in-one PDF tools powered by modern technology and AI.
           </p>
 
           <div className="mt-5 flex gap-4">
-            <FaTwitter className="h-5 w-5 cursor-pointer text-purple-300/50 hover:text-white transition-colors" />
-            <FaLinkedin className="h-5 w-5 cursor-pointer text-purple-300/50 hover:text-white transition-colors" />
-            <FaGithub className="h-5 w-5 cursor-pointer text-purple-300/50 hover:text-white transition-colors" />
+            <FaTwitter className={`h-5 w-5 cursor-pointer text-slate-400 dark:text-purple-300/50 ${HOVER_STRONG} transition-colors`} />
+            <FaLinkedin className={`h-5 w-5 cursor-pointer text-slate-400 dark:text-purple-300/50 ${HOVER_STRONG} transition-colors`} />
+            <FaGithub className={`h-5 w-5 cursor-pointer text-slate-400 dark:text-purple-300/50 ${HOVER_STRONG} transition-colors`} />
           </div>
         </div>
 
         {/* Product */}
         <div>
-          <h3 className="mb-4 font-semibold text-white">Product</h3>
+          <h3 className={`mb-4 font-semibold ${TEXT_STRONG}`}>Product</h3>
           <FooterLinkList links={productLinks} />
         </div>
 
         {/* Company */}
         <div>
-          <h3 className="mb-4 font-semibold text-white">Company</h3>
+          <h3 className={`mb-4 font-semibold ${TEXT_STRONG}`}>Company</h3>
           <FooterLinkList links={companyLinks} />
         </div>
 
         {/* Legal */}
         <div>
-          <h3 className="mb-4 font-semibold text-white">Legal</h3>
+          <h3 className={`mb-4 font-semibold ${TEXT_STRONG}`}>Legal</h3>
           <FooterLinkList links={legalLinks} />
         </div>
       </div>
 
-      <div
-        className="mx-auto mt-12 max-w-6xl border-t pt-6 text-center text-sm text-purple-300/40"
-        style={{ borderColor: BORDER_COLOR }}
-      >
+      <div className={`mx-auto mt-12 max-w-6xl border-t pt-6 text-center text-sm ${BORDER_COLOR} ${TEXT_FAINT}`}>
         © {new Date().getFullYear()} PDF AI. All rights reserved.
       </div>
     </footer>
@@ -318,19 +310,16 @@ export function Footer() {
 
 export default function TermsPage() {
   return (
-    <div
-      className="flex min-h-screen flex-col text-purple-100"
-      style={{ backgroundColor: NAV_BG }}
-    >
+    <div className={`flex min-h-screen flex-col ${NAV_BG} text-slate-900 dark:text-purple-100`}>
       <Navbar />
 
       <main className="flex-1">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="mb-8 border-b pb-6" style={{ borderColor: BORDER_COLOR }}>
-            <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+          <div className={`mb-8 border-b pb-6 ${BORDER_COLOR}`}>
+            <h1 className={`text-3xl font-bold tracking-tight ${TEXT_STRONG} sm:text-4xl`}>
               Terms of Service
             </h1>
-            <p className="mt-2 text-sm text-purple-300/60">
+            <p className={`mt-2 text-sm ${TEXT_MUTED}`}>
               Last updated: August 5, 2026
             </p>
             <div className="mt-4">
@@ -341,19 +330,19 @@ export default function TermsPage() {
           <div className="grid grid-cols-1 gap-10 lg:grid-cols-4">
             <nav className="hidden lg:block">
               <div className="sticky top-24 space-y-1 text-sm font-medium">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-purple-400/80">
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-purple-700 dark:text-purple-400/80">
                   General Terms
                 </p>
-                <a href="#using-the-service" className="block rounded-md px-3 py-2 text-purple-200/70 hover:bg-white/5 hover:text-white">
+                <a href="#using-the-service" className={`block rounded-md px-3 py-2 ${TEXT_BODY} ${HOVER_SURFACE} ${HOVER_STRONG}`}>
                   1. Using the Service
                 </a>
-                <a href="#acceptable-use" className="block rounded-md px-3 py-2 text-purple-200/70 hover:bg-white/5 hover:text-white">
+                <a href="#acceptable-use" className={`block rounded-md px-3 py-2 ${TEXT_BODY} ${HOVER_SURFACE} ${HOVER_STRONG}`}>
                   2. Acceptable Use
                 </a>
-                <a href="#your-content" className="block rounded-md px-3 py-2 text-purple-200/70 hover:bg-white/5 hover:text-white">
+                <a href="#your-content" className={`block rounded-md px-3 py-2 ${TEXT_BODY} ${HOVER_SURFACE} ${HOVER_STRONG}`}>
                   3. Your Content & Files
                 </a>
-                <a href="#contact-us" className="block rounded-md px-3 py-2 text-purple-200/70 hover:bg-white/5 hover:text-white">
+                <a href="#contact-us" className={`block rounded-md px-3 py-2 ${TEXT_BODY} ${HOVER_SURFACE} ${HOVER_STRONG}`}>
                   4. Contact Us
                 </a>
               </div>
@@ -361,56 +350,53 @@ export default function TermsPage() {
 
             <div className="lg:col-span-3 space-y-12">
               <section id="using-the-service" className="scroll-mt-28">
-                <h2 className="text-xl font-bold text-white mb-4">
+                <h2 className={`text-xl font-bold ${TEXT_STRONG} mb-4`}>
                   1. Using the Service
                 </h2>
-                <div className="space-y-4 text-sm leading-relaxed text-purple-200/70">
+                <div className={`space-y-4 text-sm leading-relaxed ${TEXT_BODY}`}>
                   <p>
-                    <strong className="text-white mr-2">1.1</strong>
+                    <strong className={`${TEXT_STRONG} mr-2`}>1.1</strong>
                     By accessing or using PDFAI, you agree to be bound by these Terms of Service. You must be at least 13 years of age to create an account or use our processing tools.
                   </p>
                   <p>
-                    <strong className="text-white mr-2">1.2</strong>
+                    <strong className={`${TEXT_STRONG} mr-2`}>1.2</strong>
                     You are responsible for maintaining the confidentiality of your account credentials and for all activities under your account.
                   </p>
                 </div>
               </section>
 
-              <section id="acceptable-use" className="scroll-mt-28 border-t pt-8" style={{ borderColor: BORDER_COLOR }}>
-                <h2 className="text-xl font-bold text-white mb-4">
+              <section id="acceptable-use" className={`scroll-mt-28 border-t pt-8 ${BORDER_COLOR}`}>
+                <h2 className={`text-xl font-bold ${TEXT_STRONG} mb-4`}>
                   2. Acceptable Use
                 </h2>
-                <div className="space-y-4 text-sm leading-relaxed text-purple-200/70">
+                <div className={`space-y-4 text-sm leading-relaxed ${TEXT_BODY}`}>
                   <p>
-                    <strong className="text-white mr-2">2.1</strong>
+                    <strong className={`${TEXT_STRONG} mr-2`}>2.1</strong>
                     You must use PDFAI legally. You are strictly prohibited from using the PDFAI service to generate, store, convert, or share any content that violates laws or third-party rights.
                   </p>
                 </div>
               </section>
 
-              <section id="your-content" className="scroll-mt-28 border-t pt-8" style={{ borderColor: BORDER_COLOR }}>
-                <h2 className="text-xl font-bold text-white mb-4">
+              <section id="your-content" className={`scroll-mt-28 border-t pt-8 ${BORDER_COLOR}`}>
+                <h2 className={`text-xl font-bold ${TEXT_STRONG} mb-4`}>
                   3. Your Content & Files
                 </h2>
-                <div className="space-y-4 text-sm leading-relaxed text-purple-200/70">
+                <div className={`space-y-4 text-sm leading-relaxed ${TEXT_BODY}`}>
                   <p>
-                    <strong className="text-white mr-2">3.1</strong>
+                    <strong className={`${TEXT_STRONG} mr-2`}>3.1</strong>
                     You retain full ownership of all documents and files uploaded to PDFAI.
                   </p>
                 </div>
               </section>
 
-              <section id="contact-us" className="scroll-mt-28 border-t pt-8" style={{ borderColor: BORDER_COLOR }}>
-                <h2 className="text-xl font-bold text-white mb-4">
+              <section id="contact-us" className={`scroll-mt-28 border-t pt-8 ${BORDER_COLOR}`}>
+                <h2 className={`text-xl font-bold ${TEXT_STRONG} mb-4`}>
                   4. Contact Us
                 </h2>
-                <div
-                  className="rounded-xl p-6 border shadow-sm"
-                  style={{ backgroundColor: "rgb(35, 33, 51)", borderColor: BORDER_COLOR }}
-                >
-                  <h3 className="font-bold text-white mb-2">PDFAI Legal & Privacy Team</h3>
-                  <p className="text-sm text-purple-200/80">Email: support@pdfai.com</p>
-                  <p className="text-sm text-purple-200/80">PDFAI LLC — Data Protection Office</p>
+                <div className={`rounded-xl p-6 border shadow-sm bg-white dark:bg-[rgb(35,33,51)] ${BORDER_COLOR}`}>
+                  <h3 className={`font-bold ${TEXT_STRONG} mb-2`}>PDFAI Legal &amp; Privacy Team</h3>
+                  <p className="text-sm text-slate-600 dark:text-purple-200/80">Email: support@pdfai.com</p>
+                  <p className="text-sm text-slate-600 dark:text-purple-200/80">PDFAI LLC — Data Protection Office</p>
                 </div>
               </section>
             </div>
