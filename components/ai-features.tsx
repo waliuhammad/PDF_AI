@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import {
-    BrainCircuit,
     Sparkles,
     ScanText,
     Languages,
@@ -14,52 +13,49 @@ import {
 
 const features = [
     {
-        title: "AI Chat",
+        title: "Chat with PDF",
         description: "Ask questions about any PDF and receive accurate answers instantly.",
         icon: MessageSquare,
         badge: "AI",
+        slug: "chatai-info",
     },
     {
         title: "AI Summary",
         description: "Generate concise summaries from lengthy reports, books and documents.",
         icon: Sparkles,
         badge: "Popular",
+        slug: "aisummary-info",
     },
     {
-        title: "OCR Scanner",
+        title: "OCR PDF",
         description: "Convert scanned PDFs and images into fully editable searchable text.",
         icon: ScanText,
         badge: "OCR",
+        slug: "ocrscanner-info",
     },
     {
         title: "Translate PDF",
         description: "Translate documents into multiple languages while preserving formatting.",
         icon: Languages,
         badge: "New",
+        slug: "aitranslate-info",
     },
     {
         title: "Grammar Checker",
         description: "Check grammar and spelling of your document.",
         icon: Table2,
         badge: "Smart",
+        slug: "aigrammar-info",
     },
-   
 ];
 
 export function AIFeatures() {
     return (
         <section className="relative overflow-hidden py-16 px-6">
-
-            {/* Background */}
-
-            <div className="absolute inset-0 bg-[var(--background-secondary)]" />
-
+            <div className="absolute inset-0 bg-background" />
             <div className="absolute left-1/2 top-16 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
 
             <div className="relative mx-auto max-w-7xl">
-
-                {/* Heading */}
-
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -71,79 +67,75 @@ export function AIFeatures() {
                         AI Powered Features
                     </span>
 
-                    <h2 className="mt-4 text-3xl font-bold text-fg md:text-4xl">
+                    <h2 className="mt-4 text-3xl font-bold text-foreground md:text-4xl">
                         Supercharge your PDFs with AI
                     </h2>
 
-                    <p className="mx-auto mt-3 max-w-xl text-base text-muted">
+                    <p className="mx-auto mt-3 max-w-xl text-base text-muted-foreground">
                         Save hours with intelligent document analysis, summaries, translations and AI-powered conversations.
                     </p>
                 </motion.div>
 
-                {/* Cards */}
-
                 <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-
                     {features.map((feature, index) => {
                         const Icon = feature.icon;
 
                         return (
-                            <motion.div
-                                key={feature.title}
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: index * 0.05 }}
-                                whileHover={{
-                                    y: -4,
-                                    scale: 1.01,
-                                }}
-                                className="
-                                    group
-                                    relative
-                                    overflow-hidden
-                                    rounded-2xl
-                                    border
-                                    border-border
-                                    bg-card
-                                    p-5
-                                    shadow-sm
-                                    transition-all
-                                    hover:border-primary/40
-                                    hover:shadow-xl
-                                "
-                            >
-                                <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-primary/5 blur-2xl transition-all group-hover:bg-primary/10" />
+                            <Link key={feature.title} href={`/${feature.slug}`} className="block">
+                                <motion.div
+                                    initial={{ opacity: 0, y: 20 }}
+                                    whileInView={{ opacity: 1, y: 0 }}
+                                    viewport={{ once: true }}
+                                    transition={{ delay: index * 0.05 }}
+                                    whileHover={{
+                                        y: -4,
+                                        scale: 1.01,
+                                    }}
+                                    className="
+                                        group
+                                        relative
+                                        overflow-hidden
+                                        rounded-2xl
+                                        border
+                                        border-border
+                                        bg-card
+                                        p-5
+                                        shadow-sm
+                                        transition-all
+                                        hover:border-primary/40
+                                        hover:shadow-xl
+                                        h-full
+                                    "
+                                >
+                                    <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-primary/5 blur-2xl transition-all group-hover:bg-primary/10" />
 
-                                <div className="flex items-center justify-between">
-                                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 transition group-hover:scale-105">
-                                        <Icon className="h-5 w-5 text-primary" />
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 transition group-hover:scale-105">
+                                            <Icon className="h-5 w-5 text-primary" />
+                                        </div>
+
+                                        <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+                                            {feature.badge}
+                                        </span>
                                     </div>
 
-                                    <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
-                                        {feature.badge}
-                                    </span>
-                                </div>
+                                    <h3 className="mt-4 text-lg font-semibold text-foreground">
+                                        {feature.title}
+                                    </h3>
 
-                                <h3 className="mt-4 text-lg font-semibold text-fg">
-                                    {feature.title}
-                                </h3>
+                                    <p className="mt-2 text-sm leading-relaxed text-muted-foreground line-clamp-2">
+                                        {feature.description}
+                                    </p>
 
-                                <p className="mt-2 text-sm leading-relaxed text-muted line-clamp-2">
-                                    {feature.description}
-                                </p>
-
-                                <div className="mt-4 flex items-center gap-1.5 text-sm font-medium text-primary transition group-hover:gap-2">
-                                    <span>Learn More</span>
-                                    <ArrowRight size={16} />
-                                </div>
-                            </motion.div>
+                                    <div className="mt-4 flex items-center gap-1.5 text-sm font-medium text-primary transition group-hover:gap-2">
+                                        <span>Learn More</span>
+                                        <ArrowRight size={16} />
+                                    </div>
+                                </motion.div>
+                            </Link>
                         );
                     })}
-
                 </div>
-
-                {/* Bottom CTA */}
 
                 <motion.div
                     initial={{ opacity: 0 }}
@@ -172,7 +164,6 @@ export function AIFeatures() {
                         <ArrowRight size={16} />
                     </Link>
                 </motion.div>
-
             </div>
         </section>
     );

@@ -32,6 +32,7 @@ async function callGemini(prompt: string): Promise<GeneratorResult> {
   }
 }
 
+<<<<<<< Updated upstream
 /**
  * Answer a question from retrieved context. Refuses when the context does not
  * contain the answer, which is what you want for chat and nothing else.
@@ -78,4 +79,10 @@ ${instruction}
 Document:
 ${documentText}
 `);
+=======
+  throw new Error(
+    "The AI service is temporarily busy. Please try again in a few seconds."
+  );
+}
+>>>>>>> Stashed changes
 }
