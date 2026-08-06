@@ -9,9 +9,28 @@ const ai = new GoogleGenAI({
 
 const CHUNK_SEPARATOR = "\n\n---------------------\n\n";
 
+/** Thrown when the Gemini API rejects a request due to rate/quota limits. */
+export class AIQuotaError extends Error {
+  status = 429;
+  constructor(
+    message = "Daily AI usage limit reached. Please try again later."
+  ) {
+    super(message);
+    this.name = "AIQuotaError";
+  }
+}
+
 /** Join retrieved chunks into the context string generateAnswer expects. */
 export function joinChunks(chunks: RetrievedChunk[]): string {
   return chunks.map((chunk) => chunk.content).join(CHUNK_SEPARATOR);
+}
+
+function isQuotaError(error: any): boolean {
+  return (
+    error?.status === 429 ||
+    error?.error?.code === 429 ||
+    error?.error?.status === "RESOURCE_EXHAUSTED"
+  );
 }
 
 async function callGemini(prompt: string): Promise<GeneratorResult> {
@@ -24,8 +43,13 @@ async function callGemini(prompt: string): Promise<GeneratorResult> {
     return {
       answer: response.text ?? "",
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini Error:", error);
+
+    if (isQuotaError(error)) {
+      throw new AIQuotaError();
+    }
+
     throw new Error(
       "The AI service is temporarily busy. Please try again in a few seconds."
     );
