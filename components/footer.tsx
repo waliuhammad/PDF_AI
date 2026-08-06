@@ -19,11 +19,13 @@ interface FooterLink {
 const productLinks: FooterLink[] = [
     { label: "Merge PDF", href: "/merge-pdf" },
     { label: "Compress PDF", href: "/compress-pdf" },
-    { label: "PDF Converter", href: "/tools?category=Convert" },
-    { label: "OCR Scanner", href: "/ocr-pdf" },
+    // Labels match the names in lib/tools.ts, so the footer and the tools grid
+    // call the same tool the same thing.
+    { label: "Edit PDF", href: "/edit-pdf" },
+    { label: "OCR PDF", href: "/ocr-pdf" },
     // /chats is the signed-in thread list, so a visitor clicking this from the
     // marketing footer was bounced to the login page. /chat-pdf is the tool.
-    { label: "AI PDF Chat", href: "/chat-pdf" },
+    { label: "Chat with PDF", href: "/chat-pdf" },
 ];
 
 
