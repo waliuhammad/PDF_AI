@@ -1,14 +1,13 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import { FileText, X, Upload, Loader2 } from "lucide-react";
+import React, { useState } from "react";
+import { FileText, X, Loader2 } from "lucide-react";
+import { UploadCard } from "@/components/tools/upload-card";
 
 export default function WordToPdfPage() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState<boolean>(false);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const formatSize = (bytes: number) => {
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
@@ -89,27 +88,12 @@ export default function WordToPdfPage() {
         </div>
 
         {!file ? (
-          <div
-            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFileChange(e.dataTransfer.files); }}
-            onClick={() => inputRef.current?.click()}
-            className={`cursor-pointer rounded-2xl border-2 border-dashed p-6 sm:p-10 text-center transition-colors bg-slate-50 dark:bg-[#0b0f19] border-slate-300 dark:border-slate-800/80 hover:border-purple-900 dark:hover:border-cyan-500/50 ${
-              isDragging ? "border-purple-900 bg-purple-100 dark:border-cyan-500 dark:bg-cyan-500/5" : ""
-            }`}
-          >
-            <input
-              ref={inputRef}
-              type="file"
-              hidden
-              onChange={(e) => handleFileChange(e.target.files)}
-            />
-            <div className="w-12 h-12 mx-auto rounded-xl bg-purple-100 dark:bg-cyan-500/10 border border-purple-200 dark:border-cyan-500/20 flex items-center justify-center mb-3 text-purple-900 dark:text-cyan-400">
-              <Upload size={22} />
-            </div>
-            <p className="text-slate-900 dark:text-white font-medium text-sm">Click to upload or drag & drop</p>
-            <p className="text-slate-500 dark:text-slate-400 text-xs mt-1">DOCX and DOC documents</p>
-          </div>
+          <UploadCard
+            onFiles={handleFileChange}
+            accept=".doc,.docx"
+            title="Click to upload or drag & drop"
+            hint="DOCX and DOC documents"
+          />
         ) : (
           <div className="space-y-6">
             <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800/80">

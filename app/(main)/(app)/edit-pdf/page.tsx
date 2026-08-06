@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Upload, FileText, X, Edit3, Download, Loader2, Type, Bold, Italic, Pencil, Trash2, ChevronLeft, ChevronRight, Eraser, Move, Sparkles, ShieldCheck } from "lucide-react";
+import { UploadCard } from "@/components/tools/upload-card";
 
 interface TextAnnotation {
   id: string;
@@ -360,29 +361,17 @@ export default function EditPdfPage() {
           </div>
 
           {/* Drag & Drop Upload Card */}
-          <div
-            onDragOver={(e) => { e.preventDefault(); setIsDraggingFile(true); }}
-            onDragLeave={() => setIsDraggingFile(false)}
-            onDrop={(e) => { e.preventDefault(); setIsDraggingFile(false); handleFile(e.dataTransfer.files); }}
-            onClick={() => inputRef.current?.click()}
-            className={`cursor-pointer rounded-2xl border-2 border-dashed p-12 text-center transition-all ${
-              isDraggingFile 
-                ? "border-slate-900 bg-slate-100 dark:border-slate-500 dark:bg-slate-500/10" 
-                : "border-slate-300 bg-slate-50 dark:border-slate-800 dark:bg-[#0b0f19] hover:border-slate-400 dark:hover:border-slate-700 shadow-inner"
-            }`}
-          >
-            <input ref={inputRef} type="file" accept="application/pdf" hidden onChange={(e) => handleFile(e.target.files)} />
-            <div className="w-14 h-14 rounded-2xl bg-slate-900/10 dark:bg-slate-800 flex items-center justify-center mx-auto mb-4 border border-slate-900/20 dark:border-slate-700 shadow-md">
-              <Upload className="text-slate-900 dark:text-slate-300" size={24} />
-            </div>
-            <p className="text-slate-900 dark:text-white font-semibold text-base mb-1">Click to upload PDF document</p>
-            <p className="text-slate-500 text-xs mb-6">Supports text documents and reports</p>
-
-            <div className="w-full border-t border-slate-200 dark:border-slate-800/80 pt-4 flex items-center justify-center gap-2 text-slate-600 dark:text-slate-400 text-xs">
-              <ShieldCheck size={14} className="text-emerald-600 dark:text-emerald-400" />
-              <span>Secure PDF text extraction • No file retention</span>
-            </div>
-          </div>
+          <UploadCard
+            onFiles={handleFile}
+            title="Click to upload PDF document"
+            hint="Supports text documents and reports"
+            note={
+              <>
+                <ShieldCheck size={14} className="text-[var(--primary)]" />
+                <span>Secure PDF text extraction • No file retention</span>
+              </>
+            }
+          />
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from "react";
 import { Upload, FileText, X, Lock, Download, Eye, EyeOff, Wand2, Copy, Check, Sparkles, ShieldCheck } from "lucide-react";
+import { UploadCard } from "@/components/tools/upload-card";
 import { loadPdfjs } from "@/lib/pdf-libs";
 
 export default function ProtectPdfPage() {
@@ -148,35 +149,17 @@ export default function ProtectPdfPage() {
                         </p>
                     </div>
 
-                    <div
-                        onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                        onDragLeave={() => setIsDragging(false)}
-                        onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFile(e.dataTransfer.files); }}
-                        onClick={() => inputRef.current?.click()}
-                        className={`border-2 border-dashed rounded-2xl p-8 text-center bg-slate-50 dark:bg-[#0d1322]/80 relative group cursor-pointer transition-colors ${
-                            isDragging 
-                                ? "border-purple-900 bg-purple-100 dark:border-cyan-500 dark:bg-cyan-500/10" 
-                                : "border-slate-300 dark:border-cyan-500/40 hover:border-slate-400 dark:hover:border-cyan-500"
-                        }`}
-                    >
-                        <input ref={inputRef} type="file" accept="application/pdf" hidden onChange={(e) => handleFile(e.target.files)} />
-                        <div className="flex flex-col items-center space-y-3">
-                            <div className="w-12 h-12 bg-purple-100 dark:bg-cyan-500/10 text-purple-900 dark:text-cyan-400 rounded-2xl flex items-center justify-center border border-purple-200 dark:border-cyan-500/20 group-hover:scale-105 transition-transform">
-                                <Upload size={24} />
-                            </div>
-                            <div>
-                                <p className="text-sm font-semibold text-slate-900 dark:text-slate-200">
-                                    Click to upload PDF document
-                                </p>
-                                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Supports text documents and reports</p>
-                            </div>
-                        </div>
-
-                        <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-center space-x-2 text-xs text-slate-600 dark:text-slate-400">
-                            <ShieldCheck size={14} className="text-purple-900 dark:text-cyan-400" />
-                            <span>Secure PDF text extraction • No file retention</span>
-                        </div>
-                    </div>
+                    <UploadCard
+                        onFiles={handleFile}
+                        title="Click to upload PDF document"
+                        hint="Supports text documents and reports"
+                        note={
+                            <>
+                                <ShieldCheck size={14} className="text-[var(--primary)]" />
+                                <span>Secure PDF text extraction • No file retention</span>
+                            </>
+                        }
+                    />
                 </div>
             ) : (
                 <div className="max-w-xl w-full bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800/80 rounded-3xl p-8 shadow-2xl space-y-6">

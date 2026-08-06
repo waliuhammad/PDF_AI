@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import type * as PdfjsLib from "pdfjs-dist";
 import { loadPdfjs } from "@/lib/pdf-libs";
+import { UploadCard } from "@/components/tools/upload-card";
 
 type Position =
   | "top-left"
@@ -280,28 +281,17 @@ export default function WatermarkPdfPage() {
           )}
 
           {!rawFile ? (
-            <div
-              onDragOver={(e) => { e.preventDefault(); setIsDraggingFile(true); }}
-              onDragLeave={() => setIsDraggingFile(false)}
-              onDrop={(e) => { e.preventDefault(); setIsDraggingFile(false); handlePdfFile(e.dataTransfer.files); }}
-              onClick={() => pdfInputRef.current?.click()}
-              className={`cursor-pointer rounded-2xl border-2 border-dashed p-12 text-center transition-all duration-200 ${
-                isDraggingFile
-                  ? "border-purple-500 bg-purple-500/5"
-                  : "border-slate-300 dark:border-[#2d2745] bg-slate-50 dark:bg-[#141824] hover:border-slate-400 dark:hover:border-purple-500/50 hover:bg-slate-100/60 dark:hover:bg-[#181d2c]"
-              }`}
-            >
-              <input ref={pdfInputRef} type="file" accept="application/pdf" hidden onChange={(e) => handlePdfFile(e.target.files)} />
-              <div className="w-14 h-14 mx-auto rounded-2xl border flex items-center justify-center mb-4 bg-white dark:bg-purple-950/60 border-slate-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-300">
-                <Upload size={24} />
-              </div>
-              <p className="font-semibold text-base text-slate-900 dark:text-white">Click to upload PDF document</p>
-              <p className="text-xs mt-1.5 text-slate-600 dark:text-purple-300/70">Supports text documents and reports</p>
-
-              <div className="mt-8 pt-4 border-t flex items-center justify-center gap-2 text-xs border-slate-200 dark:border-[#2b2545] text-slate-600 dark:text-purple-300/60">
-                <ShieldCheck size={14} className="text-emerald-500" /> Secure PDF text extraction • No file retention
-              </div>
-            </div>
+            <UploadCard
+              onFiles={handlePdfFile}
+              title="Click to upload PDF document"
+              hint="Supports text documents and reports"
+              note={
+                <>
+                  <ShieldCheck size={14} className="text-[var(--primary)]" />
+                  <span>Secure PDF text extraction • No file retention</span>
+                </>
+              }
+            />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               
