@@ -50,7 +50,7 @@ export function Hero() {
 
                     <div className="mt-7 flex flex-wrap gap-3.5">
                         <Link
-                            href="#tools"
+                            href="/login"
                             className="
                                 flex
                                 items-center

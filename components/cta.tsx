@@ -209,7 +209,7 @@ export function CTA() {
                         >
 
                             <Link
-                                href="#tools"
+                                href="/login"
                                 className="
                                     flex
                                     items-center

@@ -20,8 +20,10 @@ const productLinks: FooterLink[] = [
     { label: "Merge PDF", href: "/merge-pdf" },
     { label: "Compress PDF", href: "/compress-pdf" },
     { label: "PDF Converter", href: "/tools?category=Convert" },
-    { label: "OCR Scanner" },
-    { label: "AI PDF Chat", href: "/chats" },
+    { label: "OCR Scanner", href: "/ocr-pdf" },
+    // /chats is the signed-in thread list, so a visitor clicking this from the
+    // marketing footer was bounced to the login page. /chat-pdf is the tool.
+    { label: "AI PDF Chat", href: "/chat-pdf" },
 ];
 
 
