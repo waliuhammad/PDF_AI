@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import { processPDF } from "../modules/pipeline";
+import { extractText } from "../modules/pipeline";
 import { translateDocument } from "../modules/translate";
 
 const router = Router();
@@ -29,19 +29,22 @@ router.post("/", upload.single("file"), async (req, res) => {
       });
     }
 
-    // Process the uploaded PDF
-    const pipeline = await processPDF(req.file.buffer);
+    // Read the uploaded PDF
+    const extraction = await extractText(req.file.buffer);
 
     // Make sure PDF actually contains text
-    if (pipeline.chunker.chunks.length === 0) {
+    if (extraction.chunker.chunks.length === 0) {
       return res.status(400).json({
         success: false,
         message: "This PDF contains no readable text.",
       });
     }
 
-    // Translate
-    const result = await translateDocument(language);
+    // Translate the whole document
+    const result = await translateDocument(
+      language,
+      extraction.cleaner.cleanedText
+    );
 
     return res.status(200).json({
       success: true,

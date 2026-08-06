@@ -7,34 +7,16 @@ const ai = new GoogleGenAI({
   apiKey: env.GOOGLE_API_KEY,
 });
 
-export async function generateAnswer(
-  question: string,
-  chunks: RetrievedChunk[]
-): Promise<GeneratorResult> {
+const CHUNK_SEPARATOR = "\n\n---------------------\n\n";
 
-  const context = chunks
-    .map((chunk) => chunk.content)
-    .join("\n\n---------------------\n\n");
+/** Join retrieved chunks into the context string generateAnswer expects. */
+export function joinChunks(chunks: RetrievedChunk[]): string {
+  return chunks.map((chunk) => chunk.content).join(CHUNK_SEPARATOR);
+}
 
-  const prompt = `
-You are a helpful AI assistant.
-
-Answer ONLY using the provided context.
-
-If the answer cannot be found in the context, reply exactly:
-
-"I couldn't find the answer in the uploaded PDF."
-
-Context:
-${context}
-
-Question:
-${question}
-`;
-
+async function callGemini(prompt: string): Promise<GeneratorResult> {
   try {
     const response = await ai.models.generateContent({
-      
       model: env.GEMINI_MODEL,
       contents: prompt,
     });
@@ -42,11 +24,58 @@ ${question}
     return {
       answer: response.text ?? "",
     };
-  }catch (error) {
-  console.error("Gemini Error:", error);
-
-  throw new Error(
-    "The AI service is temporarily busy. Please try again in a few seconds."
-  );
+  } catch (error) {
+    console.error("Gemini Error:", error);
+    throw new Error(
+      "The AI service is temporarily busy. Please try again in a few seconds."
+    );
+  }
 }
+
+/**
+ * Answer a question from retrieved context. Refuses when the context does not
+ * contain the answer, which is what you want for chat and nothing else.
+ */
+export async function generateAnswer(
+  question: string,
+  context: string
+): Promise<GeneratorResult> {
+  return callGemini(`
+You are a helpful AI assistant.
+Answer ONLY using the provided context.
+
+If the answer cannot be found in the context, reply exactly:
+"I couldn't find the answer in the uploaded PDF."
+
+Context:
+${context}
+
+Question:
+${question}
+`);
+}
+
+/**
+ * Run an instruction over a whole document — summarise it, translate it,
+ * correct it.
+ *
+ * Deliberately not generateAnswer: these are transformations, not questions,
+ * and under the question-answering prompt Gemini treats "translate this" as
+ * unanswerable and returns the "I couldn't find the answer" refusal instead of
+ * the translation.
+ */
+export async function generateFromDocument(
+  instruction: string,
+  documentText: string
+): Promise<GeneratorResult> {
+  return callGemini(`
+You are a document processing assistant.
+Apply the following instruction to the document below and return only the result.
+
+Instruction:
+${instruction}
+
+Document:
+${documentText}
+`);
 }

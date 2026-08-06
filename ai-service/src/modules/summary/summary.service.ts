@@ -1,14 +1,10 @@
-import { retrieveRelevantChunks } from "../retriever";
-import { generateAnswer } from "../generator";
+import { generateFromDocument } from "../generator";
 import { SummaryResult } from "./summary.types";
 
-export async function generateSummary(): Promise<SummaryResult> {
-  const retriever = await retrieveRelevantChunks(
-    "Provide a complete summary of this document.",
-    8
-  );
-
-  const generator = await generateAnswer(
+export async function generateSummary(
+  documentText: string
+): Promise<SummaryResult> {
+  const generator = await generateFromDocument(
   `You are an expert document summarizer.
 
 Your task is to produce a concise summary of the uploaded PDF.
@@ -31,7 +27,7 @@ Special cases:
   • Most important achievements
 
 Return only the summary in bullet points.`,
-  retriever.chunks
+  documentText
 );
   return {
     summary: generator.answer,

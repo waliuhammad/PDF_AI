@@ -1,14 +1,10 @@
-import { retrieveRelevantChunks } from "../retriever";
-import { generateAnswer } from "../generator";
+import { generateFromDocument } from "../generator";
 import { GrammarResult } from "./grammar.types";
 
-export async function checkGrammar(): Promise<GrammarResult> {
-  const retriever = await retrieveRelevantChunks(
-    "Retrieve the complete document for grammar and spelling correction.",
-    20
-  );
-
- const generator = await generateAnswer(
+export async function checkGrammar(
+  documentText: string
+): Promise<GrammarResult> {
+ const generator = await generateFromDocument(
   `You are an expert English grammar and spelling editor.
 
 Correct:
@@ -32,7 +28,7 @@ Rules:
 - Do NOT expand sentences.
 - Do NOT remove any information.
 - Return ONLY the corrected text.`,
-  retriever.chunks
+  documentText
 );
  return {
  correctionsMade: 0,

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import multer from "multer";
-import { processPDF } from "../modules/pipeline";
+import { extractText } from "../modules/pipeline";
 import { checkGrammar } from "../modules/grammar";
 
 const router = Router();
@@ -18,17 +18,17 @@ router.post("/", upload.single("file"), async (req, res) => {
       });
     }
 
-    // Parse + Clean + Chunk + Embed + Store
-    const pipeline = await processPDF(req.file.buffer);
+    // Parse + Clean + Chunk
+    const extraction = await extractText(req.file.buffer);
 
-    if (pipeline.chunker.chunks.length === 0) {
+    if (extraction.chunker.chunks.length === 0) {
       return res.status(400).json({
         success: false,
         message: "This PDF contains no readable text.",
       });
     }
 
-    const result = await checkGrammar();
+    const result = await checkGrammar(extraction.cleaner.cleanedText);
 
     return res.status(200).json({
       success: true,
