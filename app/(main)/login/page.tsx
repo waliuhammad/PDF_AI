@@ -89,7 +89,7 @@ export default function LoginPage() {
                     <div>
                         <div className="flex items-center justify-between mb-1">
                             <label className="text-sm text-fg">Password</label>
-                            <Link href="/forget-password" className="text-xs text-[var(--primary)] hover:underline">
+                            <Link href="/forget-password" className="inline-block py-1 text-xs text-[var(--primary)] hover:underline">
                                 Forgot password?
                             </Link>
                         </div>
@@ -106,7 +106,8 @@ export default function LoginPage() {
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted"
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-muted"
                             >
                                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                             </button>

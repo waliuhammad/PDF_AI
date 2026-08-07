@@ -19,7 +19,9 @@ export function TermsAgreement({
                 type="checkbox"
                 checked={checked}
                 onChange={(e) => onChange(e.target.checked)}
-                className="mt-0.5 h-4 w-4 shrink-0 rounded border-[var(--card-border)] accent-[var(--primary)] cursor-pointer"
+                // 24px is the smallest a control should be to tap reliably;
+                // the box still draws at 16px, the extra is padding.
+                className="mt-0.5 h-6 w-6 shrink-0 rounded border-[var(--card-border)] accent-[var(--primary)] cursor-pointer p-1"
             />
             <label htmlFor={id} className="text-xs text-muted leading-5 cursor-pointer">
                 I agree to the{" "}

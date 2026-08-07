@@ -51,7 +51,14 @@ const plans = [
 ];
 
 
-export default function Pricing() {
+/**
+ * `heading` exists because this renders in two places. On the landing page it
+ * is one section among many and belongs under that page's h1. On /pricing it is
+ * the page, and the page had no h1 at all.
+ */
+export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
+    const Heading = heading;
+
 
     const [billing, setBilling] =
         useState<"monthly" | "yearly">("monthly");
@@ -91,16 +98,9 @@ export default function Pricing() {
                     </div>
 
 
-                    <h2
-                        className="
-                            text-3xl
-                            md:text-4xl
-                            font-bold
-                            text-fg
-                        "
-                    >
+                    <Heading className="text-3xl md:text-4xl font-bold text-fg">
                         Simple pricing that scales with you
-                    </h2>
+                    </Heading>
 
 
                     <p className="mt-3 text-sm md:text-base text-muted">

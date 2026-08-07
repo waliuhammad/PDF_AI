@@ -136,7 +136,8 @@ export default function UnlockPdfPage() {
                                     placeholder="Enter current password"
                                     className="w-full px-3 py-2.5 pr-12 rounded-xl border border-card bg-card text-fg text-sm focus:outline-none focus:border-purple-900 dark:focus:border-cyan-500"
                                 />
-                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-purple-900 dark:hover:text-cyan-400">
+                                <button type="button" onClick={() => setShowPassword(!showPassword)}
+                                aria-label={showPassword ? "Hide password" : "Show password"} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-purple-900 dark:hover:text-cyan-400">
                                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                 </button>
                             </div>

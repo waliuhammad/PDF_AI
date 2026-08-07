@@ -142,6 +142,8 @@ export function Navbar() {
         {/* Mobile Menu Button */}
         <button
           onClick={() => setOpen(!open)}
+          aria-label={open ? "Close menu" : "Open menu"}
+          aria-expanded={open}
           className="rounded-lg p-2 lg:hidden"
         >
           {open ? <X size={24} /> : <Menu size={24} />}

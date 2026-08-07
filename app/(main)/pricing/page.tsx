@@ -13,7 +13,7 @@ export default function PricingPage() {
     return (
         <main className="min-h-screen bg-background text-fg">
             <Navbar />
-            <Pricing />
+            <Pricing heading="h1" />
             <FAQ />
             <Footer />
         </main>

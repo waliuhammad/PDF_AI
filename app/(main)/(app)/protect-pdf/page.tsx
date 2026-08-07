@@ -238,7 +238,8 @@ export default function ProtectPdfPage() {
                                                 {copied ? <Check size={16} className="text-emerald-600 dark:text-emerald-400" /> : <Copy size={16} />}
                                             </button>
                                         )}
-                                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-slate-400 hover:text-purple-900 dark:hover:text-cyan-400">
+                                        <button type="button" onClick={() => setShowPassword(!showPassword)}
+                                aria-label={showPassword ? "Hide password" : "Show password"} className="text-slate-400 hover:text-purple-900 dark:hover:text-cyan-400">
                                             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                                         </button>
                                     </div>

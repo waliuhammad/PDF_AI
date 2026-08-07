@@ -109,6 +109,7 @@ export default function RegisterPage() {
                         <label className="text-sm text-fg mb-1 block">Phone number</label>
                         <div className="flex gap-2">
                             <select
+                                aria-label="Country dialling code"
                                 value={dialCode}
                                 onChange={(e) => setDialCode(e.target.value)}
                                 className="w-24 sm:w-28 shrink-0 py-3 px-2 rounded-xl bg-card border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
@@ -149,7 +150,8 @@ export default function RegisterPage() {
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
-                                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted"
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-muted"
                             >
                                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                             </button>

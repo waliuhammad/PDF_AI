@@ -43,16 +43,21 @@ const legalLinks: FooterLink[] = [
 
 
 function FooterLinkList({ links }: { links: FooterLink[] }) {
+    // inline-block with vertical padding, so each link is a 24px-tall tap
+    // target on a phone rather than a 16px line of text.
     return (
-        <ul className="space-y-3">
+        <ul className="space-y-1">
             {links.map((link) => (
                 <li key={link.label} className="text-sm">
                     {link.href ? (
-                        <Link href={link.href} className="text-muted hover:text-primary transition-colors">
+                        <Link
+                            href={link.href}
+                            className="inline-block py-1.5 text-muted hover:text-primary transition-colors"
+                        >
                             {link.label}
                         </Link>
                     ) : (
-                        <span className="text-muted">{link.label}</span>
+                        <span className="inline-block py-1.5 text-muted">{link.label}</span>
                     )}
                 </li>
             ))}
