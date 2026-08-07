@@ -1,0 +1,70 @@
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import {
+    getAdminAuth,
+    isAdminConfigured,
+    SESSION_COOKIE,
+} from "@/lib/firebase/admin";
+
+/**
+ * Guards the signed-in area on the server.
+ *
+ * Note the filename: Next 16 renamed middleware.ts to proxy.ts, and a file
+ * called middleware.ts now does nothing at all. It also runs on the Node.js
+ * runtime by default, which is what makes this possible — the old Edge
+ * middleware could not load firebase-admin.
+ *
+ * Until now these routes were guarded only by a client component: the page
+ * loaded, React mounted, useAuth resolved, and only then did it redirect. The
+ * visitor saw the dashboard shell first. Now the request never reaches the page.
+ *
+ * This is a redirect, not the security boundary. The data is protected by
+ * Firestore rules, which is where it belongs — a proxy can only decide what to
+ * render.
+ */
+
+const PROTECTED = ["/dashboard", "/documents", "/chats", "/settings"];
+
+export async function proxy(request: NextRequest) {
+    const { pathname } = request.nextUrl;
+
+    if (!PROTECTED.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+        return NextResponse.next();
+    }
+
+    // With no credentials configured there is nothing to verify against.
+    // Falling open would silently drop the guard, so refuse instead and say why
+    // in the log — a misconfigured deploy should be obvious, not invisible.
+    if (!isAdminConfigured()) {
+        console.error(
+            `proxy: Firebase Admin is not configured, so ${pathname} cannot be verified. Set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY.`
+        );
+        return redirectToLogin(request);
+    }
+
+    const session = request.cookies.get(SESSION_COOKIE)?.value;
+    if (!session) return redirectToLogin(request);
+
+    try {
+        // checkRevoked, so signing out everywhere actually takes effect.
+        await getAdminAuth().verifySessionCookie(session, true);
+        return NextResponse.next();
+    } catch {
+        // Expired, revoked or forged. Clear it so the browser stops sending it.
+        const response = redirectToLogin(request);
+        response.cookies.set({ name: SESSION_COOKIE, value: "", path: "/", maxAge: 0 });
+        return response;
+    }
+}
+
+function redirectToLogin(request: NextRequest) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    // So the visitor lands back where they were headed after signing in.
+    url.searchParams.set("next", request.nextUrl.pathname);
+    return NextResponse.redirect(url);
+}
+
+export const config = {
+    matcher: ["/dashboard/:path*", "/documents/:path*", "/chats/:path*", "/settings/:path*"],
+};

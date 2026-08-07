@@ -12,6 +12,31 @@ import {
 } from "firebase/auth";
 import { getFirebaseAuth, getDb } from "./client";
 
+/**
+ * Hand the server an ID token so it can set an httpOnly session cookie.
+ *
+ * Without this the server has no idea anyone is signed in — Firebase keeps its
+ * state in IndexedDB, which only the browser can read — and proxy.ts would turn
+ * every visitor away from the signed-in area.
+ */
+async function startServerSession(user: User) {
+    try {
+        const idToken = await user.getIdToken();
+        const res = await fetch("/api/auth/session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ idToken }),
+        });
+        if (!res.ok) {
+            // Sign-in itself worked; the visitor would just bounce off the
+            // signed-in area, so make the reason visible rather than silent.
+            console.error("Could not start a server session:", await res.text());
+        }
+    } catch (err) {
+        console.error("Could not start a server session:", err);
+    }
+}
+
 export interface RegisterInput {
     fullName: string;
     email: string;
@@ -56,6 +81,7 @@ export async function registerWithEmail(input: RegisterInput) {
         fullName: input.fullName,
         phone: `${input.phoneDialCode}${input.phoneNumber}`,
     });
+    await startServerSession(credential.user);
     return credential.user;
 }
 
@@ -83,18 +109,28 @@ function buildProvider(id: SocialProviderId): AuthProvider {
 export async function signInWithSocial(id: SocialProviderId) {
     const credential = await signInWithPopup(getFirebaseAuth(), buildProvider(id));
     await createUserDocIfNotExists(credential.user);
+    await startServerSession(credential.user);
     return credential.user;
 }
 import { signInWithEmailAndPassword } from "firebase/auth";
 
 export async function signInWithEmail(email: string, password: string) {
     const credential = await signInWithEmailAndPassword(getFirebaseAuth(), email, password);
+    await startServerSession(credential.user);
     return credential.user;
 }
 import { signOut as firebaseSignOut } from "firebase/auth";
 
 export async function logout() {
     await firebaseSignOut(getFirebaseAuth());
+
+    // Clear the server session too. Signing out of Firebase only clears the
+    // browser's copy; the cookie would keep letting the proxy through.
+    try {
+        await fetch("/api/auth/session", { method: "DELETE" });
+    } catch (err) {
+        console.error("Could not clear the server session:", err);
+    }
 }
 import { sendPasswordResetEmail, confirmPasswordReset, verifyPasswordResetCode } from "firebase/auth";
 

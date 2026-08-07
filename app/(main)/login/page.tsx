@@ -8,6 +8,27 @@ import { signInWithEmail, signInWithSocial, type SocialProviderId } from "@/lib/
 import { SocialAuth } from "@/components/auth/social-auth";
 import { TermsNotice } from "@/components/auth/terms-agreement";
 
+/**
+ * Where to go after signing in.
+ *
+ * proxy.ts appends ?next= when it turns someone away, so they land where they
+ * were headed rather than always on the dashboard.
+ *
+ * Only a path on this site is accepted. Taking the parameter at face value
+ * would let a link like /login?next=https://example.com bounce a freshly
+ * signed-in visitor straight off the site — the standard open redirect. The
+ * leading-slash-but-not-double-slash test rejects both absolute URLs and
+ * protocol-relative ones.
+ */
+function destinationAfterLogin(): string {
+    if (typeof window === "undefined") return "/dashboard";
+
+    const next = new URLSearchParams(window.location.search).get("next");
+    if (next && /^\/(?!\/)/.test(next)) return next;
+
+    return "/dashboard";
+}
+
 export default function LoginPage() {
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
@@ -22,7 +43,7 @@ export default function LoginPage() {
         setLoading(true);
         try {
             await signInWithEmail(email, password);
-            router.push("/dashboard");
+            router.push(destinationAfterLogin());
         } catch {
             setError("Invalid email or password. Please try again.");
         } finally {
@@ -35,7 +56,7 @@ export default function LoginPage() {
         setLoading(true);
         try {
             await signInWithSocial(provider);
-            router.push("/dashboard");
+            router.push(destinationAfterLogin());
         } catch (err) {
             const code = (err as { code?: string })?.code;
             if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {

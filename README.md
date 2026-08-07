@@ -25,10 +25,33 @@ what stops working when it is missing.
 | --- | --- | --- |
 | `NEXT_PUBLIC_FIREBASE_*` | Accounts, saved documents, chats | Sign-in and the whole signed-in area fail |
 | `AI_SERVICE_URL` | Summary, translate, grammar, OCR, chat | Falls back to `http://localhost:8001` |
+| `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` | Verifying the session cookie in `proxy.ts` | The signed-in area redirects everyone to /login, including signed-in users |
 | `NEXT_PUBLIC_SITE_URL` | `sitemap.xml`, canonical URLs, OG tags | Falls back to the Railway or Vercel host, then `http://localhost:3000`. Set it whenever there is a custom domain |
 
 Every conversion tool runs on this server. Nothing is sent to a third-party
 conversion service, so none of them need an API key.
+
+### The Firebase Admin credentials
+
+These three come from a service account key: Firebase Console → Project Settings
+→ Service Accounts → Generate new private key. The downloaded JSON maps to:
+
+| JSON field | Variable |
+| --- | --- |
+| `project_id` | `FIREBASE_PROJECT_ID` |
+| `client_email` | `FIREBASE_CLIENT_EMAIL` |
+| `private_key` | `FIREBASE_PRIVATE_KEY` |
+
+Keep the private key on one line with its `\n` escapes intact — that is the form
+Railway and Vercel store, and the code turns them back into real newlines.
+
+This key is a full admin credential: it can read and write every document and
+mint a token for any user. It belongs in `.env.local` or the host's environment
+settings, never in the repository and never pasted into a chat or an issue. If
+one is ever exposed, delete it under Project Settings → Service Accounts →
+Manage service account keys and generate a replacement.
+
+
 
 `NEXT_PUBLIC_*` values are baked in at build time, so changing one means
 rebuilding, not just restarting.
