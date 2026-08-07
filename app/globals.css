@@ -162,19 +162,69 @@ body {
   to   { opacity: 1; transform: translateX(0); }
 }
 
-@keyframes float-y {
+/* Three separate drifts rather than one shared keyframe. The cards each had
+   their own distance and direction before — one rising 6px, one sinking 8px,
+   one rising 8px — and collapsing them into a single -6px made the group move
+   as one flat sheet. Different directions are what stop them reading as a
+   single block, so they are worth the extra keyframes. */
+@keyframes float-a {
   0%, 100% { transform: translateY(0); }
   50%      { transform: translateY(-6px); }
 }
 
+@keyframes float-b {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(8px); }
+}
+
+@keyframes float-c {
+  0%, 100% { transform: translateY(-8px); }
+  50%      { transform: translateY(0); }
+}
+
+/* The blobs behind the hero were fixed circles, which left the whole
+   background dead once the entrance finished. Drifting them slowly gives the
+   section something that is always moving without anything to look at
+   directly. Long and low-amplitude on purpose: noticeable as life, not as
+   animation. Transform and opacity only, so it stays on the compositor. */
+@keyframes drift-a {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 1; }
+  50%      { transform: translate(30px, 20px) scale(1.12); opacity: 0.75; }
+}
+
+@keyframes drift-b {
+  0%, 100% { transform: translate(0, 0) scale(1.08); opacity: 0.85; }
+  50%      { transform: translate(-28px, -22px) scale(1); opacity: 1; }
+}
+
+/* A highlight sweeping across the progress bar, so the upload card reads as
+   in-progress rather than frozen mid-upload. */
+@keyframes shimmer {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(300%); }
+}
+
 .animate-hero-left  { animation: hero-in-left 0.6s ease-out both; }
 .animate-hero-right { animation: hero-in-right 0.7s ease-out both; }
-.animate-float      { animation: float-y 5s ease-in-out infinite; }
+
+.animate-float-a { animation: float-a 5s ease-in-out infinite; }
+.animate-float-b { animation: float-b 6s ease-in-out infinite; }
+.animate-float-c { animation: float-c 7s ease-in-out infinite; }
+
+.animate-drift-a { animation: drift-a 18s ease-in-out infinite; }
+.animate-drift-b { animation: drift-b 22s ease-in-out infinite; }
+
+.animate-shimmer { animation: shimmer 2.2s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-hero-left,
   .animate-hero-right,
-  .animate-float { animation: none; }
+  .animate-float-a,
+  .animate-float-b,
+  .animate-float-c,
+  .animate-drift-a,
+  .animate-drift-b,
+  .animate-shimmer { animation: none; }
 }
 
 /* Mobile navigation panel. Was AnimatePresence with an exit animation; without

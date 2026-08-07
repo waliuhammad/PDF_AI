@@ -10,13 +10,19 @@ import {
 } from "lucide-react";
 
 export function Hero() {
+    // `isolate` on the section matters: the background layer below sits at
+    // -z-10 and body has a solid background-color, so without a stacking
+    // context here those blobs paint behind the page itself and never show.
     return (
-        <section id="hero" className="relative overflow-hidden py-14 lg:py-20">
+        <section id="hero" className="relative isolate overflow-hidden py-14 lg:py-20">
 
             {/* Background */}
             <div className="absolute inset-0 -z-10 overflow-hidden">
-                <div className="absolute left-0 top-0 h-80 w-80 rounded-full bg-primary/10 blur-[100px]" />
-                <div className="absolute right-0 bottom-0 h-80 w-80 rounded-full bg-blue-500/10 blur-[100px]" />
+                {/* At /10 behind a 100px blur these were invisible on a light
+                    background, so the drift had nothing to show. /25 is still
+                    a wash rather than a shape, but the movement now reads. */}
+                <div className="animate-drift-a absolute -left-16 -top-16 h-96 w-96 rounded-full bg-primary/25 blur-[100px]" />
+                <div className="animate-drift-b absolute -right-16 bottom-0 h-96 w-96 rounded-full bg-blue-500/25 blur-[100px]" />
             </div>
 
             <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 lg:grid-cols-2">
@@ -72,7 +78,7 @@ export function Hero() {
 
                         <Link
                             href="#pricing"
-                            className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition hover:bg-indigo-600 hover:text-white hover:border-indigo-600"
+                            className="rounded-xl border border-border px-5 py-2.5 text-sm font-semibold transition hover:bg-indigo-600 hover:text-white hover:border-indigo-600 active:scale-95"
                         >
                             View Pricing
                         </Link>
@@ -118,8 +124,7 @@ export function Hero() {
 
                     {/* Upload Card */}
                     <div
-                        style={{ animationDuration: "5s" }}
-                        className="animate-float rounded-2xl border border-border bg-card p-5 shadow-xl max-w-sm ml-auto mr-4"
+                        className="animate-float-a rounded-2xl border border-border bg-card p-5 shadow-xl max-w-sm ml-auto mr-4 transition-shadow duration-300 hover:shadow-2xl"
                     >
                         <div className="flex items-center gap-2.5">
                             <div className="rounded-xl bg-primary/10 p-2.5">
@@ -136,14 +141,17 @@ export function Hero() {
                         </div>
 
                         <div className="mt-5 h-2.5 rounded-full bg-muted">
-                            <div className="h-2.5 w-3/4 rounded-full bg-primary" />
+                            {/* overflow-hidden so the sweeping highlight is clipped
+                                to the filled portion rather than crossing the track. */}
+                            <div className="relative h-2.5 w-3/4 overflow-hidden rounded-full bg-primary">
+                                <div className="animate-shimmer absolute inset-y-0 w-1/3 bg-white/30" />
+                            </div>
                         </div>
                     </div>
 
                     {/* AI Summary */}
                     <div
-                        style={{ animationDuration: "6s" }}
-                        className="animate-float absolute left-2 top-20 w-56 rounded-2xl border border-border bg-card p-4 shadow-xl z-10"
+                        className="animate-float-b absolute left-2 top-20 w-56 rounded-2xl border border-border bg-card p-4 shadow-xl z-10 transition-shadow duration-300 hover:shadow-2xl"
                     >
                         <div className="flex items-center gap-2">
                             <Brain
@@ -165,8 +173,7 @@ export function Hero() {
 
                     {/* PDF Card */}
                     <div
-                        style={{ animationDuration: "7s" }}
-                        className="animate-float absolute right-2 top-28 w-48 rounded-2xl border border-border bg-card p-4 shadow-xl z-10"
+                        className="animate-float-c absolute right-2 top-28 w-48 rounded-2xl border border-border bg-card p-4 shadow-xl z-10 transition-shadow duration-300 hover:shadow-2xl"
                     >
                         <div className="flex items-center gap-2.5">
                             <div className="rounded-xl bg-primary/10 p-2.5">
