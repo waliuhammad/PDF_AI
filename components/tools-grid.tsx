@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { Reveal } from "@/components/reveal";
 
 import ToolCard from "./tools/tool-card";
 import SearchTool from "./tools/search-tools";
@@ -33,12 +33,8 @@ export function ToolsGrid() {
 
                 {/* Heading */}
 
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="mb-12 text-center"
-                >
+                <Reveal>
+<div className="mb-12 text-center">
                     <span className="inline-flex rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-600">
                         PDF Toolkit
                     </span>
@@ -50,7 +46,8 @@ export function ToolsGrid() {
                     <p className="mt-3 text-muted max-w-2xl mx-auto">
                         Convert, edit, compress, organise and secure your PDF files in one place.
                     </p>
-                </motion.div>
+                </div>
+</Reveal>
 
                 {/* Search */}
 
@@ -72,15 +69,11 @@ export function ToolsGrid() {
 
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredTools.map((tool, index) => (
-                        <motion.div
-                            key={tool.name}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: index * 0.05 }}
-                        >
+                        <Reveal key={tool.name} delay={index * 50}>
+<div className="">
                             <ToolCard {...tool} />
-                        </motion.div>
+                        </div>
+</Reveal>
                     ))}
                 </div>
 

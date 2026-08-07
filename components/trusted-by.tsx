@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { Reveal } from "@/components/reveal";
 import type { IconType } from "react-icons";
 import {
     SiGoogle,
@@ -92,12 +92,8 @@ export function TrustedBy() {
             <div className="mx-auto max-w-7xl px-6 w-full">
 
                 {/* Heading */}
-                <motion.div
-                    initial={{ opacity: 0, y: 15 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="text-center"
-                >
+                <Reveal>
+<div className="text-center">
                     <span className="inline-flex rounded-full bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary">
                         Trusted Worldwide
                     </span>
@@ -110,7 +106,8 @@ export function TrustedBy() {
                         Professionals, startups and enterprises rely on PDF AI every day
                         to manage millions of documents securely.
                     </p>
-                </motion.div>
+                </div>
+</Reveal>
 
                 {/* Company Logos */}
                 <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
@@ -119,15 +116,8 @@ export function TrustedBy() {
 
                         if (company.name === "Figma") {
                             return (
-                                <motion.div
-                                    key={company.name}
-                                    initial={{ opacity: 0, y: 15 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: index * 0.05 }}
-                                    whileHover={{ y: -3, scale: 1.02 }}
-                                    className="group flex h-20 items-center justify-center gap-3 rounded-2xl border border-border bg-card px-4 transition-all hover:border-primary/40 hover:shadow-md"
-                                >
+                                <Reveal key={company.name} delay={index * 50}>
+<div className="group flex h-20 items-center justify-center gap-3 rounded-2xl border border-border bg-card px-4 transition-all hover:border-primary/40 hover:shadow-md duration-200 hover:-translate-y-1.5 hover:scale-[1.01]">
                                     {/* Corrected Figma Logo geometry matching the reference layout */}
                                     <svg
                                         width="24"
@@ -163,20 +153,14 @@ export function TrustedBy() {
                                     <div className="text-sm">
                                         {company.renderName()}
                                     </div>
-                                </motion.div>
+                                </div>
+</Reveal>
                             );
                         }
 
                         return (
-                            <motion.div
-                                key={company.name}
-                                initial={{ opacity: 0, y: 15 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: index * 0.05 }}
-                                whileHover={{ y: -3, scale: 1.02 }}
-                                className="group flex h-20 items-center justify-center gap-3 rounded-2xl border border-border bg-card px-4 transition-all hover:border-primary/40 hover:shadow-md"
-                            >
+                            <Reveal key={company.name} delay={index * 50}>
+<div className="group flex h-20 items-center justify-center gap-3 rounded-2xl border border-border bg-card px-4 transition-all hover:border-primary/40 hover:shadow-md duration-200 hover:-translate-y-1.5 hover:scale-[1.01]">
                                 <Icon
                                     size={28}
                                     className={`${company.iconColor} transition-transform duration-300 group-hover:scale-110`}
@@ -184,7 +168,8 @@ export function TrustedBy() {
                                 <div className="text-sm">
                                     {company.renderName()}
                                 </div>
-                            </motion.div>
+                            </div>
+</Reveal>
                         );
                     })}
                 </div>

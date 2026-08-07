@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { Reveal } from "@/components/reveal";
 import {
     Upload,
     MousePointerClick,
@@ -60,70 +60,20 @@ export function HowItWorks() {
                 ">
 
 
-                    <motion.h2
-
-                        initial={{
-                            opacity: 0,
-                            y: 20
-                        }}
-
-                        whileInView={{
-                            opacity: 1,
-                            y: 0
-                        }}
-
-                        viewport={{
-                            once: true
-                        }}
-
-                        className="
-                            text-3xl
-                            md:text-4xl
-                            font-bold
-                            text-fg
-                        "
-                    >
-
-                        Complete your PDF task in minutes
-
-                    </motion.h2>
+                    <Reveal>
+                        <h2 className="text-3xl md:text-4xl font-bold text-fg">
+                            Complete your PDF task in minutes
+                        </h2>
+                    </Reveal>
 
 
 
-                    <motion.p
-
-                        initial={{
-                            opacity: 0,
-                            y: 20
-                        }}
-
-                        whileInView={{
-                            opacity: 1,
-                            y: 0
-                        }}
-
-                        viewport={{
-                            once: true
-                        }}
-
-                        transition={{
-                            delay: 0.1
-                        }}
-
-                        className="
-                            mt-3
-                            text-sm
-                            md:text-base
-                            text-muted
-                            max-w-xl
-                            mx-auto
-                        "
-                    >
-
-                        Simple workflow designed for everyone.
-                        Upload, process, and download your document.
-
-                    </motion.p>
+                    <Reveal delay={100}>
+                        <p className="mt-3 text-sm md:text-base text-muted max-w-xl mx-auto">
+                            Simple workflow designed for everyone.
+                            Upload, process, and download your document.
+                        </p>
+                    </Reveal>
 
 
                 </div>
@@ -144,43 +94,15 @@ export function HowItWorks() {
                     {steps.map((step, index) => (
 
 
-                        <motion.div
-
-                            key={step.title}
-
-                            initial={{
-                                opacity: 0,
-                                y: 25
-                            }}
-
-                            whileInView={{
-                                opacity: 1,
-                                y: 0
-                            }}
-
-                            viewport={{
-                                once: true
-                            }}
-
-                            transition={{
-                                delay: index * 0.15
-                            }}
-
-                            whileHover={{
-                                y: -6
-                            }}
-
-                            className="
-                                relative
+                        <Reveal key={step.title} delay={index * 150}>
+<div className="relative
                                 rounded-2xl
                                 border
                                 border-[var(--card-border)]
                                 bg-[var(--card)]
                                 p-7
                                 text-center
-                                transition
-                            "
-                        >
+                                transition duration-200 hover:-translate-y-1.5 hover:scale-[1.01]">
 
 
 
@@ -274,7 +196,8 @@ export function HowItWorks() {
                             }
 
 
-                        </motion.div>
+                        </div>
+</Reveal>
 
 
                     ))}

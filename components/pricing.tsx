@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Check, Star, Users, Crown } from "lucide-react";
-import { motion } from "framer-motion";
+import { Reveal } from "@/components/reveal";
 import { useState } from "react";
 
 
@@ -207,47 +207,8 @@ export default function Pricing() {
 
                     {plans.map((plan, index) => (
 
-                        <motion.div
-
-                            key={plan.name}
-
-                            initial={{
-                                opacity: 0,
-                                y: 20
-                            }}
-
-                            whileInView={{
-                                opacity: 1,
-                                y: 0
-                            }}
-
-                            viewport={{
-                                once: true
-                            }}
-
-                            transition={{
-                                delay: index * 0.1
-                            }}
-
-                            whileHover={{
-                                y: -6
-                            }}
-
-                            className={`
-                                relative
-                                rounded-3xl
-                                border
-                                p-7
-                                bg-card
-
-                                ${plan.popular
-                                    ?
-                                    "border-primary shadow-xl md:-translate-y-2 ring-2 ring-primary/20"
-                                    :
-                                    "border-border"
-                                }
-                            `}
-                        >
+                        <Reveal key={plan.name} delay={index * 100}>
+<div className=" duration-200 hover:-translate-y-1.5 hover:scale-[1.01]">
 
 
                             {plan.popular && (
@@ -408,7 +369,8 @@ export default function Pricing() {
                             </Link>
 
 
-                        </motion.div>
+                        </div>
+</Reveal>
 
                     ))}
 

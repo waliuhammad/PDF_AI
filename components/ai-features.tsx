@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { Reveal } from "@/components/reveal";
 import {
     Sparkles,
     ScanText,
@@ -56,12 +56,8 @@ export function AIFeatures() {
             <div className="absolute left-1/2 top-16 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
 
             <div className="relative mx-auto max-w-7xl">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="text-center"
-                >
+                <Reveal>
+<div className="text-center">
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary">
                         <Sparkles size={14} />
                         AI Powered Features
@@ -74,7 +70,8 @@ export function AIFeatures() {
                     <p className="mx-auto mt-3 max-w-xl text-base text-muted-foreground">
                         Save hours with intelligent document analysis, summaries, translations and AI-powered conversations.
                     </p>
-                </motion.div>
+                </div>
+</Reveal>
 
                 <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
                     {features.map((feature, index) => {
@@ -82,17 +79,8 @@ export function AIFeatures() {
 
                         return (
                             <Link key={feature.title} href={`/${feature.slug}`} className="block">
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: index * 0.05 }}
-                                    whileHover={{
-                                        y: -4,
-                                        scale: 1.01,
-                                    }}
-                                    className="
-                                        group
+                                <Reveal delay={index * 50}>
+<div className="group
                                         relative
                                         overflow-hidden
                                         rounded-2xl
@@ -104,9 +92,7 @@ export function AIFeatures() {
                                         transition-all
                                         hover:border-primary/40
                                         hover:shadow-xl
-                                        h-full
-                                    "
-                                >
+                                        h-full duration-200 hover:-translate-y-1.5 hover:scale-[1.01]">
                                     <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-primary/5 blur-2xl transition-all group-hover:bg-primary/10" />
 
                                     <div className="flex items-center justify-between">
@@ -131,18 +117,15 @@ export function AIFeatures() {
                                         <span>Learn More</span>
                                         <ArrowRight size={16} />
                                     </div>
-                                </motion.div>
+                                </div>
+</Reveal>
                             </Link>
                         );
                     })}
                 </div>
 
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    viewport={{ once: true }}
-                    className="mt-10 text-center"
-                >
+                <Reveal>
+<div className="mt-10 text-center">
                     <Link
                         href="/tools?category=AI%20Tools"
                         className="
@@ -163,7 +146,8 @@ export function AIFeatures() {
                         Explore AI Tools
                         <ArrowRight size={16} />
                     </Link>
-                </motion.div>
+                </div>
+</Reveal>
             </div>
         </section>
     );

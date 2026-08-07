@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { Reveal } from "@/components/reveal";
 import { Star, Quote } from "lucide-react";
 
 const testimonials = [
@@ -99,15 +99,8 @@ export default function Testimonials() {
 
                     {testimonials.map((item, index) => (
 
-                        <motion.div
-                            key={item.name}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            whileHover={{ y: -6, scale: 1.01 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: index * 0.1 }}
-                            className="relative rounded-2xl border border-border bg-card p-6 shadow-lg hover:border-primary/40 transition-all"
-                        >
+                        <Reveal key={item.name} delay={index * 100}>
+                            <div className="relative rounded-2xl border border-border bg-card p-6 shadow-lg hover:border-primary/40 transition-all h-full duration-200 hover:-translate-y-1.5 hover:scale-[1.01]">
 
                             <Quote
                                 className="absolute right-5 top-5 text-primary/20"
@@ -160,7 +153,8 @@ export default function Testimonials() {
 
                             </p>
 
-                        </motion.div>
+                        </div>
+                        </Reveal>
 
                     ))}
 

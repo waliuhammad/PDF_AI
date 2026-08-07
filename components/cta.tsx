@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { Reveal } from "@/components/reveal";
 import {
     ArrowRight,
     Sparkles,
@@ -33,28 +33,8 @@ export function CTA() {
 
         <section className="px-6 py-20">
 
-            <motion.div
-
-                initial={{
-                    opacity: 0,
-                    y: 25
-                }}
-
-                whileInView={{
-                    opacity: 1,
-                    y: 0
-                }}
-
-                viewport={{
-                    once: true
-                }}
-
-                transition={{
-                    duration: 0.55
-                }}
-
-                className="
-                    relative
+            <Reveal>
+<div className="relative
                     overflow-hidden
                     max-w-5xl
                     mx-auto
@@ -64,9 +44,7 @@ export function CTA() {
                     bg-card
                     p-8
                     md:p-12
-                    shadow-xl
-                "
-            >
+                    shadow-xl">
 
 
                 {/* Glow */}
@@ -400,7 +378,8 @@ export function CTA() {
                 </div>
 
 
-            </motion.div>
+            </div>
+</Reveal>
 
 
         </section>

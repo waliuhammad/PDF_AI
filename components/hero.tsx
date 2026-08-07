@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import {
     ArrowRight,
     Sparkles,
@@ -25,11 +24,7 @@ export function Hero() {
             <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 lg:grid-cols-2">
 
                 {/* LEFT */}
-                <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: .6 }}
-                >
+                <div className="animate-hero-left">
                     <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-3.5 py-1.5 text-xs font-medium text-primary">
                      <Sparkles size={14} />
                         AI Powered PDF Workspace
@@ -118,26 +113,15 @@ export function Hero() {
                             </span>
                         </div>
                     </div>
-                </motion.div>
+                </div>
 
                 {/* RIGHT */}
-                <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: .7 }}
-                    className="relative pt-2 pb-16"
-                >
+                <div className="relative pt-2 pb-16 animate-hero-right">
 
                     {/* Upload Card */}
-                    <motion.div
-                        animate={{
-                            y: [0, -6, 0]
-                        }}
-                        transition={{
-                            repeat: Infinity,
-                            duration: 5
-                        }}
-                        className="rounded-2xl border border-border bg-card p-5 shadow-xl max-w-sm ml-auto mr-4"
+                    <div
+                        style={{ animationDuration: "5s" }}
+                        className="animate-float rounded-2xl border border-border bg-card p-5 shadow-xl max-w-sm ml-auto mr-4"
                     >
                         <div className="flex items-center gap-2.5">
                             <div className="rounded-xl bg-primary/10 p-2.5">
@@ -156,18 +140,12 @@ export function Hero() {
                         <div className="mt-5 h-2.5 rounded-full bg-muted">
                             <div className="h-2.5 w-3/4 rounded-full bg-primary" />
                         </div>
-                    </motion.div>
+                    </div>
 
                     {/* AI Summary */}
-                    <motion.div
-                        animate={{
-                            y: [0, 8, 0]
-                        }}
-                        transition={{
-                            repeat: Infinity,
-                            duration: 6
-                        }}
-                        className="absolute left-2 top-20 w-56 rounded-2xl border border-border bg-card p-4 shadow-xl z-10"
+                    <div
+                        style={{ animationDuration: "6s" }}
+                        className="animate-float absolute left-2 top-20 w-56 rounded-2xl border border-border bg-card p-4 shadow-xl z-10"
                     >
                         <div className="flex items-center gap-2">
                             <Brain
@@ -185,18 +163,12 @@ export function Hero() {
                             <br />
                             • Ready in 4 seconds
                         </p>
-                    </motion.div>
+                    </div>
 
                     {/* PDF Card */}
-                    <motion.div
-                        animate={{
-                            y: [0, -8, 0]
-                        }}
-                        transition={{
-                            repeat: Infinity,
-                            duration: 7
-                        }}
-                        className="absolute right-2 top-28 w-48 rounded-2xl border border-border bg-card p-4 shadow-xl z-10"
+                    <div
+                        style={{ animationDuration: "7s" }}
+                        className="animate-float absolute right-2 top-28 w-48 rounded-2xl border border-border bg-card p-4 shadow-xl z-10"
                     >
                         <div className="flex items-center gap-2.5">
                             <div className="rounded-xl bg-primary/10 p-2.5">
@@ -214,9 +186,9 @@ export function Hero() {
                                 </p>
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
 
-                </motion.div>
+                </div>
 
             </div>
 
