@@ -6,14 +6,13 @@ import { useState } from "react";
 import { Mail, Lock, Eye, EyeOff, FileText } from "lucide-react";
 import { signInWithEmail, signInWithSocial, type SocialProviderId } from "@/lib/firebase/auth";
 import { SocialAuth } from "@/components/auth/social-auth";
-import { TermsAgreement } from "@/components/auth/terms-agreement";
+import { TermsNotice } from "@/components/auth/terms-agreement";
 
 export default function LoginPage() {
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [agreed, setAgreed] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -32,10 +31,6 @@ export default function LoginPage() {
     };
 
     const handleSocial = async (provider: SocialProviderId) => {
-        if (!agreed) {
-            setError("Please accept the Terms of Service and Privacy Policy to continue.");
-            return;
-        }
         setError(null);
         setLoading(true);
         try {
@@ -114,11 +109,11 @@ export default function LoginPage() {
                         </div>
                     </div>
 
-                    <TermsAgreement checked={agreed} onChange={setAgreed} id="login-terms" />
+                    <TermsNotice />
 
                     <button
                         type="submit"
-                        disabled={loading || !agreed}
+                        disabled={loading}
                         className="w-full py-3 rounded-xl bg-[var(--primary)] text-white font-medium hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                         {loading ? "Logging in..." : "Log In"}
