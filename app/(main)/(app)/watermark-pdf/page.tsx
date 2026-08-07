@@ -259,18 +259,18 @@ export default function WatermarkPdfPage() {
   ];
 
   return (
-    <div className="min-h-[85vh] bg-white dark:bg-[var(--background)] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-start py-8 px-4 font-sans transition-colors duration-200">
+    <div className="min-h-[85vh] bg-background text-fg flex flex-col items-center justify-start py-8 px-4 font-sans transition-colors duration-200">
       <div className="max-w-5xl mx-auto w-full">
         
         {/* Main Outer Card Wrapper using system dark/light mode classes */}
-        <div className="bg-white dark:bg-[var(--background)] border border-slate-200 dark:border-[#252036] rounded-3xl p-8 shadow-xl dark:shadow-2xl dark:shadow-black/60 relative overflow-hidden transition-colors duration-200">
+        <div className="bg-background border border-card rounded-3xl p-8 shadow-xl dark:shadow-2xl dark:shadow-black/60 relative overflow-hidden transition-colors duration-200">
           
           {/* Header Section */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold mb-3 border bg-slate-100 dark:bg-purple-950/60 text-slate-900 dark:text-purple-300 border-slate-200 dark:border-purple-800/60">
               <Sparkles size={13} /> DOCUMENT CONVERSION SUITE
             </div>
-            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">PDF Watermark Tool</h1>
+            <h1 className="text-2xl lg:text-3xl font-bold tracking-tight text-fg">PDF Watermark Tool</h1>
             <p className="text-sm mt-1.5 text-slate-600 dark:text-purple-300/70">Add text or image watermarks with precise positioning.</p>
           </div>
 
@@ -297,12 +297,12 @@ export default function WatermarkPdfPage() {
               
               {/* Controls Column */}
               <div className="lg:col-span-1 space-y-4">
-                <div className="flex items-center gap-3 p-3.5 rounded-2xl border bg-white dark:bg-[var(--card)] border-slate-200 dark:border-[#2b2545] shadow-sm">
+                <div className="flex items-center gap-3 p-3.5 rounded-2xl border bg-card border-card shadow-sm">
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border bg-white dark:bg-purple-950/60 border-slate-200 dark:border-purple-800/60 text-slate-900 dark:text-purple-300">
                     <FileText size={18} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate text-slate-900 dark:text-slate-200">{rawFile.name}</p>
+                    <p className="text-sm font-medium truncate text-fg">{rawFile.name}</p>
                     <p className="text-xs text-slate-600 dark:text-purple-300/70">
                       {formatSize(rawFile.size)} • {numPages} {numPages === 1 ? 'Page' : 'Pages'}
                     </p>
@@ -313,7 +313,7 @@ export default function WatermarkPdfPage() {
                 </div>
 
                 {/* Type Switcher */}
-                <div className="p-1 rounded-2xl border flex gap-1 bg-white dark:bg-[var(--card)] border-slate-200 dark:border-[#2b2545] shadow-sm">
+                <div className="p-1 rounded-2xl border flex gap-1 bg-card border-card shadow-sm">
                   <button
                     type="button"
                     onClick={() => setWatermarkType("text")}
@@ -339,7 +339,7 @@ export default function WatermarkPdfPage() {
                 </div>
 
                 {/* Visibility Mode Switcher */}
-                <div className="p-4 rounded-2xl border space-y-2 bg-white dark:bg-[var(--card)] border-slate-200 dark:border-[#2b2545] shadow-sm">
+                <div className="p-4 rounded-2xl border space-y-2 bg-card border-card shadow-sm">
                   <label className="text-xs font-semibold flex items-center gap-1.5 text-slate-900 dark:text-purple-300">
                     <Eye size={13} className="text-slate-900 dark:text-purple-400" /> Visibility Style
                   </label>
@@ -350,7 +350,7 @@ export default function WatermarkPdfPage() {
                       className={`py-2 px-3 rounded-xl text-xs font-medium border transition-all ${
                         visibilityMode === "transparent"
                           ? "border-slate-900 dark:border-purple-500/60 bg-white dark:bg-[#362758]/50 text-slate-900 dark:text-purple-200 font-bold dark:font-semibold shadow-sm"
-                          : "border-slate-200 dark:border-[#2b2545] bg-slate-50 dark:bg-[var(--card)] text-slate-600 dark:text-purple-300/70 hover:text-slate-900 dark:hover:text-slate-200"
+                          : "border-card bg-card text-slate-600 dark:text-purple-300/70 hover:text-slate-900 dark:hover:text-slate-200"
                       }`}
                     >
                       Transparent
@@ -361,7 +361,7 @@ export default function WatermarkPdfPage() {
                       className={`py-2 px-3 rounded-xl text-xs font-medium border transition-all ${
                         visibilityMode === "visible"
                           ? "border-slate-900 dark:border-purple-500/60 bg-white dark:bg-[#362758]/50 text-slate-900 dark:text-purple-200 font-bold dark:font-semibold shadow-sm"
-                          : "border-slate-200 dark:border-[#2b2545] bg-slate-50 dark:bg-[var(--card)] text-slate-600 dark:text-purple-300/70 hover:text-slate-900 dark:hover:text-slate-200"
+                          : "border-card bg-card text-slate-600 dark:text-purple-300/70 hover:text-slate-900 dark:hover:text-slate-200"
                       }`}
                     >
                       Fully Visible
@@ -371,7 +371,7 @@ export default function WatermarkPdfPage() {
 
                 {/* Position Grid Options */}
                 {!isTiled && (
-                  <div className="p-4 rounded-2xl border space-y-2 bg-white dark:bg-[var(--card)] border-slate-200 dark:border-[#2b2545] shadow-sm">
+                  <div className="p-4 rounded-2xl border space-y-2 bg-card border-card shadow-sm">
                     <label className="text-xs font-semibold flex items-center gap-1.5 text-slate-900 dark:text-purple-300">
                       <Grid size={13} className="text-slate-900 dark:text-purple-400" /> Position
                     </label>
@@ -388,7 +388,7 @@ export default function WatermarkPdfPage() {
                             className={`h-10 rounded-xl border flex items-center justify-center transition-all ${
                               isActive
                                 ? "bg-slate-900 dark:bg-[#581c87] text-white border-slate-900 dark:border-purple-500 shadow-md"
-                                : "bg-white dark:bg-[var(--card)] border-slate-200 dark:border-[#2b2545] text-slate-600 dark:text-purple-300/70 hover:text-slate-900 dark:hover:text-white"
+                                : "bg-card border-card text-slate-600 dark:text-purple-300/70 hover:text-slate-900 dark:hover:text-white"
                             }`}
                           >
                             <Icon size={16} />
@@ -401,7 +401,7 @@ export default function WatermarkPdfPage() {
 
                 {/* Text Config Options */}
                 {watermarkType === "text" && (
-                  <div className="p-4 rounded-2xl border space-y-3 bg-white dark:bg-[var(--card)] border-slate-200 dark:border-[#2b2545] shadow-sm">
+                  <div className="p-4 rounded-2xl border space-y-3 bg-card border-card shadow-sm">
                     <p className="text-xs font-semibold text-slate-900 dark:text-purple-300">Text Settings</p>
 
                     <div>
@@ -411,7 +411,7 @@ export default function WatermarkPdfPage() {
                         value={text}
                         onChange={(e) => setText(e.target.value)}
                         placeholder="CONFIDENTIAL"
-                        className="w-full p-2.5 rounded-xl border text-sm focus:outline-none focus:border-slate-900 dark:focus:border-purple-500 border-slate-200 dark:border-[#2b2545] bg-white dark:bg-[var(--card)] text-slate-900 dark:text-slate-100"
+                        className="w-full p-2.5 rounded-xl border text-sm focus:outline-none focus:border-slate-900 dark:focus:border-purple-500 border-card bg-card text-fg"
                       />
                     </div>
 
@@ -422,7 +422,7 @@ export default function WatermarkPdfPage() {
                           type="color"
                           value={textColor}
                           onChange={(e) => setTextColor(e.target.value)}
-                          className="w-full h-9 rounded-xl border cursor-pointer p-1 border-slate-200 dark:border-[#2b2545] bg-white dark:bg-[var(--card)]"
+                          className="w-full h-9 rounded-xl border cursor-pointer p-1 border-card bg-card"
                         />
                       </div>
                       <div>
@@ -433,7 +433,7 @@ export default function WatermarkPdfPage() {
                             disabled={!useBgColor}
                             value={bgColor}
                             onChange={(e) => setBgColor(e.target.value)}
-                            className="w-full h-9 rounded-xl border cursor-pointer p-1 disabled:opacity-40 border-slate-200 dark:border-[#2b2545] bg-white dark:bg-[var(--card)]"
+                            className="w-full h-9 rounded-xl border cursor-pointer p-1 disabled:opacity-40 border-card bg-card"
                           />
                           <input
                             type="checkbox"
@@ -473,12 +473,12 @@ export default function WatermarkPdfPage() {
 
                 {/* Image Config Options */}
                 {watermarkType === "image" && (
-                  <div className="p-4 rounded-2xl border space-y-3 bg-white dark:bg-[var(--card)] border-slate-200 dark:border-[#2b2545] shadow-sm">
+                  <div className="p-4 rounded-2xl border space-y-3 bg-card border-card shadow-sm">
                     <p className="text-xs font-semibold text-slate-900 dark:text-purple-300">Image Settings</p>
 
                     <div
                       onClick={() => imageInputRef.current?.click()}
-                      className="cursor-pointer border border-dashed rounded-xl p-4 text-center transition-colors border-slate-300 dark:border-[#2b2545] hover:border-slate-400 dark:hover:border-purple-500 bg-white dark:bg-[var(--card)]"
+                      className="cursor-pointer border border-dashed rounded-xl p-4 text-center transition-colors border-card hover:border-slate-400 dark:hover:border-purple-500 bg-card"
                     >
                       <input
                         ref={imageInputRef}
@@ -545,7 +545,7 @@ export default function WatermarkPdfPage() {
               </div>
 
               {/* Preview Column */}
-              <div className="rounded-2xl border p-6 flex flex-col items-center justify-center relative min-h-[400px] overflow-hidden lg:col-span-2 bg-white dark:bg-[var(--card)] border-slate-200 dark:border-[#2b2545] shadow-sm">
+              <div className="rounded-2xl border p-6 flex flex-col items-center justify-center relative min-h-[400px] overflow-hidden lg:col-span-2 bg-card border-card shadow-sm">
                 <div className="absolute top-4 left-4 text-xs font-medium flex items-center gap-1.5 text-slate-600 dark:text-purple-300/70">
                   <Sparkles size={13} className="text-slate-900 dark:text-purple-400" /> Document Pages Preview
                 </div>
@@ -556,7 +556,7 @@ export default function WatermarkPdfPage() {
                   </div>
                 )}
 
-                <div className="max-h-[380px] max-w-[300px] w-full overflow-y-auto flex flex-col items-center gap-4 p-4 rounded-xl bg-slate-100 dark:bg-black/10 border border-slate-200 dark:border-[#2b2545] [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-300 dark:[&::-webkit-scrollbar-thumb]:bg-purple-500/30 [&::-webkit-scrollbar-thumb]:rounded-full">
+                <div className="max-h-[380px] max-w-[300px] w-full overflow-y-auto flex flex-col items-center gap-4 p-4 rounded-xl bg-slate-100 dark:bg-black/10 border border-card [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-300 dark:[&::-webkit-scrollbar-thumb]:bg-purple-500/30 [&::-webkit-scrollbar-thumb]:rounded-full">
                   {renderedPages && Object.keys(renderedPages).length > 0 ? (
                     Object.entries(renderedPages).map(([pageNum, dataUrl]) => (
                       <div key={pageNum} className="relative flex flex-col items-center w-full group">

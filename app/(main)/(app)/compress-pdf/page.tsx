@@ -122,10 +122,10 @@ export default function CompressPdfPage() {
   return (
     <div className="max-w-5xl mx-auto w-full px-4">
       <div className="text-center mb-8">
-        <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-50 dark:bg-[var(--card)] border border-slate-200 dark:border-[#272b36] flex items-center justify-center mb-3 text-slate-900 dark:text-white">
+        <div className="w-14 h-14 mx-auto rounded-2xl bg-card border border-card flex items-center justify-center mb-3 text-fg">
           <FileArchive size={28} />
         </div>
-        <h1 className="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Compress PDF</h1>
+        <h1 className="text-2xl lg:text-3xl font-extrabold text-fg tracking-tight">Compress PDF</h1>
         <p className="text-slate-600 dark:text-[#9ca3af] text-sm mt-1.5 max-w-lg mx-auto">
           Select your target size and compress your PDF while keeping the best possible quality.
         </p>
@@ -152,27 +152,27 @@ export default function CompressPdfPage() {
             handleFile(e.dataTransfer.files);
           }}
           onClick={() => inputRef.current?.click()}
-          className={`cursor-pointer rounded-[32px] p-16 h-[380px] flex flex-col items-center justify-center text-center transition-all bg-white dark:bg-[var(--background-secondary)] border border-slate-200 dark:border-[#272c3a] shadow-xl ${
+          className={`cursor-pointer rounded-[32px] p-16 h-[380px] flex flex-col items-center justify-center text-center transition-all bg-[var(--background-secondary)] border border-card shadow-xl ${
             isDragging ? "border-slate-900 dark:border-white scale-[1.01]" : "hover:border-slate-300 dark:hover:border-[#333a4a]"
           }`}
         >
-          <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-[var(--background-secondary)] mx-auto flex items-center justify-center mb-4 text-slate-900 dark:text-white shadow-sm border border-slate-300 dark:border-[#32394a]">
+          <div className="w-14 h-14 rounded-2xl bg-[var(--background-secondary)] mx-auto flex items-center justify-center mb-4 text-fg shadow-sm border border-card">
             <Upload size={26} />
           </div>
-          <p className="text-slate-900 dark:text-white font-semibold text-lg">Click to browse or drag & drop PDFs</p>
+          <p className="text-fg font-semibold text-lg">Click to browse or drag & drop PDFs</p>
           <p className="text-slate-600 dark:text-[#9ca3af] text-sm mt-1">Upload a document to start compression</p>
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-[#222632] rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="bg-card border border-card rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-[var(--card)] border border-slate-200 dark:border-[#272b36] flex items-center justify-center shrink-0 text-slate-900 dark:text-white">
+              <div className="w-10 h-10 rounded-xl bg-card border border-card flex items-center justify-center shrink-0 text-fg">
                 <FileText size={20} />
               </div>
               <div className="min-w-0">
-                <p className="text-slate-900 dark:text-white text-sm font-bold truncate">{fileDetails.name}</p>
+                <p className="text-fg text-sm font-bold truncate">{fileDetails.name}</p>
                 <p className="text-xs text-slate-600 dark:text-[#9ca3af] mt-0.5">
-                  Original Size: <strong className="text-slate-900 dark:text-white">{fileDetails.formattedSize}</strong>
+                  Original Size: <strong className="text-fg">{fileDetails.formattedSize}</strong>
                 </p>
               </div>
             </div>
@@ -190,11 +190,11 @@ export default function CompressPdfPage() {
             </button>
           </div>
 
-          <div className="bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-[#222632] rounded-3xl p-6 shadow-md space-y-6">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#222632]">
+          <div className="bg-card border border-card rounded-3xl p-6 shadow-md space-y-6">
+            <div className="flex items-center justify-between pb-3 border-b border-card">
               <div className="flex items-center gap-2">
-                <FileArchive size={18} className="text-slate-900 dark:text-white" />
-                <span className="text-sm font-extrabold text-slate-900 dark:text-white">Compression Configuration</span>
+                <FileArchive size={18} className="text-fg" />
+                <span className="text-sm font-extrabold text-fg">Compression Configuration</span>
               </div>
             </div>
 
@@ -211,10 +211,10 @@ export default function CompressPdfPage() {
                     setDone(false);
                     setErrorMessage(null);
                   }}
-                  className="w-full bg-slate-50 dark:bg-[var(--card)] border border-slate-200 dark:border-[#272b36] rounded-xl px-3.5 py-3 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-slate-900 dark:border-white cursor-pointer"
+                  className="w-full bg-card border border-card rounded-xl px-3.5 py-3 text-fg text-sm focus:outline-none focus:border-slate-900 dark:border-white cursor-pointer"
                 >
                   {options.map((opt) => (
-                    <option key={opt.targetKB} value={opt.targetKB} className="bg-slate-50 dark:bg-[var(--card)] text-slate-900 dark:text-white">
+                    <option key={opt.targetKB} value={opt.targetKB} className="bg-card text-fg">
                       {opt.label}
                     </option>
                   ))}
@@ -239,7 +239,7 @@ export default function CompressPdfPage() {
                       setDone(false);
                       setErrorMessage(null);
                     }}
-                    className="py-3 px-6 rounded-2xl border border-slate-200 dark:border-[#272b36] text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-slate-900 dark:text-white font-bold text-xs transition-colors"
+                    className="py-3 px-6 rounded-2xl border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-fg font-bold text-xs transition-colors"
                   >
                     Clear All
                   </button>
@@ -262,8 +262,8 @@ export default function CompressPdfPage() {
 
                   {compressedSize && (
                     <p className="text-sm text-slate-600 dark:text-[#9ca3af]">
-                      Size reduced from <strong className="text-slate-900 dark:text-white">{fileDetails.formattedSize}</strong> to{" "}
-                      <strong className="text-slate-900 dark:text-white">{formatSize(compressedSize)}</strong>
+                      Size reduced from <strong className="text-fg">{fileDetails.formattedSize}</strong> to{" "}
+                      <strong className="text-fg">{formatSize(compressedSize)}</strong>
                       {calculateSavings() > 0 && (
                         <span className="ml-2.5 px-2.5 py-0.5 rounded-full text-xs bg-emerald-950/50 text-emerald-400 border border-emerald-800 font-bold inline-block">
                           -{calculateSavings()}%
@@ -276,7 +276,7 @@ export default function CompressPdfPage() {
                     <button
                       type="button"
                       onClick={() => setDone(false)}
-                      className="py-3 px-6 rounded-2xl border border-slate-200 dark:border-[#272b36] text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-slate-900 dark:text-white font-bold text-xs transition-colors"
+                      className="py-3 px-6 rounded-2xl border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-fg font-bold text-xs transition-colors"
                     >
                       Compress Again
                     </button>

@@ -138,16 +138,16 @@ export default function ExcelToPdf(): JSX.Element {
   const previewSlicedData = currentSheet ? getSlicedData(currentSheet.data) : [];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[var(--background)] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 antialiased selection:bg-slate-900 dark:selection:bg-slate-700 selection:text-white">
-      <div className="max-w-4xl w-full space-y-8 bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800/80 p-8 rounded-3xl shadow-xl dark:shadow-2xl backdrop-blur-xl">
+    <div className="min-h-screen bg-background text-fg flex flex-col items-center justify-center p-6 antialiased selection:bg-slate-900 dark:selection:bg-slate-700 selection:text-white">
+      <div className="max-w-4xl w-full space-y-8 bg-card border border-card p-8 rounded-3xl shadow-xl dark:shadow-2xl backdrop-blur-xl">
         
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold tracking-wide uppercase">
-            <Sparkles className="w-3.5 h-3.5 text-slate-900 dark:text-slate-300" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[var(--background-secondary)] border border-card text-muted text-xs font-semibold tracking-wide uppercase">
+            <Sparkles className="w-3.5 h-3.5 text-fg" />
             <span>Document Conversion Suite</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Excel to PDF Converter</h1>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <h1 className="text-3xl font-bold tracking-tight text-fg">Excel to PDF Converter</h1>
+          <p className="text-sm text-muted">
             Restrict and clip exact rows and columns from your spreadsheets for clean target PDF output.
           </p>
         </div>
@@ -163,14 +163,14 @@ export default function ExcelToPdf(): JSX.Element {
 
         {sheets.length > 0 && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-200 dark:border-slate-700/60 p-4 rounded-2xl">
+            <div className="flex items-center justify-between bg-[var(--background-secondary)] border border-card p-4 rounded-2xl">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                   <FileSpreadsheet className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[220px]">{fileName}</h3>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400">{sheets.length} worksheet(s) found</span>
+                  <h3 className="text-xs font-bold text-fg truncate max-w-[220px]">{fileName}</h3>
+                  <span className="text-[11px] text-muted">{sheets.length} worksheet(s) found</span>
                 </div>
               </div>
               <button
@@ -184,7 +184,7 @@ export default function ExcelToPdf(): JSX.Element {
 
             {sheets.length > 1 && (
               <div className="space-y-2">
-                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+                <span className="text-[11px] text-muted font-bold uppercase tracking-wider flex items-center gap-1.5">
                   <Layers className="w-3.5 h-3.5 text-slate-900 dark:text-slate-400" /> Select Active Worksheet Preview
                 </span>
                 <div className="flex gap-2 overflow-x-auto pb-2">
@@ -195,7 +195,7 @@ export default function ExcelToPdf(): JSX.Element {
                       className={`py-2 px-4 rounded-xl text-xs font-semibold tracking-wide transition shrink-0 cursor-pointer border ${
                         selectedSheetIndex === idx
                           ? "bg-slate-900 border-slate-900 text-white shadow-sm dark:bg-slate-900 dark:border-slate-700"
-                          : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 dark:bg-[var(--background-secondary)] dark:border-slate-700/60 dark:text-slate-400 dark:hover:bg-slate-800"
+                          : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-[var(--background-secondary)] dark:border-slate-700/60 dark:text-slate-400 dark:hover:bg-slate-800"
                       }`}
                     >
                       {s.name}
@@ -205,66 +205,66 @@ export default function ExcelToPdf(): JSX.Element {
               </div>
             )}
 
-            <div className="bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-200 dark:border-slate-700/60 rounded-2xl p-5 space-y-4">
-              <div className="flex items-center space-x-2 text-slate-900 dark:text-slate-200 text-sm font-semibold border-b border-slate-200 dark:border-slate-700 pb-2">
-                <Sliders className="w-4 h-4 text-slate-700 dark:text-slate-400" />
+            <div className="bg-[var(--background-secondary)] border border-card rounded-2xl p-5 space-y-4">
+              <div className="flex items-center space-x-2 text-fg text-sm font-semibold border-b border-card pb-2">
+                <Sliders className="w-4 h-4 text-muted" />
                 <span>Row & Column Range Restrictions</span>
               </div>
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 <div>
-                  <label className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase">Start Row</label>
+                  <label className="text-[11px] text-muted font-bold uppercase">Start Row</label>
                   <input
                     type="number"
                     min={1}
                     value={startRow}
                     onChange={(e) => setStartRow(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full bg-white dark:bg-[var(--card)] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
+                    className="w-full bg-card border border-card rounded-xl px-3 py-2 text-xs text-fg mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase">Max Rows (e.g. 60)</label>
+                  <label className="text-[11px] text-muted font-bold uppercase">Max Rows (e.g. 60)</label>
                   <input
                     type="number"
                     min={1}
                     value={maxRows}
                     onChange={(e) => setMaxRows(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full bg-white dark:bg-[var(--card)] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
+                    className="w-full bg-card border border-card rounded-xl px-3 py-2 text-xs text-fg mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase">Start Column</label>
+                  <label className="text-[11px] text-muted font-bold uppercase">Start Column</label>
                   <input
                     type="number"
                     min={1}
                     value={startCol}
                     onChange={(e) => setStartCol(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full bg-white dark:bg-[var(--card)] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
+                    className="w-full bg-card border border-card rounded-xl px-3 py-2 text-xs text-fg mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                   />
                 </div>
                 <div>
-                  <label className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase">Max Cols (e.g. 70)</label>
+                  <label className="text-[11px] text-muted font-bold uppercase">Max Cols (e.g. 70)</label>
                   <input
                     type="number"
                     min={1}
                     value={maxCols}
                     onChange={(e) => setMaxCols(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full bg-white dark:bg-[var(--card)] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
+                    className="w-full bg-card border border-card rounded-xl px-3 py-2 text-xs text-fg mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                   />
                 </div>
               </div>
             </div>
 
             {currentSheet && (
-              <div className="bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-200 dark:border-slate-700/60 rounded-2xl p-4 space-y-3">
-                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
+              <div className="bg-[var(--background-secondary)] border border-card rounded-2xl p-4 space-y-3">
+                <span className="text-[11px] text-muted font-bold uppercase tracking-wider">
                   Clipped Range Preview ({previewSlicedData.length} rows x {previewSlicedData[0]?.length || 0} cols)
                 </span>
-                <div className="max-h-[240px] overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-black/30">
-                  <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300 border-collapse">
+                <div className="max-h-[240px] overflow-auto rounded-xl border border-card bg-white dark:bg-black/30">
+                  <table className="w-full text-left text-xs text-muted border-collapse">
                     <tbody>
                       {previewSlicedData.slice(0, 10).map((row, rIdx) => (
-                        <tr key={rIdx} className="border-b border-slate-200 dark:border-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800/30">
+                        <tr key={rIdx} className="border-b border-card hover:bg-slate-100 dark:hover:bg-slate-800/30">
                           {row.map((cell, cIdx) => (
                             <td key={cIdx} className="p-2.5 truncate max-w-[120px]">
                               {cell !== null && cell !== undefined ? String(cell) : ""}

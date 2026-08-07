@@ -84,16 +84,16 @@ export default function PdfToPpt(): JSX.Element {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 antialiased selection:bg-blue-500 selection:text-white">
-      <div className="max-w-4xl w-full space-y-8 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 rounded-3xl shadow-2xl backdrop-blur-xl">
+    <div className="min-h-screen bg-white dark:bg-slate-950 text-fg flex flex-col items-center justify-center p-6 antialiased selection:bg-blue-500 selection:text-white">
+      <div className="max-w-4xl w-full space-y-8 bg-card border border-card p-8 rounded-3xl shadow-2xl backdrop-blur-xl">
         
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 text-xs font-semibold tracking-wide uppercase">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Document Conversion Suite</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">PDF to PowerPoint Converter</h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <h1 className="text-3xl font-bold tracking-tight text-fg">PDF to PowerPoint Converter</h1>
+          <p className="text-sm text-muted">
             Transform pages from your PDF documents directly into styled PowerPoint presentation slides (.pptx).
           </p>
         </div>
@@ -108,14 +108,14 @@ export default function PdfToPpt(): JSX.Element {
 
         {file && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-4 rounded-2xl">
+            <div className="flex items-center justify-between bg-[var(--background-secondary)] border border-card p-4 rounded-2xl">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[220px]">{file.name}</h3>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400">Ready for slide generation</span>
+                  <h3 className="text-xs font-bold text-fg truncate max-w-[220px]">{file.name}</h3>
+                  <span className="text-[11px] text-muted">Ready for slide generation</span>
                 </div>
               </div>
               <button
@@ -128,18 +128,18 @@ export default function PdfToPpt(): JSX.Element {
             </div>
 
             {loading && (
-              <div className="text-center py-12 text-slate-500 dark:text-slate-400 text-xs animate-pulse">
+              <div className="text-center py-12 text-muted text-xs animate-pulse">
                 Parsing PDF layout and creating PowerPoint presentation slides...
               </div>
             )}
 
             {success && (
-              <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 text-center space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-slate-900/10 dark:bg-slate-800 border border-slate-900/20 dark:border-slate-700 flex items-center justify-center text-slate-900 dark:text-slate-100 mx-auto">
+              <div className="bg-[var(--background-secondary)] border border-card rounded-2xl p-6 text-center space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-slate-900/10 dark:bg-slate-800 border border-slate-900/20 dark:border-slate-700 flex items-center justify-center text-fg mx-auto">
                   <Presentation className="w-6 h-6" />
                 </div>
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Presentation Ready!</h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Your PowerPoint slides have been compiled successfully.</p>
+                <h3 className="text-sm font-semibold text-fg">Presentation Ready!</h3>
+                <p className="text-xs text-muted">Your PowerPoint slides have been compiled successfully.</p>
               </div>
             )}
           </div>
@@ -161,8 +161,8 @@ export default function PdfToPpt(): JSX.Element {
           </button>
         )}
 
-        <div className="pt-2 flex items-center justify-center space-x-1.5 text-slate-400 dark:text-slate-500 text-xs">
-          <ShieldCheck className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+        <div className="pt-2 flex items-center justify-center space-x-1.5 text-muted text-xs">
+          <ShieldCheck className="w-4 h-4 text-muted" />
           <span>Secure PDF presentation conversion • No file retention</span>
         </div>
 

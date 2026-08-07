@@ -77,14 +77,14 @@ export default function WordToPdfPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[var(--background)] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 transition-colors">
-      <div className="max-w-3xl mx-auto w-full bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800/80 rounded-3xl p-8 sm:p-12 shadow-2xl transition-colors">
+    <div className="min-h-screen bg-background text-fg flex flex-col items-center justify-center p-6 transition-colors">
+      <div className="max-w-3xl mx-auto w-full bg-card border border-card rounded-3xl p-8 sm:p-12 shadow-2xl transition-colors">
         <div className="text-center mb-8 lg:mb-10">
           <div className="w-12 h-12 lg:w-14 lg:h-14 mx-auto rounded-2xl bg-purple-50 dark:bg-cyan-950/60 border border-purple-200 dark:border-cyan-800/40 flex items-center justify-center mb-4">
             <FileText className="text-purple-900 dark:text-cyan-400" size={24} />
           </div>
-          <h1 className="text-xl lg:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">Convert Word to PDF</h1>
-          <p className="text-slate-600 dark:text-slate-400 text-sm mt-1">Transform your Word documents into professional, secure PDF files instantly.</p>
+          <h1 className="text-xl lg:text-2xl font-bold text-fg tracking-tight">Convert Word to PDF</h1>
+          <p className="text-muted text-sm mt-1">Transform your Word documents into professional, secure PDF files instantly.</p>
         </div>
 
         {!file ? (
@@ -96,13 +96,13 @@ export default function WordToPdfPage() {
           />
         ) : (
           <div className="space-y-6">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-[var(--background)] border border-slate-200 dark:border-slate-800/80">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-background border border-card">
               <div className="w-9 h-9 rounded-lg bg-purple-100 dark:bg-cyan-500/10 border border-purple-200 dark:border-cyan-500/20 flex items-center justify-center shrink-0">
                 <FileText size={16} className="text-purple-900 dark:text-cyan-400" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-slate-900 dark:text-white text-sm truncate">{file.name}</p>
-                <p className="text-slate-500 dark:text-slate-400 text-xs">{formatSize(file.size)}</p>
+                <p className="text-fg text-sm truncate">{file.name}</p>
+                <p className="text-muted text-xs">{formatSize(file.size)}</p>
               </div>
               <button
                 onClick={() => { setFile(null); setError(null); }}

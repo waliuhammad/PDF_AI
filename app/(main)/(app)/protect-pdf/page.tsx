@@ -135,16 +135,16 @@ export default function ProtectPdfPage() {
     };
 
     return (
-        <div className="min-h-screen bg-white dark:bg-[var(--background)] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 transition-colors">
+        <div className="min-h-screen bg-background text-fg flex flex-col items-center justify-center p-6 transition-colors">
             {!file ? (
-                <div className="max-w-xl w-full bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800/80 rounded-3xl p-8 shadow-2xl space-y-6">
+                <div className="max-w-xl w-full bg-card border border-card rounded-3xl p-8 shadow-2xl space-y-6">
                     <div className="text-center space-y-3">
                         <div className="inline-flex items-center space-x-1.5 text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-cyan-400 bg-purple-50 dark:bg-cyan-950/60 px-3 py-1.5 rounded-full border border-purple-200 dark:border-cyan-800/40">
                             <Sparkles size={13} />
                             <span>Document Conversion Suite</span>
                         </div>
-                        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Protect PDF</h1>
-                        <p className="text-slate-600 dark:text-slate-400 text-sm">
+                        <h1 className="text-3xl font-bold tracking-tight text-fg">Protect PDF</h1>
+                        <p className="text-muted text-sm">
                             Add a password so only people you choose can open this file.
                         </p>
                     </div>
@@ -162,26 +162,26 @@ export default function ProtectPdfPage() {
                     />
                 </div>
             ) : (
-                <div className="max-w-xl w-full bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800/80 rounded-3xl p-8 shadow-2xl space-y-6">
+                <div className="max-w-xl w-full bg-card border border-card rounded-3xl p-8 shadow-2xl space-y-6">
                     <div className="text-center space-y-3">
                         <div className="inline-flex items-center space-x-1.5 text-xs font-semibold uppercase tracking-wider text-purple-900 dark:text-cyan-400 bg-purple-50 dark:bg-cyan-950/60 px-3 py-1.5 rounded-full border border-purple-200 dark:border-cyan-800/40">
                             <Sparkles size={13} />
                             <span>Document Conversion Suite</span>
                         </div>
-                        <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Protect PDF</h1>
-                        <p className="text-slate-600 dark:text-slate-400 text-sm">
+                        <h1 className="text-3xl font-bold tracking-tight text-fg">Protect PDF</h1>
+                        <p className="text-muted text-sm">
                             Configure encryption settings for your document.
                         </p>
                     </div>
 
                     <form onSubmit={handleProtect} className="space-y-6">
-                        <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-[var(--card)] border border-slate-200 dark:border-slate-700/80">
+                        <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-card">
                             <div className="w-9 h-9 rounded-lg bg-purple-100 dark:bg-cyan-500/10 text-purple-900 dark:text-cyan-400 flex items-center justify-center shrink-0 border border-purple-200 dark:border-cyan-500/20">
                                 <FileText size={16} />
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-slate-900 dark:text-slate-200 text-sm truncate font-medium">{file.name}</p>
-                                <p className="text-slate-500 dark:text-slate-400 text-xs">{file.size}</p>
+                                <p className="text-fg text-sm truncate font-medium">{file.name}</p>
+                                <p className="text-muted text-xs">{file.size}</p>
                             </div>
                             <button type="button" onClick={() => { setFile(null); setDone(false); setNumPages(0); }} className="text-slate-400 hover:text-purple-900 dark:hover:text-cyan-400 shrink-0">
                                 <X size={16} />
@@ -189,11 +189,11 @@ export default function ProtectPdfPage() {
                         </div>
 
                         {numPages > 0 && (
-                            <div className="space-y-2 bg-slate-50 dark:bg-[var(--card)] p-4 rounded-xl border border-slate-200 dark:border-slate-700/80">
-                                <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                            <div className="space-y-2 bg-card p-4 rounded-xl border border-card">
+                                <span className="text-xs font-semibold uppercase tracking-wider text-muted">
                                     Document Preview ({numPages} Pages)
                                 </span>
-                                <div className="space-y-4 max-h-56 overflow-y-auto flex flex-col items-center p-2 rounded-lg bg-slate-200/50 dark:bg-black/40 border border-slate-300 dark:border-slate-800">
+                                <div className="space-y-4 max-h-56 overflow-y-auto flex flex-col items-center p-2 rounded-lg bg-slate-200/50 dark:bg-black/40 border border-card">
                                     {Array.from({ length: numPages }, (_, i) => (
                                         <div key={i} className="shadow-lg bg-white p-1.5 rounded">
                                             <p className="text-[10px] text-gray-500 mb-1 text-center font-medium">Page {i + 1}</p>
@@ -212,7 +212,7 @@ export default function ProtectPdfPage() {
                         <div className="space-y-4">
                             <div>
                                 <div className="flex items-center justify-between mb-2">
-                                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-400">
+                                    <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                                         Password
                                     </label>
                                     <button
@@ -230,7 +230,7 @@ export default function ProtectPdfPage() {
                                         value={password}
                                         onChange={(e) => { setPassword(e.target.value); setAutoGenerated(false); setCopied(false); }}
                                         placeholder="Enter password"
-                                        className="w-full bg-slate-50 dark:bg-[var(--card)] border border-slate-300 dark:border-slate-700/80 rounded-xl px-4 py-3 pr-20 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-900 dark:focus:border-cyan-500 text-sm"
+                                        className="w-full bg-card border border-card rounded-xl px-4 py-3 pr-20 text-fg focus:outline-none focus:border-purple-900 dark:focus:border-cyan-500 text-sm"
                                     />
                                     <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                                         {autoGenerated && password.length > 0 && (
@@ -244,14 +244,14 @@ export default function ProtectPdfPage() {
                                     </div>
                                 </div>
                                 {autoGenerated && (
-                                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                    <p className="text-xs text-muted mt-1">
                                         We generated this password for you — make sure to copy and save it before continuing.
                                     </p>
                                 )}
                             </div>
 
                             <div>
-                                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-400 mb-2">
+                                <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-2">
                                     Confirm Password
                                 </label>
                                 <input
@@ -259,7 +259,7 @@ export default function ProtectPdfPage() {
                                     value={confirmPassword}
                                     onChange={(e) => { setConfirmPassword(e.target.value); setAutoGenerated(false); }}
                                     placeholder="Re-enter password"
-                                    className="w-full bg-slate-50 dark:bg-[var(--card)] border border-slate-300 dark:border-slate-700/80 rounded-xl px-4 py-3 text-slate-900 dark:text-slate-100 focus:outline-none focus:border-purple-900 dark:focus:border-cyan-500 text-sm"
+                                    className="w-full bg-card border border-card rounded-xl px-4 py-3 text-fg focus:outline-none focus:border-purple-900 dark:focus:border-cyan-500 text-sm"
                                 />
                                 {confirmPassword.length > 0 && !passwordsMatch && (
                                     <p className="text-xs text-red-600 dark:text-cyan-400 mt-1">Passwords do not match</p>
@@ -291,7 +291,7 @@ export default function ProtectPdfPage() {
                         </button>
                     </form>
 
-                    <div className="flex items-center justify-center space-x-2 text-xs text-slate-500 dark:text-slate-400 pt-2 border-t border-slate-200 dark:border-slate-800/60">
+                    <div className="flex items-center justify-center space-x-2 text-xs text-muted pt-2 border-t border-card">
                         <ShieldCheck size={16} className="text-purple-900 dark:text-cyan-400" />
                         <span>Secure client-side processing • Password encrypted securely</span>
                     </div>

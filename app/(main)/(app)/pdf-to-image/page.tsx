@@ -223,7 +223,7 @@ export default function PdfToImageConverter() {
   };
 
   return (
-    <main className="min-h-screen bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 py-12 px-4 sm:px-6 lg:px-8 transition-colors">
+    <main className="min-h-screen bg-card text-fg py-12 px-4 sm:px-6 lg:px-8 transition-colors">
       <div className="max-w-3xl mx-auto space-y-8">
         
         {/* Header Badge & Title */}
@@ -231,16 +231,16 @@ export default function PdfToImageConverter() {
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-purple-50 dark:bg-slate-800 border border-purple-200 dark:border-slate-700 text-purple-900 dark:text-purple-300 text-xs font-semibold tracking-wide uppercase shadow-sm">
             <FileCheck className="w-4 h-4" /> Professional PDF Toolkit
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-fg tracking-tight">
             PDF to Image Converter
           </h1>
-          <p className="text-slate-600 dark:text-slate-400 text-sm sm:text-base max-w-xl mx-auto">
+          <p className="text-muted text-sm sm:text-base max-w-xl mx-auto">
             Convert your whole document or a specific targeted page directly into actual image files securely.
           </p>
         </div>
 
         {/* Main Card Container */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 space-y-6 transition-colors">
+        <div className="bg-card rounded-3xl shadow-2xl border border-card p-6 sm:p-8 space-y-6 transition-colors">
           
           {error && (
             <div className="flex items-center gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800/80 text-red-700 dark:text-red-300 text-sm">
@@ -264,14 +264,14 @@ export default function PdfToImageConverter() {
               hint="or click to browse from your computer"
             />
           ) : (
-            <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--background-secondary)] border border-card shadow-sm">
               <div className="flex items-center gap-3 overflow-hidden">
                 <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-slate-800 text-purple-900 dark:text-purple-300 flex items-center justify-center flex-shrink-0 border border-purple-200 dark:border-slate-700">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div className="truncate">
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white truncate">{file.name}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-sm font-semibold text-fg truncate">{file.name}</p>
+                  <p className="text-xs text-muted">
                     {(file.size / (1024 * 1024)).toFixed(2)} MB • {loadingInfo ? "Analyzing..." : `${numPages} Pages Detected`}
                   </p>
                 </div>
@@ -289,7 +289,7 @@ export default function PdfToImageConverter() {
           {/* Mode Selector */}
           {file && (
             <div className="space-y-4 pt-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <label className="block text-xs font-bold uppercase tracking-wider text-muted">
                 Select Conversion Mode
               </label>
               <div className="grid grid-cols-2 gap-3">
@@ -299,7 +299,7 @@ export default function PdfToImageConverter() {
                   className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-semibold transition-all ${
                     mode === "whole"
                       ? "border-slate-900 dark:border-slate-700 bg-slate-900 dark:bg-slate-800 text-white shadow-md"
-                      : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                      : "border-card bg-[var(--background-secondary)] text-muted hover:bg-slate-100 dark:hover:bg-slate-800"
                   }`}
                 >
                   <Layers className="w-4 h-4" /> Whole Document
@@ -310,7 +310,7 @@ export default function PdfToImageConverter() {
                   className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-semibold transition-all ${
                     mode === "custom"
                       ? "border-slate-900 dark:border-slate-700 bg-slate-900 dark:bg-slate-800 text-white shadow-md"
-                      : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                      : "border-card bg-[var(--background-secondary)] text-muted hover:bg-slate-100 dark:hover:bg-slate-800"
                   }`}
                 >
                   <FileText className="w-4 h-4" /> Specific Page
@@ -318,8 +318,8 @@ export default function PdfToImageConverter() {
               </div>
 
               {mode === "custom" && (
-                <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 space-y-2">
-                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+                <div className="p-4 rounded-xl bg-[var(--background-secondary)] border border-card space-y-2">
+                  <label className="block text-xs font-semibold text-muted">
                     Target Page Number (1 to {numPages})
                   </label>
                   <input
@@ -328,7 +328,7 @@ export default function PdfToImageConverter() {
                     max={numPages}
                     value={pageNumber}
                     onChange={(e) => setPageNumber(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-lg border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-purple-900 dark:focus:ring-purple-400 focus:outline-none text-slate-900 dark:text-white bg-white dark:bg-slate-900"
+                    className="w-full px-4 py-2.5 rounded-lg border border-card focus:ring-2 focus:ring-purple-900 dark:focus:ring-purple-400 focus:outline-none text-fg bg-card"
                   />
                 </div>
               )}
@@ -338,7 +338,7 @@ export default function PdfToImageConverter() {
           {/* 5 Format Selector */}
           {file && (
             <div className="space-y-2">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+              <label className="block text-xs font-bold uppercase tracking-wider text-muted">
                 Select Output Image Format
               </label>
               <select
@@ -347,7 +347,7 @@ export default function PdfToImageConverter() {
                   const target = FORMAT_OPTIONS.find((item) => item.ext === e.target.value);
                   if (target) setSelectedFormat(target);
                 }}
-                className="w-full px-4 py-3 rounded-xl border border-slate-300 dark:border-slate-700 focus:ring-2 focus:ring-purple-900 dark:focus:ring-purple-400 focus:outline-none text-slate-900 dark:text-white bg-white dark:bg-slate-900 font-medium"
+                className="w-full px-4 py-3 rounded-xl border border-card focus:ring-2 focus:ring-purple-900 dark:focus:ring-purple-400 focus:outline-none text-fg bg-card font-medium"
               >
                 {FORMAT_OPTIONS.map((fmt) => (
                   <option key={fmt.ext} value={fmt.ext}>

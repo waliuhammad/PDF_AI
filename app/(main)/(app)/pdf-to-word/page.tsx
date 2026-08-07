@@ -169,8 +169,8 @@ export default function PdfToWordPage() {
         <div className="w-14 h-14 mx-auto rounded-2xl bg-purple-900/10 dark:bg-cyan-500/10 flex items-center justify-center mb-3 border border-purple-900/20 dark:border-cyan-500/20">
           <FileSpreadsheet className="text-purple-900 dark:text-cyan-400" size={28} />
         </div>
-        <h1 className="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Convert PDF to Word (DOCX)</h1>
-        <p className="text-slate-600 dark:text-slate-400 text-sm mt-1.5 max-w-lg mx-auto">
+        <h1 className="text-2xl lg:text-3xl font-extrabold text-fg tracking-tight">Convert PDF to Word (DOCX)</h1>
+        <p className="text-muted text-sm mt-1.5 max-w-lg mx-auto">
           Transform your static PDF document layout into a fully editable Microsoft Word document instantly.
         </p>
       </div>
@@ -191,15 +191,15 @@ export default function PdfToWordPage() {
         />
       ) : (
         <div className="space-y-6">
-          <div className="bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex items-center justify-between gap-4">
+          <div className="bg-card border border-card rounded-2xl p-5 shadow-sm flex items-center justify-between gap-4">
             <div className="flex items-center gap-3.5 min-w-0">
               <div className="w-12 h-12 rounded-xl bg-purple-900/10 dark:bg-cyan-500/10 flex items-center justify-center shrink-0 text-purple-900 dark:text-cyan-400 border border-purple-900/20 dark:border-cyan-500/20">
                 <FileText size={24} />
               </div>
               <div className="min-w-0">
-                <p className="text-slate-900 dark:text-white text-sm font-bold truncate">{selectedFile.name}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Size: <strong className="text-slate-900 dark:text-slate-200">{formatSize(selectedFile.size)}</strong> • {numPages} {numPages === 1 ? 'Page' : 'Pages'}
+                <p className="text-fg text-sm font-bold truncate">{selectedFile.name}</p>
+                <p className="text-xs text-muted mt-0.5">
+                  Size: <strong className="text-fg">{formatSize(selectedFile.size)}</strong> • {numPages} {numPages === 1 ? 'Page' : 'Pages'}
                 </p>
               </div>
             </div>
@@ -214,13 +214,13 @@ export default function PdfToWordPage() {
           </div>
 
           {/* Viewer Container with further reduced display size and sharp high-DPI text rendering */}
-          <div className="bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col items-center justify-center relative min-h-[360px] shadow-sm overflow-hidden">
+          <div className="bg-card border border-card rounded-2xl p-6 flex flex-col items-center justify-center relative min-h-[360px] shadow-sm overflow-hidden">
             {isRendering && !renderedPages && (
               <div className="absolute inset-0 bg-black/10 backdrop-blur-xs flex items-center justify-center z-10">
                 <Loader2 className="animate-spin text-purple-900 dark:text-cyan-400" size={32} />
               </div>
             )}
-            <div className="max-h-[320px] max-w-[260px] w-full overflow-y-auto flex flex-col items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-[var(--background)] border border-slate-200 dark:border-slate-800 [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-300 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full">
+            <div className="max-h-[320px] max-w-[260px] w-full overflow-y-auto flex flex-col items-center gap-3 p-3 rounded-xl bg-background border border-card [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-300 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full">
               {renderedPages && Object.keys(renderedPages).length > 0 ? (
                 Object.entries(renderedPages).map(([pageNum, dataUrl]) => (
                   <div key={pageNum} className="flex flex-col items-center w-full">
@@ -228,7 +228,7 @@ export default function PdfToWordPage() {
                       src={dataUrl}
                       alt={`Page ${pageNum}`}
                       style={{ width: `${(0.15 / (0.15 * 4.0)) * 100 * 4.0}%`, maxWidth: '100%' }}
-                      className="rounded shadow-md border border-slate-200 dark:border-slate-800 h-auto bg-white"
+                      className="rounded shadow-md border border-card h-auto bg-white"
                     />
                   </div>
                 ))
@@ -256,7 +256,7 @@ export default function PdfToWordPage() {
             <button
               type="button"
               onClick={clearFile}
-              className="py-4 px-8 rounded-2xl border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold text-sm transition-colors"
+              className="py-4 px-8 rounded-2xl border border-card text-muted hover:text-slate-900 dark:hover:text-white font-bold text-sm transition-colors"
             >
               Select Different File
             </button>

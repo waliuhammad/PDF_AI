@@ -77,20 +77,20 @@ export default function PptToPdfPage() {
   };
 
   return (
-    <main className="min-h-screen bg-white dark:bg-[var(--background)] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 selection:bg-slate-900 dark:selection:bg-sky-500 selection:text-white">
-      <div className="max-w-3xl w-full bg-white dark:bg-[var(--card)] rounded-3xl shadow-2xl p-10 border border-slate-200 dark:border-slate-800 flex flex-col items-center">
+    <main className="min-h-screen bg-background text-fg flex flex-col items-center justify-center p-6 selection:bg-slate-900 dark:selection:bg-sky-500 selection:text-white">
+      <div className="max-w-3xl w-full bg-card rounded-3xl shadow-2xl p-10 border border-card flex flex-col items-center">
         
         {/* Badge */}
-        <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/60 text-slate-700 dark:text-sky-400 text-xs font-semibold tracking-wide uppercase mb-6 shadow-sm">
+        <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[var(--background-secondary)] border border-card text-slate-700 dark:text-sky-400 text-xs font-semibold tracking-wide uppercase mb-6 shadow-sm">
           <Sparkles className="w-3.5 h-3.5" />
           DOCUMENT CONVERSION SUITE
         </div>
 
         {/* Title & Subtitle */}
-        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2 text-slate-900 dark:text-white text-center">
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2 text-fg text-center">
           PPT to PDF Converter
         </h1>
-        <p className="text-slate-600 dark:text-slate-400 text-sm text-center mb-8 max-w-md">
+        <p className="text-muted text-sm text-center mb-8 max-w-md">
           Transform your PowerPoint presentation slides into clean, secure target PDF output.
         </p>
 

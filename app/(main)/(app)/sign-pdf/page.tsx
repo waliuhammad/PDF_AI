@@ -196,23 +196,23 @@ export default function SignPdfPage() {
   const isFormValid = mode === "type" ? signatureText.trim().length > 0 : true;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[var(--background)] text-slate-900 dark:text-slate-100 flex items-center justify-center p-4 font-sans transition-colors">
-      <div className="w-full max-w-4xl bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800/80 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+    <div className="min-h-screen bg-background text-fg flex items-center justify-center p-4 font-sans transition-colors">
+      <div className="w-full max-w-4xl bg-card border border-card rounded-3xl p-8 shadow-2xl relative overflow-hidden">
         
         {!file ? (
           <>
             {/* Header Badge */}
             <div className="flex justify-center mb-6">
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-900/5 dark:bg-slate-900/60 border border-slate-900/10 dark:border-slate-800 text-slate-900 dark:text-slate-300 text-xs font-semibold tracking-wide">
-                <Sparkles size={13} className="text-slate-900 dark:text-slate-100" />
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-900/5 dark:bg-slate-900/60 border border-slate-900/10 dark:border-slate-800 text-fg text-xs font-semibold tracking-wide">
+                <Sparkles size={13} className="text-fg" />
                 DOCUMENT CONVERSION SUITE
               </div>
             </div>
 
             {/* Title & Subtitle */}
             <div className="text-center mb-10">
-              <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white mb-2">Sign PDF Tool</h1>
-              <p className="text-slate-600 dark:text-slate-400 text-sm">Add text or drawn signatures with precise positioning.</p>
+              <h1 className="text-3xl font-bold tracking-tight text-fg mb-2">Sign PDF Tool</h1>
+              <p className="text-muted text-sm">Add text or drawn signatures with precise positioning.</p>
             </div>
 
             {/* Upload Box */}
@@ -230,19 +230,19 @@ export default function SignPdfPage() {
           </>
         ) : (
           <div className="space-y-6">
-            <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
+            <div className="flex items-center justify-between border-b border-card pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-900/5 dark:bg-slate-800 border border-slate-900/10 dark:border-slate-700 flex items-center justify-center text-slate-900 dark:text-slate-100">
+                <div className="w-10 h-10 rounded-xl bg-slate-900/5 dark:bg-slate-800 border border-slate-900/10 dark:border-slate-700 flex items-center justify-center text-fg">
                   <FileText size={20} />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-white">{file.name}</p>
-                  <p className="text-slate-500 dark:text-slate-400 text-xs">{file.size} • {numPages} {numPages === 1 ? 'Page' : 'Pages'}</p>
+                  <p className="text-sm font-semibold text-fg">{file.name}</p>
+                  <p className="text-muted text-xs">{file.size} • {numPages} {numPages === 1 ? 'Page' : 'Pages'}</p>
                 </div>
               </div>
               <button 
                 onClick={() => { setFile(null); setPdfDocProxy(null); }} 
-                className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors"
+                className="w-8 h-8 rounded-lg bg-[var(--background-secondary)] hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-muted hover:text-slate-900 dark:hover:text-white transition-colors"
               >
                 <X size={16} />
               </button>
@@ -250,15 +250,15 @@ export default function SignPdfPage() {
 
             {/* PDF Preview & Pagination Controls */}
             {numPages > 0 && (
-              <div className="space-y-3 bg-slate-50 dark:bg-[var(--background-secondary)] p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
-                <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 font-medium">
+              <div className="space-y-3 bg-[var(--background-secondary)] p-4 rounded-2xl border border-card">
+                <div className="flex items-center justify-between text-xs text-muted font-medium">
                   <span>Page Preview (Page {currentPage} of {numPages})</span>
                   <div className="flex space-x-2">
                     <button
                       type="button"
                       disabled={currentPage <= 1}
                       onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      className="px-2.5 py-1 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-40 rounded text-xs text-slate-900 dark:text-white"
+                      className="px-2.5 py-1 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-40 rounded text-xs text-fg"
                     >
                       ← Prev
                     </button>
@@ -266,26 +266,26 @@ export default function SignPdfPage() {
                       type="button"
                       disabled={currentPage >= numPages}
                       onClick={() => setCurrentPage((p) => Math.min(numPages, p + 1))}
-                      className="px-2.5 py-1 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-40 rounded text-xs text-slate-900 dark:text-white"
+                      className="px-2.5 py-1 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-40 rounded text-xs text-fg"
                     >
                       Next →
                     </button>
                   </div>
                 </div>
-                <div className="flex justify-center bg-slate-200/50 dark:bg-black/40 rounded-xl p-2 overflow-hidden border border-slate-200 dark:border-slate-800/80">
+                <div className="flex justify-center bg-slate-200/50 dark:bg-black/40 rounded-xl p-2 overflow-hidden border border-card">
                   <canvas ref={previewCanvasRef} className="rounded shadow max-h-60 object-contain" />
                 </div>
               </div>
             )}
 
             {/* Config options */}
-            <div className="bg-slate-50 dark:bg-[var(--background-secondary)] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
-              <div className="flex gap-2 bg-slate-200/60 dark:bg-slate-900/60 p-1 rounded-xl border border-slate-300 dark:border-slate-800">
+            <div className="bg-[var(--background-secondary)] p-5 rounded-2xl border border-card space-y-4">
+              <div className="flex gap-2 bg-slate-200/60 dark:bg-slate-900/60 p-1 rounded-xl border border-card">
                 <button
                   type="button"
                   onClick={() => setMode("type")}
                   className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-colors ${
-                    mode === "type" ? "bg-slate-900 dark:bg-slate-800 text-white shadow" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                    mode === "type" ? "bg-slate-900 dark:bg-slate-800 text-white shadow" : "text-muted hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
                   Type Signature
@@ -294,7 +294,7 @@ export default function SignPdfPage() {
                   type="button"
                   onClick={() => setMode("draw")}
                   className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-colors ${
-                    mode === "draw" ? "bg-slate-900 dark:bg-slate-800 text-white shadow" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                    mode === "draw" ? "bg-slate-900 dark:bg-slate-800 text-white shadow" : "text-muted hover:text-slate-900 dark:hover:text-white"
                   }`}
                 >
                   Draw Signature
@@ -303,19 +303,19 @@ export default function SignPdfPage() {
 
               {mode === "type" ? (
                 <div>
-                  <label className="text-xs text-slate-600 dark:text-slate-400 block mb-1 font-medium">Your Name / Signature Text</label>
+                  <label className="text-xs text-muted block mb-1 font-medium">Your Name / Signature Text</label>
                   <input
                     type="text"
                     value={signatureText}
                     onChange={(e) => setSignatureText(e.target.value)}
                     placeholder="e.g. Wali Muhammad"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/80 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-slate-900 dark:focus:border-slate-100"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-card bg-card text-sm text-fg focus:outline-none focus:border-slate-900 dark:focus:border-slate-100"
                   />
                 </div>
               ) : (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                    <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                       Draw Signature
                     </label>
                     <div className="flex items-center space-x-3">
@@ -330,12 +330,12 @@ export default function SignPdfPage() {
                           />
                         ))}
                       </div>
-                      <button type="button" onClick={clearCanvas} className="text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white underline">
+                      <button type="button" onClick={clearCanvas} className="text-xs text-muted hover:text-slate-900 dark:hover:text-white underline">
                         Clear
                       </button>
                     </div>
                   </div>
-                  <div className="bg-white rounded-xl overflow-hidden border border-slate-300 dark:border-slate-700 flex justify-center p-2">
+                  <div className="bg-white rounded-xl overflow-hidden border border-card flex justify-center p-2">
                     <canvas
                       ref={canvasRef}
                       onMouseDown={startDrawing}
@@ -354,7 +354,7 @@ export default function SignPdfPage() {
               {/* Scope & Alignment */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-2">
                     Signing Scope
                   </label>
                   <div className="grid grid-cols-2 gap-2">
@@ -363,8 +363,8 @@ export default function SignPdfPage() {
                       onClick={() => setSignScope("specific")}
                       className={`py-2 text-xs font-semibold rounded-xl border transition-all ${
                         signScope === "specific"
-                          ? "bg-slate-900/5 dark:bg-slate-800 border-slate-900 dark:border-slate-100 text-slate-900 dark:text-white"
-                          : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/60 text-slate-600 dark:text-slate-400"
+                          ? "bg-slate-900/5 dark:bg-slate-800 border-slate-900 dark:border-slate-100 text-fg"
+                          : "border-card bg-card text-muted"
                       }`}
                     >
                       Page {currentPage}
@@ -374,8 +374,8 @@ export default function SignPdfPage() {
                       onClick={() => setSignScope("all")}
                       className={`py-2 text-xs font-semibold rounded-xl border transition-all ${
                         signScope === "all"
-                          ? "bg-slate-900/5 dark:bg-slate-800 border-slate-900 dark:border-slate-100 text-slate-900 dark:text-white"
-                          : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/60 text-slate-600 dark:text-slate-400"
+                          ? "bg-slate-900/5 dark:bg-slate-800 border-slate-900 dark:border-slate-100 text-fg"
+                          : "border-card bg-card text-muted"
                       }`}
                     >
                       All Pages
@@ -384,7 +384,7 @@ export default function SignPdfPage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-2">
                     Alignment
                   </label>
                   <div className="grid grid-cols-3 gap-2">
@@ -395,8 +395,8 @@ export default function SignPdfPage() {
                         onClick={() => setPosition(pos)}
                         className={`py-2 text-xs font-semibold rounded-xl border uppercase tracking-wider transition-all ${
                           position === pos
-                            ? "bg-slate-900/5 dark:bg-slate-800 border-slate-900 dark:border-slate-100 text-slate-900 dark:text-white"
-                            : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900/60 text-slate-600 dark:text-slate-400"
+                            ? "bg-slate-900/5 dark:bg-slate-800 border-slate-900 dark:border-slate-100 text-fg"
+                            : "border-card bg-card text-muted"
                         }`}
                       >
                         {pos}

@@ -340,16 +340,16 @@ export default function ImageToPdf(): JSX.Element {
   const usedPages = Array.from(new Set(images.map((img) => img.page))).sort((a, b) => a - b);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[var(--background)] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 antialiased selection:bg-slate-900 dark:selection:bg-blue-500 selection:text-white">
-      <div className="max-w-4xl w-full space-y-8 bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800/80 p-8 rounded-3xl shadow-xl dark:shadow-2xl backdrop-blur-xl">
+    <div className="min-h-screen bg-background text-fg flex flex-col items-center justify-center p-6 antialiased selection:bg-slate-900 dark:selection:bg-blue-500 selection:text-white">
+      <div className="max-w-4xl w-full space-y-8 bg-card border border-card p-8 rounded-3xl shadow-xl dark:shadow-2xl backdrop-blur-xl">
         
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-blue-500/10 border border-slate-200 dark:border-blue-500/20 text-slate-700 dark:text-blue-400 text-xs font-semibold tracking-wide uppercase">
             <Sparkles className="w-3.5 h-3.5 text-slate-900 dark:text-blue-400" />
             <span>Multi-Image Page Composition</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">Combine Multiple Images into a PDF</h1>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <h1 className="text-3xl font-bold tracking-tight text-fg">Combine Multiple Images into a PDF</h1>
+          <p className="text-sm text-muted">
             Arrange multiple images and custom text captions on an A4 layout. Images stack down the page and flow onto a new one once it is full.
           </p>
         </div>
@@ -367,7 +367,7 @@ export default function ImageToPdf(): JSX.Element {
         {images.length > 0 && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <span className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
+              <span className="text-xs text-muted font-bold uppercase tracking-wider">
                 Canvas Elements ({images.length})
               </span>
               <div className="flex items-center space-x-3">
@@ -403,7 +403,7 @@ export default function ImageToPdf(): JSX.Element {
                   className={`flex items-center space-x-2 p-2 rounded-xl border shrink-0 transition cursor-pointer ${
                     selectedImageId === item.id
                       ? "bg-slate-900 border-slate-900 text-white shadow-sm dark:bg-slate-800 dark:border-slate-600"
-                      : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 dark:bg-[var(--background-secondary)] dark:border-slate-700/60 dark:text-slate-400 dark:hover:bg-slate-800"
+                      : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-[var(--background-secondary)] dark:border-slate-700/60 dark:text-slate-400 dark:hover:bg-slate-800"
                   }`}
                 >
                   <img src={item.previewUrl} alt="" className="w-8 h-8 object-cover rounded-md border border-slate-200 dark:border-none" />
@@ -413,11 +413,11 @@ export default function ImageToPdf(): JSX.Element {
             </div>
 
             {selectedImg && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-200 dark:border-slate-700/60 rounded-2xl p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-[var(--background-secondary)] border border-card rounded-2xl p-6">
                 
                 {/* Visual Preview Box showing ALL images together on one page */}
-                <div className="flex flex-col items-center justify-center bg-slate-900/5 dark:bg-black/40 border border-slate-200 dark:border-slate-800 rounded-xl p-4 pt-10 relative min-h-[320px]">
-                  <span className="absolute top-3 left-3 text-[11px] text-slate-500 dark:text-slate-400 uppercase font-mono tracking-wider">
+                <div className="flex flex-col items-center justify-center bg-slate-900/5 dark:bg-black/40 border border-card rounded-xl p-4 pt-10 relative min-h-[320px]">
+                  <span className="absolute top-3 left-3 text-[11px] text-muted uppercase font-mono tracking-wider">
                     A4 Preview &mdash; {usedPages.length} {usedPages.length === 1 ? "page" : "pages"}
                   </span>
                   <div className="flex gap-3 overflow-x-auto max-w-full pb-1">
@@ -466,7 +466,7 @@ export default function ImageToPdf(): JSX.Element {
                           className={`text-[10px] font-mono ${
                             selectedImg?.page === pageNo
                               ? "text-slate-900 dark:text-blue-400 font-bold"
-                              : "text-slate-500 dark:text-slate-400"
+                              : "text-muted"
                           }`}
                         >
                           Page {pageIdx + 1}
@@ -480,50 +480,50 @@ export default function ImageToPdf(): JSX.Element {
                 <div className="space-y-5 max-h-[420px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700">
                   
                   <div className="space-y-3">
-                    <div className="flex items-center space-x-2 text-slate-900 dark:text-slate-200 text-sm font-semibold border-b border-slate-200 dark:border-slate-700 pb-2">
-                      <Sliders className="w-4 h-4 text-slate-700 dark:text-slate-400" />
+                    <div className="flex items-center space-x-2 text-fg text-sm font-semibold border-b border-card pb-2">
+                      <Sliders className="w-4 h-4 text-muted" />
                       <span>Selected Image Dimensions & Coordinates (mm)</span>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase">Width</label>
+                        <label className="text-[11px] text-muted font-bold uppercase">Width</label>
                         <input
                           type="number"
                           value={selectedImg.width}
                           onChange={(e) => handlePropertyChange("width", parseFloat(e.target.value) || 10)}
-                          className="w-full bg-white dark:bg-[var(--card)] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
+                          className="w-full bg-card border border-card rounded-xl px-3 py-1.5 text-xs text-fg mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase">Height</label>
+                        <label className="text-[11px] text-muted font-bold uppercase">Height</label>
                         <input
                           type="number"
                           value={selectedImg.height}
                           onChange={(e) => handlePropertyChange("height", parseFloat(e.target.value) || 10)}
-                          className="w-full bg-white dark:bg-[var(--card)] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
+                          className="w-full bg-card border border-card rounded-xl px-3 py-1.5 text-xs text-fg mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase">X Offset</label>
+                        <label className="text-[11px] text-muted font-bold uppercase">X Offset</label>
                         <input
                           type="number"
                           value={selectedImg.xPos}
                           onChange={(e) => handlePropertyChange("xPos", parseFloat(e.target.value) || 0)}
-                          className="w-full bg-white dark:bg-[var(--card)] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
+                          className="w-full bg-card border border-card rounded-xl px-3 py-1.5 text-xs text-fg mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase">Y Offset</label>
+                        <label className="text-[11px] text-muted font-bold uppercase">Y Offset</label>
                         <input
                           type="number"
                           value={selectedImg.yPos}
                           onChange={(e) => handlePropertyChange("yPos", parseFloat(e.target.value) || 0)}
-                          className="w-full bg-white dark:bg-[var(--card)] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
+                          className="w-full bg-card border border-card rounded-xl px-3 py-1.5 text-xs text-fg mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase">Page</label>
+                        <label className="text-[11px] text-muted font-bold uppercase">Page</label>
                         <input
                           type="number"
                           min={1}
@@ -532,7 +532,7 @@ export default function ImageToPdf(): JSX.Element {
                           onChange={(e) =>
                             handlePropertyChange("page", Math.max(0, Math.round(parseFloat(e.target.value) || 1) - 1))
                           }
-                          className="w-full bg-white dark:bg-[var(--card)] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
+                          className="w-full bg-card border border-card rounded-xl px-3 py-1.5 text-xs text-fg mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                         />
                       </div>
                     </div>
@@ -540,9 +540,9 @@ export default function ImageToPdf(): JSX.Element {
 
                   {/* Text Annotations Section */}
                   <div className="space-y-3 pt-2">
-                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-2">
-                      <div className="flex items-center space-x-2 text-slate-900 dark:text-slate-200 text-sm font-semibold">
-                        <Type className="w-4 h-4 text-slate-700 dark:text-slate-400" />
+                    <div className="flex items-center justify-between border-b border-card pb-2">
+                      <div className="flex items-center space-x-2 text-fg text-sm font-semibold">
+                        <Type className="w-4 h-4 text-muted" />
                         <span>Text Annotations</span>
                       </div>
                       <button
@@ -554,9 +554,9 @@ export default function ImageToPdf(): JSX.Element {
                     </div>
 
                     {selectedImg.texts.map((t, index) => (
-                      <div key={t.id} className="bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-700/80 rounded-xl p-3 space-y-3 shadow-sm dark:shadow-none">
+                      <div key={t.id} className="bg-card border border-card rounded-xl p-3 space-y-3 shadow-sm dark:shadow-none">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase">Text Item #{index + 1}</span>
+                          <span className="text-[11px] font-bold text-muted uppercase">Text Item #{index + 1}</span>
                           <button
                             onClick={() => handleDeleteTextAnnotation(t.id)}
                             className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition cursor-pointer"
@@ -570,16 +570,16 @@ export default function ImageToPdf(): JSX.Element {
                           value={t.text}
                           onChange={(e) => handleUpdateTextAnnotation(t.id, { text: e.target.value })}
                           placeholder="Enter caption text..."
-                          className="w-full bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-200 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
+                          className="w-full bg-[var(--background-secondary)] border border-card rounded-lg px-2.5 py-1.5 text-xs text-fg focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                         />
 
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <label className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">Font</label>
+                            <label className="text-[10px] text-muted uppercase">Font</label>
                             <select
                               value={t.fontFamily}
                               onChange={(e) => handleUpdateTextAnnotation(t.id, { fontFamily: e.target.value })}
-                              className="w-full bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-900 dark:text-slate-200 mt-0.5 focus:outline-none"
+                              className="w-full bg-[var(--background-secondary)] border border-card rounded-lg px-2 py-1 text-xs text-fg mt-0.5 focus:outline-none"
                             >
                               <option value="helvetica">Helvetica</option>
                               <option value="times">Times New Roman</option>
@@ -587,60 +587,60 @@ export default function ImageToPdf(): JSX.Element {
                             </select>
                           </div>
                           <div>
-                            <label className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">Size (pt)</label>
+                            <label className="text-[10px] text-muted uppercase">Size (pt)</label>
                             <input
                               type="number"
                               value={t.fontSize}
                               onChange={(e) => handleUpdateTextAnnotation(t.id, { fontSize: parseFloat(e.target.value) || 10 })}
-                              className="w-full bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-900 dark:text-slate-200 mt-0.5 focus:outline-none"
+                              className="w-full bg-[var(--background-secondary)] border border-card rounded-lg px-2 py-1 text-xs text-fg mt-0.5 focus:outline-none"
                             />
                           </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <label className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">X Coord (mm)</label>
+                            <label className="text-[10px] text-muted uppercase">X Coord (mm)</label>
                             <input
                               type="number"
                               value={t.x}
                               onChange={(e) => handleUpdateTextAnnotation(t.id, { x: parseFloat(e.target.value) || 0 })}
-                              className="w-full bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-900 dark:text-slate-200 mt-0.5 focus:outline-none"
+                              className="w-full bg-[var(--background-secondary)] border border-card rounded-lg px-2 py-1 text-xs text-fg mt-0.5 focus:outline-none"
                             />
                           </div>
                           <div>
-                            <label className="text-[10px] text-slate-500 dark:text-slate-400 uppercase">Y Coord (mm)</label>
+                            <label className="text-[10px] text-muted uppercase">Y Coord (mm)</label>
                             <input
                               type="number"
                               value={t.y}
                               onChange={(e) => handleUpdateTextAnnotation(t.id, { y: parseFloat(e.target.value) || 0 })}
-                              className="w-full bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-900 dark:text-slate-200 mt-0.5 focus:outline-none"
+                              className="w-full bg-[var(--background-secondary)] border border-card rounded-lg px-2 py-1 text-xs text-fg mt-0.5 focus:outline-none"
                             />
                           </div>
                         </div>
 
                         <div className="flex items-center justify-between pt-1">
                           <div className="flex items-center space-x-3">
-                            <label className="flex items-center space-x-1.5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                            <label className="flex items-center space-x-1.5 text-xs text-muted cursor-pointer">
                               <input
                                 type="checkbox"
                                 checked={t.isBold}
                                 onChange={(e) => handleUpdateTextAnnotation(t.id, { isBold: e.target.checked })}
-                                className="rounded bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-700 focus:ring-0"
+                                className="rounded bg-[var(--background-secondary)] border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-700 focus:ring-0"
                               />
                               <span>Bold</span>
                             </label>
-                            <label className="flex items-center space-x-1.5 text-xs text-slate-700 dark:text-slate-300 cursor-pointer">
+                            <label className="flex items-center space-x-1.5 text-xs text-muted cursor-pointer">
                               <input
                                 type="checkbox"
                                 checked={t.isItalic}
                                 onChange={(e) => handleUpdateTextAnnotation(t.id, { isItalic: e.target.checked })}
-                                className="rounded bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-700 focus:ring-0"
+                                className="rounded bg-[var(--background-secondary)] border-slate-300 dark:border-slate-600 text-slate-900 dark:text-slate-700 focus:ring-0"
                               />
                               <span>Italic</span>
                             </label>
                           </div>
                           <div className="flex items-center space-x-1.5">
-                            <label className="text-[10px] text-slate-500 dark:text-slate-400">Color</label>
+                            <label className="text-[10px] text-muted">Color</label>
                             <input
                               type="color"
                               value={t.color}

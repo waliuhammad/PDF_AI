@@ -69,16 +69,16 @@ export default function PdfToExcel(): JSX.Element {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[var(--background)] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 antialiased selection:bg-slate-900 dark:selection:bg-blue-500 selection:text-white">
-      <div className="max-w-4xl w-full space-y-8 bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800/80 p-8 rounded-3xl shadow-2xl backdrop-blur-xl">
+    <div className="min-h-screen bg-background text-fg flex flex-col items-center justify-center p-6 antialiased selection:bg-slate-900 dark:selection:bg-blue-500 selection:text-white">
+      <div className="max-w-4xl w-full space-y-8 bg-card border border-card p-8 rounded-3xl shadow-2xl backdrop-blur-xl">
         
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-blue-500/10 border border-slate-200 dark:border-blue-500/20 text-slate-700 dark:text-blue-400 text-xs font-semibold tracking-wide uppercase">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Document Conversion Suite</span>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-white">PDF to Excel Converter</h1>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <h1 className="text-3xl font-bold tracking-tight text-fg">PDF to Excel Converter</h1>
+          <p className="text-sm text-muted">
             Extract text rows and tables from your PDF documents and export them directly into structured spreadsheets (.xlsx).
           </p>
         </div>
@@ -93,14 +93,14 @@ export default function PdfToExcel(): JSX.Element {
 
         {file && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-200 dark:border-slate-700/60 p-4 rounded-2xl">
+            <div className="flex items-center justify-between bg-[var(--background-secondary)] border border-card p-4 rounded-2xl">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-blue-500/10 border border-slate-200 dark:border-blue-500/20 flex items-center justify-center text-slate-700 dark:text-blue-400">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-xs font-bold text-slate-900 dark:text-white truncate max-w-[220px]">{file.name}</h3>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400">Ready for spreadsheet export</span>
+                  <h3 className="text-xs font-bold text-fg truncate max-w-[220px]">{file.name}</h3>
+                  <span className="text-[11px] text-muted">Ready for spreadsheet export</span>
                 </div>
               </div>
               <button
@@ -113,20 +113,20 @@ export default function PdfToExcel(): JSX.Element {
             </div>
 
             {loading && (
-              <div className="text-center py-12 text-slate-500 dark:text-slate-400 text-xs animate-pulse">
+              <div className="text-center py-12 text-muted text-xs animate-pulse">
                 Parsing text rows and structuring data from PDF...
               </div>
             )}
 
             {extractedRows && !loading && (
-              <div className="bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-200 dark:border-slate-700/60 rounded-2xl p-4 space-y-3">
+              <div className="bg-[var(--background-secondary)] border border-card rounded-2xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-                    <FileSpreadsheet className="w-3.5 h-3.5 text-slate-700 dark:text-slate-400" /> Extracted Rows Preview ({extractedRows.length} rows)
+                  <span className="text-[11px] text-muted font-bold uppercase tracking-wider flex items-center gap-1.5">
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-muted" /> Extracted Rows Preview ({extractedRows.length} rows)
                   </span>
                 </div>
-                <div className="max-h-[260px] overflow-auto rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-black/30">
-                  <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300 border-collapse">
+                <div className="max-h-[260px] overflow-auto rounded-xl border border-card bg-white dark:bg-black/30">
+                  <table className="w-full text-left text-xs text-muted border-collapse">
                     <tbody>
                       {extractedRows.slice(0, 10).map((row, rIdx) => (
                         <tr key={rIdx} className="border-b border-slate-100 dark:border-slate-800/60 hover:bg-slate-50 dark:hover:bg-slate-800/30">
