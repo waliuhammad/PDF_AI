@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, JSX } from "react";
+import { UploadCard } from "@/components/tools/upload-card";
 import { FileText, Trash2, Download, UploadCloud, ShieldCheck, Sparkles, FileSpreadsheet } from "lucide-react";
 import { loadXlsx } from "@/lib/pdf-libs";
 
@@ -12,8 +13,8 @@ export default function PdfToExcel(): JSX.Element {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
-    const uploadedFile = e.target.files?.[0];
+  const handleFileUpload = async (fileList: FileList | null): Promise<void> => {
+    const uploadedFile = fileList?.[0];
     if (!uploadedFile) return;
 
     if (!uploadedFile.type.includes("pdf")) {
@@ -68,8 +69,8 @@ export default function PdfToExcel(): JSX.Element {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0b0e14] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 antialiased selection:bg-slate-900 dark:selection:bg-blue-500 selection:text-white">
-      <div className="max-w-4xl w-full space-y-8 bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800/80 p-8 rounded-3xl shadow-2xl backdrop-blur-xl">
+    <div className="min-h-screen bg-white dark:bg-[var(--background)] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 antialiased selection:bg-slate-900 dark:selection:bg-blue-500 selection:text-white">
+      <div className="max-w-4xl w-full space-y-8 bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800/80 p-8 rounded-3xl shadow-2xl backdrop-blur-xl">
         
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-blue-500/10 border border-slate-200 dark:border-blue-500/20 text-slate-700 dark:text-blue-400 text-xs font-semibold tracking-wide uppercase">
@@ -83,25 +84,16 @@ export default function PdfToExcel(): JSX.Element {
         </div>
 
         {!file && (
-          <label className="group relative border-2 border-dashed border-slate-300 dark:border-slate-700/70 hover:border-slate-900 dark:hover:border-blue-500/85 rounded-2xl p-10 flex flex-col items-center justify-center cursor-pointer bg-slate-50 dark:bg-[#182030]/50 hover:bg-slate-100 dark:hover:bg-[#182030] transition-all duration-300">
-            <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-blue-500/10 flex items-center justify-center text-slate-700 dark:text-blue-400 mb-4 group-hover:scale-110 transition-transform duration-300">
-              <UploadCloud className="w-8 h-8" />
-            </div>
-            <span className="font-semibold text-slate-900 dark:text-slate-200 text-base mb-1">Click to upload PDF document</span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">Supports text-based PDF documents</span>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-          </label>
+          <UploadCard
+            onFiles={handleFileUpload}
+            title="Click to upload PDF document"
+            hint="Supports text-based PDF documents"
+          />
         )}
 
         {file && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between bg-slate-50 dark:bg-[#182030] border border-slate-200 dark:border-slate-700/60 p-4 rounded-2xl">
+            <div className="flex items-center justify-between bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-200 dark:border-slate-700/60 p-4 rounded-2xl">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-blue-500/10 border border-slate-200 dark:border-blue-500/20 flex items-center justify-center text-slate-700 dark:text-blue-400">
                   <FileText className="w-5 h-5" />
@@ -127,7 +119,7 @@ export default function PdfToExcel(): JSX.Element {
             )}
 
             {extractedRows && !loading && (
-              <div className="bg-slate-50 dark:bg-[#182030] border border-slate-200 dark:border-slate-700/60 rounded-2xl p-4 space-y-3">
+              <div className="bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-200 dark:border-slate-700/60 rounded-2xl p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-[11px] text-slate-600 dark:text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
                     <FileSpreadsheet className="w-3.5 h-3.5 text-slate-700 dark:text-slate-400" /> Extracted Rows Preview ({extractedRows.length} rows)

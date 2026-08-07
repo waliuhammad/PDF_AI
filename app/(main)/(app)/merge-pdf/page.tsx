@@ -17,6 +17,7 @@ import {
   GripVertical,
 } from "lucide-react";
 import { useRef, useState } from "react";
+import { UploadCard } from "@/components/tools/upload-card";
 
 interface PDFSourceFile {
   fileIndex: number;
@@ -264,7 +265,7 @@ export default function MergePdfPage() {
     <div className="max-w-7xl mx-auto w-full px-4 py-8 text-[#222430] dark:text-white bg-white dark:bg-transparent transition-colors">
       <div className="text-center mb-8">
         <div 
-          className="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center mb-3 shadow-inner bg-white dark:bg-[#1e2029] border border-[#222430]/20 dark:border-white/20 text-[#222430] dark:text-white"
+          className="w-14 h-14 mx-auto rounded-2xl flex items-center justify-center mb-3 shadow-inner bg-white dark:bg-[var(--background-secondary)] border border-[#222430]/20 dark:border-white/20 text-[#222430] dark:text-white"
         >
           <Layers size={28} />
         </div>
@@ -284,42 +285,24 @@ export default function MergePdfPage() {
       />
 
       {sourceFiles.length === 0 ? (
-        <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsDraggingFile(true);
-          }}
-          onDragLeave={() => setIsDraggingFile(false)}
-          onDrop={(e) => {
-            e.preventDefault();
-            setIsDraggingFile(false);
-            handleFilesAdded(e.dataTransfer.files);
-          }}
-          onClick={() => fileInputRef.current?.click()}
-          className={`cursor-pointer rounded-3xl p-16 text-center transition-all border border-[#222430]/10 dark:border-[#1e2029] bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white shadow-xl ${
-            isDraggingFile ? "scale-[1.01]" : "opacity-95 hover:opacity-100"
-          }`}
-        >
-          <div 
-            className="w-14 h-14 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-sm border border-[#222430]/10 dark:border-white/20 bg-[#222430]/5 dark:bg-[#1e2029] text-[#222430] dark:text-white"
-          >
-            <Upload size={26} />
-          </div>
-          <p className="font-semibold text-lg text-[#222430] dark:text-white">Click to browse or drag & drop PDFs</p>
-          <p className="text-[#222430]/60 dark:text-white/80 text-sm mt-1">Upload multiple documents to start combining and re-sequencing pages</p>
-        </div>
+        <UploadCard
+          onFiles={handleFilesAdded}
+          multiple
+          title="Click to browse or drag & drop PDFs"
+          hint="Upload multiple documents to start combining and re-sequencing pages"
+        />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Sidebar Card */}
           <div 
-            className="lg:col-span-5 border border-[#222430]/15 dark:border-white/20 rounded-3xl p-4 shadow-sm flex flex-col h-[600px] bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white transition-colors"
+            className="lg:col-span-5 border border-[#222430]/15 dark:border-white/20 rounded-3xl p-4 shadow-sm flex flex-col h-[600px] bg-white dark:bg-[var(--background-secondary)] text-[#222430] dark:text-white transition-colors"
           >
             <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#222430]/10 dark:border-white/20">
               <span className="text-xs font-bold uppercase tracking-wider text-[#222430]/70 dark:text-white">Source Files ({sourceFiles.length})</span>
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="p-1 rounded-lg border border-[#222430]/10 dark:border-white/20 bg-[#222430]/5 dark:bg-[#1e2029] text-[#222430] dark:text-white hover:bg-[#222430]/10 dark:hover:bg-white dark:hover:text-[#222430] transition-colors"
+                className="p-1 rounded-lg border border-[#222430]/10 dark:border-white/20 bg-[#222430]/5 dark:bg-[var(--background-secondary)] text-[#222430] dark:text-white hover:bg-[#222430]/10 dark:hover:bg-white dark:hover:text-[#222430] transition-colors"
                 title="Add More PDFs"
               >
                 <Plus size={16} />
@@ -342,7 +325,7 @@ export default function MergePdfPage() {
                     onDragEnd={handleDragEnd}
                     onClick={() => jumpToFile(sf.fileIndex)}
                     className={`py-4 px-4 rounded-2xl border border-[#222430]/20 dark:border-white/30 cursor-pointer transition-all flex items-center gap-3 relative group text-[#222430] dark:text-white overflow-hidden w-full box-border shadow-sm ${
-                      isSelected ? "ring-2 ring-[#222430] dark:ring-white bg-[#222430]/5 dark:bg-[#262833]" : "bg-white dark:bg-[#1e2029] hover:bg-[#222430]/5 dark:hover:bg-white/5"
+                      isSelected ? "ring-2 ring-[#222430] dark:ring-white bg-[#222430]/5 dark:bg-[var(--background-secondary)]" : "bg-white dark:bg-[var(--background-secondary)] hover:bg-[#222430]/5 dark:hover:bg-white/5"
                     } ${
                       isBeingDragged ? "opacity-40 border-dashed" : ""
                     } ${
@@ -371,7 +354,7 @@ export default function MergePdfPage() {
                         e.stopPropagation();
                         removeFile(sf.fileIndex);
                       }}
-                      className="p-2 rounded-xl border border-[#222430]/15 dark:border-white/20 bg-white dark:bg-[#1e2029] transition-all shrink-0 text-[#222430]/70 dark:text-white/70 hover:text-red-600 dark:hover:text-red-400 hover:border-red-500/50 hover:bg-red-500/10 shadow-sm"
+                      className="p-2 rounded-xl border border-[#222430]/15 dark:border-white/20 bg-white dark:bg-[var(--background-secondary)] transition-all shrink-0 text-[#222430]/70 dark:text-white/70 hover:text-red-600 dark:hover:text-red-400 hover:border-red-500/50 hover:bg-red-500/10 shadow-sm"
                       title="Delete File"
                     >
                       <Trash2 size={16} />
@@ -386,7 +369,7 @@ export default function MergePdfPage() {
           <div className="lg:col-span-7 space-y-6">
             {pagesList.length > 0 && (
               <div 
-                className="border border-[#222430]/15 dark:border-white/20 rounded-3xl p-6 shadow-md space-y-6 bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white transition-colors"
+                className="border border-[#222430]/15 dark:border-white/20 rounded-3xl p-6 shadow-md space-y-6 bg-white dark:bg-[var(--background-secondary)] text-[#222430] dark:text-white transition-colors"
               >
                 <div className="flex items-center justify-between pb-3 border-b border-[#222430]/10 dark:border-white/20">
                   <div className="flex items-center gap-2">
@@ -394,21 +377,21 @@ export default function MergePdfPage() {
                     <span className="text-sm font-extrabold text-[#222430] dark:text-white">Page Viewer</span>
                   </div>
                   <div 
-                    className="px-3 py-1 rounded-full font-bold text-xs border border-[#222430]/10 dark:border-white/20 bg-[#222430]/5 dark:bg-[#1e2029] text-[#222430] dark:text-white"
+                    className="px-3 py-1 rounded-full font-bold text-xs border border-[#222430]/10 dark:border-white/20 bg-[#222430]/5 dark:bg-[var(--background-secondary)] text-[#222430] dark:text-white"
                   >
                     Sequence Position #{activePreviewIndex + 1} of {pagesList.length}
                   </div>
                 </div>
 
                 <div 
-                  className="flex flex-col items-center justify-center p-6 rounded-2xl border border-[#222430]/10 dark:border-white/20 bg-[#222430]/5 dark:bg-[#1e2029] relative min-h-[440px]"
+                  className="flex flex-col items-center justify-center p-6 rounded-2xl border border-[#222430]/10 dark:border-white/20 bg-[#222430]/5 dark:bg-[var(--background-secondary)] relative min-h-[440px]"
                 >
                   <div className="w-full flex flex-col items-center">
                     <div 
                       style={{ 
                         transform: `rotate(${activePage ? activePage.rotation : 0}deg)` 
                       }}
-                      className="w-full max-w-sm h-[360px] rounded-2xl shadow-xl border border-[#222430]/10 dark:border-white/20 bg-white dark:bg-[#1e2029] overflow-auto relative flex flex-col items-center transition-transform duration-300 pointer-events-auto p-2"
+                      className="w-full max-w-sm h-[360px] rounded-2xl shadow-xl border border-[#222430]/10 dark:border-white/20 bg-white dark:bg-[var(--background-secondary)] overflow-auto relative flex flex-col items-center transition-transform duration-300 pointer-events-auto p-2"
                     >
                       {activePreviewUrl ? (
                         <div className="w-full h-full min-h-[480px] flex flex-col items-center justify-start pt-2">
@@ -429,7 +412,7 @@ export default function MergePdfPage() {
                       )}
                       
                       <div 
-                        className="absolute top-3 right-3 border border-[#222430]/10 dark:border-white/20 bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white text-[11px] font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 pointer-events-none shadow-sm z-10"
+                        className="absolute top-3 right-3 border border-[#222430]/10 dark:border-white/20 bg-white dark:bg-[var(--background-secondary)] text-[#222430] dark:text-white text-[11px] font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 pointer-events-none shadow-sm z-10"
                       >
                         <Maximize2 size={12} /> Scrollable View
                       </div>
@@ -453,7 +436,7 @@ export default function MergePdfPage() {
                       type="button"
                       disabled={activePreviewIndex === 0}
                       onClick={() => setActivePreviewIndex((prev) => Math.max(0, prev - 1))}
-                      className="w-10 h-10 rounded-full border border-[#222430]/15 dark:border-white/25 shadow-lg flex items-center justify-center bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white disabled:opacity-20 pointer-events-auto hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] transition-all active:scale-95"
+                      className="w-10 h-10 rounded-full border border-[#222430]/15 dark:border-white/25 shadow-lg flex items-center justify-center bg-white dark:bg-[var(--background-secondary)] text-[#222430] dark:text-white disabled:opacity-20 pointer-events-auto hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] transition-all active:scale-95"
                       title="Previous Page"
                     >
                       <ChevronLeft size={20} />
@@ -462,7 +445,7 @@ export default function MergePdfPage() {
                       type="button"
                       disabled={activePreviewIndex === pagesList.length - 1}
                       onClick={() => setActivePreviewIndex((prev) => Math.min(pagesList.length - 1, prev + 1))}
-                      className="w-10 h-10 rounded-full border border-[#222430]/15 dark:border-white/25 shadow-lg flex items-center justify-center bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white disabled:opacity-20 pointer-events-auto hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] transition-all active:scale-95"
+                      className="w-10 h-10 rounded-full border border-[#222430]/15 dark:border-white/25 shadow-lg flex items-center justify-center bg-white dark:bg-[var(--background-secondary)] text-[#222430] dark:text-white disabled:opacity-20 pointer-events-auto hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] transition-all active:scale-95"
                       title="Next Page"
                     >
                       <ChevronRight size={20} />
@@ -472,7 +455,7 @@ export default function MergePdfPage() {
 
                 {activePage && (
                   <div 
-                    className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl border border-[#222430]/10 dark:border-white/20 bg-[#222430]/5 dark:bg-[#1e2029] shadow-inner text-[#222430] dark:text-white"
+                    className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl border border-[#222430]/10 dark:border-white/20 bg-[#222430]/5 dark:bg-[var(--background-secondary)] shadow-inner text-[#222430] dark:text-white"
                   >
                     <div className="text-xs font-medium text-[#222430] dark:text-white">
                       Rotate view or remove page:
@@ -481,7 +464,7 @@ export default function MergePdfPage() {
                       <button
                         type="button"
                         onClick={() => rotatePage(activePreviewIndex, "ccw")}
-                        className="py-2.5 px-3 rounded-xl border border-[#222430]/10 dark:border-white/20 bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white text-xs font-bold flex items-center gap-1 hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] transition-all shadow-sm"
+                        className="py-2.5 px-3 rounded-xl border border-[#222430]/10 dark:border-white/20 bg-white dark:bg-[var(--background-secondary)] text-[#222430] dark:text-white text-xs font-bold flex items-center gap-1 hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] transition-all shadow-sm"
                         title="Rotate -90°"
                       >
                         <RotateCcw size={14} /> -90°
@@ -489,7 +472,7 @@ export default function MergePdfPage() {
                       <button
                         type="button"
                         onClick={() => rotatePage(activePreviewIndex, "cw")}
-                        className="py-2.5 px-3 rounded-xl border border-[#222430]/10 dark:border-white/20 bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white text-xs font-bold flex items-center gap-1 hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] transition-all shadow-sm"
+                        className="py-2.5 px-3 rounded-xl border border-[#222430]/10 dark:border-white/20 bg-white dark:bg-[var(--background-secondary)] text-[#222430] dark:text-white text-xs font-bold flex items-center gap-1 hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] transition-all shadow-sm"
                         title="Rotate +90°"
                       >
                         <RotateCw size={14} /> +90°
@@ -497,7 +480,7 @@ export default function MergePdfPage() {
                       <button
                         type="button"
                         onClick={() => removePage(activePage.id)}
-                        className="p-2.5 rounded-xl border border-[#222430]/10 dark:border-white/20 bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] transition-colors ml-1"
+                        className="p-2.5 rounded-xl border border-[#222430]/10 dark:border-white/20 bg-white dark:bg-[var(--background-secondary)] text-[#222430] dark:text-white hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] transition-colors ml-1"
                         title="Remove Page"
                       >
                         <Trash2 size={16} />
@@ -509,7 +492,7 @@ export default function MergePdfPage() {
             )}
 
             <div 
-              className="p-5 rounded-2xl border border-[#222430]/15 dark:border-white/20 bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white grid grid-cols-3 gap-4 text-center shadow-sm transition-colors"
+              className="p-5 rounded-2xl border border-[#222430]/15 dark:border-white/20 bg-white dark:bg-[var(--background-secondary)] text-[#222430] dark:text-white grid grid-cols-3 gap-4 text-center shadow-sm transition-colors"
             >
               <div>
                 <p className="text-[#222430]/60 dark:text-white/80 text-xs font-semibold">Total Final Pages</p>
@@ -537,7 +520,7 @@ export default function MergePdfPage() {
               <button
                 type="button"
                 onClick={clearAll}
-                className="py-4 px-8 rounded-2xl border border-[#222430]/15 dark:border-white/20 bg-white dark:bg-[#1e2029] text-[#222430] dark:text-white hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] font-bold text-sm transition-colors shadow-sm"
+                className="py-4 px-8 rounded-2xl border border-[#222430]/15 dark:border-white/20 bg-white dark:bg-[var(--background-secondary)] text-[#222430] dark:text-white hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] font-bold text-sm transition-colors shadow-sm"
               >
                 Clear All
               </button>

@@ -349,7 +349,7 @@ export default function EditPdfPage() {
   return (
     <div className="max-w-6xl mx-auto w-full text-slate-900 dark:text-slate-200">
       {!fileDetails ? (
-        <div className="max-w-4xl mx-auto p-8 rounded-3xl bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800/80 shadow-2xl transition-colors">
+        <div className="max-w-4xl mx-auto p-8 rounded-3xl bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800/80 shadow-2xl transition-colors">
           {/* Header Section */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-900/10 dark:bg-slate-800 border border-slate-900/20 dark:border-slate-700 text-slate-900 dark:text-slate-300 text-xs font-semibold mb-4 shadow-sm">
@@ -376,7 +376,7 @@ export default function EditPdfPage() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1 space-y-4">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800 shadow-lg transition-colors">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800 shadow-lg transition-colors">
               <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0">
                 <FileText size={16} className="text-slate-700 dark:text-slate-300" />
               </div>
@@ -389,7 +389,7 @@ export default function EditPdfPage() {
               </button>
             </div>
 
-            <div className="p-1.5 rounded-xl bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800 flex gap-1 shadow-lg transition-colors">
+            <div className="p-1.5 rounded-xl bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800 flex gap-1 shadow-lg transition-colors">
               <button
                 type="button"
                 onClick={() => setActiveTool("replace")}
@@ -420,7 +420,7 @@ export default function EditPdfPage() {
             </div>
 
             {(activeTool === "replace" || activeTool === "text") && (
-              <div className="p-4 rounded-2xl bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800 space-y-3 shadow-lg transition-colors">
+              <div className="p-4 rounded-2xl bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800 space-y-3 shadow-lg transition-colors">
                 <div className="flex items-center justify-between">
                   <p className="text-xs font-semibold text-slate-900 dark:text-white">Text Properties</p>
                   {selectedTextAnn && (
@@ -451,7 +451,7 @@ export default function EditPdfPage() {
                       }
                     }}
                     placeholder="Write text here..."
-                    className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#121622] text-slate-900 dark:text-white text-sm focus:outline-none focus:border-slate-400 dark:focus:border-slate-600 transition-colors"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[var(--card)] text-slate-900 dark:text-white text-sm focus:outline-none focus:border-slate-400 dark:focus:border-slate-600 transition-colors"
                   />
                 </div>
 
@@ -471,7 +471,7 @@ export default function EditPdfPage() {
                           setReplaceWidth(val);
                           updateSelectedAnnotation("width", val);
                         }}
-                        className="w-full p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#121622] text-slate-900 dark:text-white text-xs focus:outline-none focus:border-slate-400 dark:focus:border-slate-600"
+                        className="w-full p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[var(--card)] text-slate-900 dark:text-white text-xs focus:outline-none focus:border-slate-400 dark:focus:border-slate-600"
                       />
                     </div>
                     <div>
@@ -488,7 +488,7 @@ export default function EditPdfPage() {
                           setReplaceHeight(val);
                           updateSelectedAnnotation("height", val);
                         }}
-                        className="w-full p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#121622] text-slate-900 dark:text-white text-xs focus:outline-none focus:border-slate-400 dark:focus:border-slate-600"
+                        className="w-full p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[var(--card)] text-slate-900 dark:text-white text-xs focus:outline-none focus:border-slate-400 dark:focus:border-slate-600"
                       />
                     </div>
                   </div>
@@ -505,7 +505,7 @@ export default function EditPdfPage() {
                     className={`p-2 rounded-lg border text-xs font-semibold flex items-center justify-center flex-1 transition-all ${
                       (selectedTextAnn ? selectedTextAnn.isBold : isBold)
                         ? "border-slate-900 dark:border-slate-600 bg-slate-900 text-white dark:bg-slate-800"
-                        : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#121622] text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700"
+                        : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[var(--card)] text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700"
                     }`}
                   >
                     <Bold size={14} />
@@ -520,7 +520,7 @@ export default function EditPdfPage() {
                     className={`p-2 rounded-lg border text-xs font-semibold flex items-center justify-center flex-1 transition-all ${
                       (selectedTextAnn ? selectedTextAnn.isItalic : isItalic)
                         ? "border-slate-900 dark:border-slate-600 bg-slate-900 text-white dark:bg-slate-800"
-                        : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#121622] text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700"
+                        : "border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[var(--card)] text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700"
                     }`}
                   >
                     <Italic size={14} />
@@ -532,7 +532,7 @@ export default function EditPdfPage() {
                       setTextColor(e.target.value);
                       updateSelectedAnnotation("color", e.target.value);
                     }}
-                    className="h-8 w-12 rounded-lg border border-slate-200 dark:border-slate-800 cursor-pointer bg-slate-50 dark:bg-[#121622] p-0.5"
+                    className="h-8 w-12 rounded-lg border border-slate-200 dark:border-slate-800 cursor-pointer bg-slate-50 dark:bg-[var(--card)] p-0.5"
                   />
                 </div>
 
@@ -557,7 +557,7 @@ export default function EditPdfPage() {
             )}
 
             {activeTool === "draw" && (
-              <div className="p-4 rounded-2xl bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800 space-y-3 shadow-lg transition-colors">
+              <div className="p-4 rounded-2xl bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800 space-y-3 shadow-lg transition-colors">
                 <p className="text-xs font-semibold text-slate-900 dark:text-white">Drawing Properties</p>
                 <div>
                   <label className="text-xs text-slate-500 dark:text-slate-400 block mb-1">Color</label>
@@ -565,7 +565,7 @@ export default function EditPdfPage() {
                     type="color"
                     value={drawColor}
                     onChange={(e) => setDrawColor(e.target.value)}
-                    className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 cursor-pointer bg-slate-50 dark:bg-[#121622] p-1"
+                    className="w-full h-9 rounded-xl border border-slate-200 dark:border-slate-800 cursor-pointer bg-slate-50 dark:bg-[var(--card)] p-1"
                   />
                 </div>
                 <div>
@@ -582,7 +582,7 @@ export default function EditPdfPage() {
               </div>
             )}
 
-            <div className="p-4 rounded-2xl bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800 space-y-2 shadow-lg transition-colors">
+            <div className="p-4 rounded-2xl bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800 space-y-2 shadow-lg transition-colors">
               <p className="text-xs font-semibold text-slate-900 dark:text-white">Active Modifications ({annotations.length})</p>
               {annotations.length === 0 ? (
                 <p className="text-xs text-slate-400 dark:text-slate-500">No edits made yet.</p>
@@ -595,7 +595,7 @@ export default function EditPdfPage() {
                       className={`flex items-center justify-between p-2 rounded-lg text-xs cursor-pointer transition-colors ${
                         selectedAnnotationId === ann.id 
                           ? "bg-slate-900 text-white dark:bg-slate-800 border border-slate-900 dark:border-slate-700" 
-                          : "bg-slate-50 dark:bg-[#121622] border border-slate-200 dark:border-slate-800/60 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700"
+                          : "bg-slate-50 dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800/60 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700"
                       }`}
                     >
                       <span className="truncate pr-2 font-medium">
@@ -627,7 +627,7 @@ export default function EditPdfPage() {
               type="button"
               onClick={executeSave}
               disabled={processing || annotations.length === 0}
-              className="w-full py-3 rounded-xl bg-slate-900 text-white dark:bg-[#121622] border border-slate-900 dark:border-slate-700 font-medium hover:bg-slate-800 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg text-sm"
+              className="w-full py-3 rounded-xl bg-slate-900 text-white dark:bg-[var(--card)] border border-slate-900 dark:border-slate-700 font-medium hover:bg-slate-800 dark:hover:bg-slate-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg text-sm"
             >
               {processing ? (
                 <>
@@ -643,14 +643,14 @@ export default function EditPdfPage() {
             </button>
           </div>
 
-          <div className="lg:col-span-2 flex flex-col items-center bg-white dark:bg-[#121622] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl transition-colors">
+          <div className="lg:col-span-2 flex flex-col items-center bg-white dark:bg-[var(--card)] p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xl transition-colors">
             <div className="flex items-center justify-between w-full mb-3 px-2">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   disabled={selectedPageIndex === 0}
                   onClick={() => setSelectedPageIndex((p) => Math.max(0, p - 1))}
-                  className="p-1.5 rounded-lg bg-slate-900 text-white dark:bg-[#121622] border border-slate-900 dark:border-slate-800 disabled:opacity-40 hover:bg-slate-800 dark:hover:border-slate-700 transition-colors"
+                  className="p-1.5 rounded-lg bg-slate-900 text-white dark:bg-[var(--card)] border border-slate-900 dark:border-slate-800 disabled:opacity-40 hover:bg-slate-800 dark:hover:border-slate-700 transition-colors"
                 >
                   <ChevronLeft size={16} />
                 </button>
@@ -661,7 +661,7 @@ export default function EditPdfPage() {
                   type="button"
                   disabled={selectedPageIndex >= pageCount - 1}
                   onClick={() => setSelectedPageIndex((p) => Math.min(pageCount - 1, p + 1))}
-                  className="p-1.5 rounded-lg bg-slate-900 text-white dark:bg-[#121622] border border-slate-900 dark:border-slate-800 disabled:opacity-40 hover:bg-slate-800 dark:hover:border-slate-700 transition-colors"
+                  className="p-1.5 rounded-lg bg-slate-900 text-white dark:bg-[var(--card)] border border-slate-900 dark:border-slate-800 disabled:opacity-40 hover:bg-slate-800 dark:hover:border-slate-700 transition-colors"
                 >
                   <ChevronRight size={16} />
                 </button>
@@ -671,7 +671,7 @@ export default function EditPdfPage() {
               </span>
             </div>
 
-            <div className="relative border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#121622] rounded-xl overflow-auto max-h-[650px] shadow-inner flex justify-center w-full transition-colors">
+            <div className="relative border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[var(--card)] rounded-xl overflow-auto max-h-[650px] shadow-inner flex justify-center w-full transition-colors">
               <div
                 ref={overlayContainerRef}
                 onClick={handlePageClick}

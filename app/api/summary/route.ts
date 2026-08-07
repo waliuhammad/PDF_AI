@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Gemini summarises the whole document — measured about 6s,
+// so the platform default is not enough.
+export const maxDuration = 60;
+
 const AI_SERVICE =
   process.env.AI_SERVICE_URL || "http://localhost:8001";
 

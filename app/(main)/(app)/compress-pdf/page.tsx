@@ -122,7 +122,7 @@ export default function CompressPdfPage() {
   return (
     <div className="max-w-5xl mx-auto w-full px-4">
       <div className="text-center mb-8">
-        <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-50 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] flex items-center justify-center mb-3 text-slate-900 dark:text-white">
+        <div className="w-14 h-14 mx-auto rounded-2xl bg-slate-50 dark:bg-[var(--card)] border border-slate-200 dark:border-[#272b36] flex items-center justify-center mb-3 text-slate-900 dark:text-white">
           <FileArchive size={28} />
         </div>
         <h1 className="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Compress PDF</h1>
@@ -152,11 +152,11 @@ export default function CompressPdfPage() {
             handleFile(e.dataTransfer.files);
           }}
           onClick={() => inputRef.current?.click()}
-          className={`cursor-pointer rounded-[32px] p-16 h-[380px] flex flex-col items-center justify-center text-center transition-all bg-white dark:bg-[#1b1e29] border border-slate-200 dark:border-[#272c3a] shadow-xl ${
+          className={`cursor-pointer rounded-[32px] p-16 h-[380px] flex flex-col items-center justify-center text-center transition-all bg-white dark:bg-[var(--background-secondary)] border border-slate-200 dark:border-[#272c3a] shadow-xl ${
             isDragging ? "border-slate-900 dark:border-white scale-[1.01]" : "hover:border-slate-300 dark:hover:border-[#333a4a]"
           }`}
         >
-          <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-[#232836] mx-auto flex items-center justify-center mb-4 text-slate-900 dark:text-white shadow-sm border border-slate-300 dark:border-[#32394a]">
+          <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-[var(--background-secondary)] mx-auto flex items-center justify-center mb-4 text-slate-900 dark:text-white shadow-sm border border-slate-300 dark:border-[#32394a]">
             <Upload size={26} />
           </div>
           <p className="text-slate-900 dark:text-white font-semibold text-lg">Click to browse or drag & drop PDFs</p>
@@ -164,9 +164,9 @@ export default function CompressPdfPage() {
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="bg-white dark:bg-[#111318] border border-slate-200 dark:border-[#222632] rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-[#222632] rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] flex items-center justify-center shrink-0 text-slate-900 dark:text-white">
+              <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-[var(--card)] border border-slate-200 dark:border-[#272b36] flex items-center justify-center shrink-0 text-slate-900 dark:text-white">
                 <FileText size={20} />
               </div>
               <div className="min-w-0">
@@ -190,7 +190,7 @@ export default function CompressPdfPage() {
             </button>
           </div>
 
-          <div className="bg-white dark:bg-[#111318] border border-slate-200 dark:border-[#222632] rounded-3xl p-6 shadow-md space-y-6">
+          <div className="bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-[#222632] rounded-3xl p-6 shadow-md space-y-6">
             <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-[#222632]">
               <div className="flex items-center gap-2">
                 <FileArchive size={18} className="text-slate-900 dark:text-white" />
@@ -211,10 +211,10 @@ export default function CompressPdfPage() {
                     setDone(false);
                     setErrorMessage(null);
                   }}
-                  className="w-full bg-slate-50 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] rounded-xl px-3.5 py-3 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-slate-900 dark:border-white cursor-pointer"
+                  className="w-full bg-slate-50 dark:bg-[var(--card)] border border-slate-200 dark:border-[#272b36] rounded-xl px-3.5 py-3 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-slate-900 dark:border-white cursor-pointer"
                 >
                   {options.map((opt) => (
-                    <option key={opt.targetKB} value={opt.targetKB} className="bg-slate-50 dark:bg-[#181b22] text-slate-900 dark:text-white">
+                    <option key={opt.targetKB} value={opt.targetKB} className="bg-slate-50 dark:bg-[var(--card)] text-slate-900 dark:text-white">
                       {opt.label}
                     </option>
                   ))}

@@ -10,8 +10,7 @@ import {
     type AuthProvider,
     type User,
 } from "firebase/auth";
-import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
-import { auth, db } from "./client";
+import { auth, getDb } from "./client";
 
 export interface RegisterInput {
     fullName: string;
@@ -28,6 +27,12 @@ export interface RegisterInput {
  */
 async function createUserDocIfNotExists(user: User, extra?: Record<string, unknown>) {
     try {
+        // Registering is the one moment this page needs Firestore, so it loads here.
+        const [{ doc, setDoc, getDoc, serverTimestamp }, db] = await Promise.all([
+            import("firebase/firestore"),
+            getDb(),
+        ]);
+
         const userRef = doc(db, "users", user.uid);
         const existing = await getDoc(userRef);
         if (!existing.exists()) {

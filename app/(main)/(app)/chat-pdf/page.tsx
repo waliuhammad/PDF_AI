@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { UploadCard } from "@/components/tools/upload-card";
 import { Send, Bot, User, Sparkles, Upload, FileText, X, ArrowRight, Loader2 } from "lucide-react";
 
 interface Message {
@@ -148,20 +149,11 @@ setMessages((prev) => [
 
                 <form onSubmit={handleStartChat} className="rounded-2xl bg-card border border-card p-6 flex flex-col gap-6">
                     {!fileMeta ? (
-                        <div
-                            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                            onDragLeave={() => setIsDragging(false)}
-                            onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFile(e.dataTransfer.files); }}
-                            onClick={() => fileInputRef.current?.click()}
-                            className={`cursor-pointer rounded-xl border-2 border-dashed p-10 text-center flex flex-col items-center justify-center transition-colors ${
-                                isDragging ? "border-[var(--primary)] bg-purple-900/10" : "border-white/10 bg-black/10 hover:border-[var(--primary)]/50"
-                            }`}
-                        >
-                            <input ref={fileInputRef} type="file" accept="application/pdf" hidden onChange={(e) => handleFile(e.target.files)} />
-                            <Upload className="text-muted mb-3" size={30} />
-                            <p className="text-fg font-medium text-sm">Drag & drop your PDF here</p>
-                            <p className="text-muted text-xs mt-1">or click to browse files from your device</p>
-                        </div>
+                        <UploadCard
+                            onFiles={handleFile}
+                            title={"Drag & drop your PDF here"}
+                            hint={"or click to browse files from your device"}
+                        />
                     ) : (
                         <div className="flex items-center gap-3 p-4 rounded-xl bg-black/20 border border-white/5">
                             <div className="w-10 h-10 rounded-lg bg-purple-900/30 flex items-center justify-center shrink-0">

@@ -5,6 +5,10 @@ import path from "path";
 import os from "os";
 import AdmZip from "adm-zip";
 
+// renders every page to a bitmap,
+// so the platform default is not enough.
+export const maxDuration = 60;
+
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();

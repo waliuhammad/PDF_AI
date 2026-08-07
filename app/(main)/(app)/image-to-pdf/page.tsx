@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, JSX } from "react";
+import { UploadCard } from "@/components/tools/upload-card";
 import { Trash2, UploadCloud, Sparkles, Loader2, Image as ImageIcon, Layers, Plus, Sliders, Type } from "lucide-react";
 import { loadJsPdf } from "@/lib/pdf-libs";
 
@@ -339,8 +340,8 @@ export default function ImageToPdf(): JSX.Element {
   const usedPages = Array.from(new Set(images.map((img) => img.page))).sort((a, b) => a - b);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0b0e14] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 antialiased selection:bg-slate-900 dark:selection:bg-blue-500 selection:text-white">
-      <div className="max-w-4xl w-full space-y-8 bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800/80 p-8 rounded-3xl shadow-xl dark:shadow-2xl backdrop-blur-xl">
+    <div className="min-h-screen bg-white dark:bg-[var(--background)] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 antialiased selection:bg-slate-900 dark:selection:bg-blue-500 selection:text-white">
+      <div className="max-w-4xl w-full space-y-8 bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800/80 p-8 rounded-3xl shadow-xl dark:shadow-2xl backdrop-blur-xl">
         
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-blue-500/10 border border-slate-200 dark:border-blue-500/20 text-slate-700 dark:text-blue-400 text-xs font-semibold tracking-wide uppercase">
@@ -354,23 +355,13 @@ export default function ImageToPdf(): JSX.Element {
         </div>
 
         {images.length === 0 && (
-          <label className="group relative border-2 border-dashed border-slate-300 dark:border-slate-700/70 hover:border-slate-900 dark:hover:border-blue-500/80 rounded-2xl p-10 flex flex-col items-center justify-center cursor-pointer bg-slate-50 dark:bg-[#182030]/50 hover:bg-slate-100/50 dark:hover:bg-[#182030] transition-all duration-300">
-            <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-blue-500/10 flex items-center justify-center text-slate-900 dark:text-blue-400 mb-4 group-hover:scale-110 transition-transform duration-300">
-              <UploadCloud className="w-8 h-8" />
-            </div>
-            <span className="font-semibold text-slate-900 dark:text-slate-200 text-base mb-1">
-              Click to upload multiple images
-            </span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">Supports PNG, JPG, WebP, GIF, BMP</span>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              multiple
-              onChange={(e) => handleFilesChange(e, false)}
-              className="hidden"
-            />
-          </label>
+          <UploadCard
+            onFiles={(files) => loadFiles(Array.from(files ?? []), false)}
+            accept="image/*"
+            multiple
+            title="Click to upload multiple images"
+            hint="Supports PNG, JPG, WebP, GIF, BMP"
+          />
         )}
 
         {images.length > 0 && (
@@ -412,7 +403,7 @@ export default function ImageToPdf(): JSX.Element {
                   className={`flex items-center space-x-2 p-2 rounded-xl border shrink-0 transition cursor-pointer ${
                     selectedImageId === item.id
                       ? "bg-slate-900 border-slate-900 text-white shadow-sm dark:bg-slate-800 dark:border-slate-600"
-                      : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 dark:bg-[#182030] dark:border-slate-700/60 dark:text-slate-400 dark:hover:bg-slate-800"
+                      : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 dark:bg-[var(--background-secondary)] dark:border-slate-700/60 dark:text-slate-400 dark:hover:bg-slate-800"
                   }`}
                 >
                   <img src={item.previewUrl} alt="" className="w-8 h-8 object-cover rounded-md border border-slate-200 dark:border-none" />
@@ -422,7 +413,7 @@ export default function ImageToPdf(): JSX.Element {
             </div>
 
             {selectedImg && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-slate-50 dark:bg-[#182030] border border-slate-200 dark:border-slate-700/60 rounded-2xl p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-200 dark:border-slate-700/60 rounded-2xl p-6">
                 
                 {/* Visual Preview Box showing ALL images together on one page */}
                 <div className="flex flex-col items-center justify-center bg-slate-900/5 dark:bg-black/40 border border-slate-200 dark:border-slate-800 rounded-xl p-4 pt-10 relative min-h-[320px]">
@@ -501,7 +492,7 @@ export default function ImageToPdf(): JSX.Element {
                           type="number"
                           value={selectedImg.width}
                           onChange={(e) => handlePropertyChange("width", parseFloat(e.target.value) || 10)}
-                          className="w-full bg-white dark:bg-[#121824] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
+                          className="w-full bg-white dark:bg-[var(--card)] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                         />
                       </div>
                       <div>
@@ -510,7 +501,7 @@ export default function ImageToPdf(): JSX.Element {
                           type="number"
                           value={selectedImg.height}
                           onChange={(e) => handlePropertyChange("height", parseFloat(e.target.value) || 10)}
-                          className="w-full bg-white dark:bg-[#121824] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
+                          className="w-full bg-white dark:bg-[var(--card)] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                         />
                       </div>
                       <div>
@@ -519,7 +510,7 @@ export default function ImageToPdf(): JSX.Element {
                           type="number"
                           value={selectedImg.xPos}
                           onChange={(e) => handlePropertyChange("xPos", parseFloat(e.target.value) || 0)}
-                          className="w-full bg-white dark:bg-[#121824] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
+                          className="w-full bg-white dark:bg-[var(--card)] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                         />
                       </div>
                       <div>
@@ -528,7 +519,7 @@ export default function ImageToPdf(): JSX.Element {
                           type="number"
                           value={selectedImg.yPos}
                           onChange={(e) => handlePropertyChange("yPos", parseFloat(e.target.value) || 0)}
-                          className="w-full bg-white dark:bg-[#121824] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
+                          className="w-full bg-white dark:bg-[var(--card)] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                         />
                       </div>
                       <div>
@@ -541,7 +532,7 @@ export default function ImageToPdf(): JSX.Element {
                           onChange={(e) =>
                             handlePropertyChange("page", Math.max(0, Math.round(parseFloat(e.target.value) || 1) - 1))
                           }
-                          className="w-full bg-white dark:bg-[#121824] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
+                          className="w-full bg-white dark:bg-[var(--card)] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                         />
                       </div>
                     </div>
@@ -563,7 +554,7 @@ export default function ImageToPdf(): JSX.Element {
                     </div>
 
                     {selectedImg.texts.map((t, index) => (
-                      <div key={t.id} className="bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-700/80 rounded-xl p-3 space-y-3 shadow-sm dark:shadow-none">
+                      <div key={t.id} className="bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-700/80 rounded-xl p-3 space-y-3 shadow-sm dark:shadow-none">
                         <div className="flex items-center justify-between">
                           <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase">Text Item #{index + 1}</span>
                           <button
@@ -579,7 +570,7 @@ export default function ImageToPdf(): JSX.Element {
                           value={t.text}
                           onChange={(e) => handleUpdateTextAnnotation(t.id, { text: e.target.value })}
                           placeholder="Enter caption text..."
-                          className="w-full bg-slate-50 dark:bg-[#182030] border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-200 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
+                          className="w-full bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-300 dark:border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-slate-900 dark:text-slate-200 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                         />
 
                         <div className="grid grid-cols-2 gap-2">
@@ -588,7 +579,7 @@ export default function ImageToPdf(): JSX.Element {
                             <select
                               value={t.fontFamily}
                               onChange={(e) => handleUpdateTextAnnotation(t.id, { fontFamily: e.target.value })}
-                              className="w-full bg-slate-50 dark:bg-[#182030] border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-900 dark:text-slate-200 mt-0.5 focus:outline-none"
+                              className="w-full bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-900 dark:text-slate-200 mt-0.5 focus:outline-none"
                             >
                               <option value="helvetica">Helvetica</option>
                               <option value="times">Times New Roman</option>
@@ -601,7 +592,7 @@ export default function ImageToPdf(): JSX.Element {
                               type="number"
                               value={t.fontSize}
                               onChange={(e) => handleUpdateTextAnnotation(t.id, { fontSize: parseFloat(e.target.value) || 10 })}
-                              className="w-full bg-slate-50 dark:bg-[#182030] border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-900 dark:text-slate-200 mt-0.5 focus:outline-none"
+                              className="w-full bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-900 dark:text-slate-200 mt-0.5 focus:outline-none"
                             />
                           </div>
                         </div>
@@ -613,7 +604,7 @@ export default function ImageToPdf(): JSX.Element {
                               type="number"
                               value={t.x}
                               onChange={(e) => handleUpdateTextAnnotation(t.id, { x: parseFloat(e.target.value) || 0 })}
-                              className="w-full bg-slate-50 dark:bg-[#182030] border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-900 dark:text-slate-200 mt-0.5 focus:outline-none"
+                              className="w-full bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-900 dark:text-slate-200 mt-0.5 focus:outline-none"
                             />
                           </div>
                           <div>
@@ -622,7 +613,7 @@ export default function ImageToPdf(): JSX.Element {
                               type="number"
                               value={t.y}
                               onChange={(e) => handleUpdateTextAnnotation(t.id, { y: parseFloat(e.target.value) || 0 })}
-                              className="w-full bg-slate-50 dark:bg-[#182030] border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-900 dark:text-slate-200 mt-0.5 focus:outline-none"
+                              className="w-full bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-300 dark:border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-900 dark:text-slate-200 mt-0.5 focus:outline-none"
                             />
                           </div>
                         </div>

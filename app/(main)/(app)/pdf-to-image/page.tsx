@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, ChangeEvent, DragEvent } from "react";
+import { UploadCard } from "@/components/tools/upload-card";
 import { loadPdfjs, loadJsZip } from "@/lib/pdf-libs";
 import { 
   Upload, 
@@ -131,9 +132,9 @@ export default function PdfToImageConverter() {
     }
   };
 
-  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      await handleFileSelection(e.target.files[0]);
+  const handleFileChange = async (fileList: FileList | null) => {
+    if (fileList && fileList[0]) {
+      await handleFileSelection(fileList[0]);
     }
   };
 
@@ -257,30 +258,11 @@ export default function PdfToImageConverter() {
 
           {/* Upload Drop Zone */}
           {!file ? (
-            <div
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-slate-300 dark:border-slate-800 hover:border-purple-900 dark:hover:border-purple-400 rounded-2xl p-8 sm:p-12 text-center cursor-pointer bg-slate-50 dark:bg-slate-800/50 hover:bg-purple-50/30 dark:hover:bg-slate-800 transition-all group"
-            >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="application/pdf"
-                className="hidden"
-                onChange={handleFileChange}
-              />
-              <div className="w-16 h-16 bg-purple-100 dark:bg-slate-800 text-purple-900 dark:text-purple-300 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-105 transition-transform shadow-inner border border-purple-200 dark:border-slate-700">
-                <Upload className="w-8 h-8" />
-              </div>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
-                Drag and drop your PDF here
-              </h3>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">or click to browse from your computer</p>
-              <span className="inline-block px-4 py-2 rounded-xl bg-slate-900 dark:bg-slate-800 border border-slate-900 dark:border-slate-700 text-white text-sm font-medium shadow-md transition-colors">
-                Browse PDF File
-              </span>
-            </div>
+            <UploadCard
+              onFiles={handleFileChange}
+              title="Drag and drop your PDF here"
+              hint="or click to browse from your computer"
+            />
           ) : (
             <div className="flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 shadow-sm">
               <div className="flex items-center gap-3 overflow-hidden">

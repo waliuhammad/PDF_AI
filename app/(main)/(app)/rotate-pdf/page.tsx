@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, JSX } from "react";
+import { UploadCard } from "@/components/tools/upload-card";
 import { FileText, Trash2, RotateCw, Download, UploadCloud, Layers, ShieldCheck, Sparkles, Loader2 } from "lucide-react";
 
 export default function RotatePdfPage(): JSX.Element {
@@ -41,9 +42,9 @@ export default function RotatePdfPage(): JSX.Element {
     };
   }, []);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
-    if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0];
+  const handleFileChange = async (fileList: FileList | null): Promise<void> => {
+    if (fileList && fileList[0]) {
+      const selectedFile = fileList[0];
       if (selectedFile.type === "application/pdf" || selectedFile.name.endsWith(".pdf")) {
         setFile(selectedFile);
         setRotation(90);
@@ -222,19 +223,11 @@ export default function RotatePdfPage(): JSX.Element {
             <span className="text-sm text-slate-700 dark:text-slate-300 font-medium">Initializing PDF Engine...</span>
           </div>
         ) : !file ? (
-          <label className="group relative border-2 border-dashed border-slate-200 dark:border-slate-800 hover:border-slate-900 dark:hover:border-slate-600 rounded-2xl p-10 flex flex-col items-center justify-center cursor-pointer bg-slate-50/50 dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all duration-300">
-            <div className="w-16 h-16 rounded-2xl bg-slate-900/5 dark:bg-slate-100/10 flex items-center justify-center text-slate-900 dark:text-slate-200 mb-4 group-hover:scale-110 transition-transform duration-300">
-              <UploadCloud className="w-8 h-8" />
-            </div>
-            <span className="font-semibold text-slate-800 dark:text-slate-200 text-base mb-1">Click to upload or drag & drop</span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">PDF documents up to 50MB</span>
-            <input
-              type="file"
-              accept=".pdf"
-              onChange={handleFileChange}
-              className="hidden"
-            />
-          </label>
+          <UploadCard
+            onFiles={handleFileChange}
+            title="Click to upload or drag & drop"
+            hint="PDF documents"
+          />
         ) : (
           <div className="space-y-6">
             <div className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-inner">

@@ -196,8 +196,8 @@ export default function SignPdfPage() {
   const isFormValid = mode === "type" ? signatureText.trim().length > 0 : true;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-slate-100 flex items-center justify-center p-4 font-sans transition-colors">
-      <div className="w-full max-w-4xl bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800/80 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 dark:bg-[var(--background)] text-slate-900 dark:text-slate-100 flex items-center justify-center p-4 font-sans transition-colors">
+      <div className="w-full max-w-4xl bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800/80 rounded-3xl p-8 shadow-2xl relative overflow-hidden">
         
         {!file ? (
           <>
@@ -250,7 +250,7 @@ export default function SignPdfPage() {
 
             {/* PDF Preview & Pagination Controls */}
             {numPages > 0 && (
-              <div className="space-y-3 bg-slate-50 dark:bg-[#161f33] p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <div className="space-y-3 bg-slate-50 dark:bg-[var(--background-secondary)] p-4 rounded-2xl border border-slate-200 dark:border-slate-800">
                 <div className="flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 font-medium">
                   <span>Page Preview (Page {currentPage} of {numPages})</span>
                   <div className="flex space-x-2">
@@ -279,7 +279,7 @@ export default function SignPdfPage() {
             )}
 
             {/* Config options */}
-            <div className="bg-slate-50 dark:bg-[#161f33] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
+            <div className="bg-slate-50 dark:bg-[var(--background-secondary)] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-4">
               <div className="flex gap-2 bg-slate-200/60 dark:bg-slate-900/60 p-1 rounded-xl border border-slate-300 dark:border-slate-800">
                 <button
                   type="button"

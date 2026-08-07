@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { UploadCard } from "@/components/tools/upload-card";
 import { Upload, FileText, X, Copy, ScanText } from "lucide-react";
 
 export default function OcrPdfPage() {
@@ -86,20 +87,11 @@ export default function OcrPdfPage() {
             )}
 
             {!fileMeta ? (
-                <div
-                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                    onDragLeave={() => setIsDragging(false)}
-                    onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFile(e.dataTransfer.files); }}
-                    onClick={() => inputRef.current?.click()}
-                    className={`cursor-pointer rounded-2xl border-2 border-dashed p-10 text-center transition-colors ${
-                        isDragging ? "border-[var(--primary)] bg-purple-900/10" : "border-card bg-card"
-                    }`}
-                >
-                    <input ref={inputRef} type="file" accept="application/pdf" hidden onChange={(e) => handleFile(e.target.files)} />
-                    <Upload className="mx-auto text-muted mb-3" size={28} />
-                    <p className="text-fg font-medium text-sm">Drag & drop a scanned PDF file here</p>
-                    <p className="text-muted text-xs mt-1">or click to browse</p>
-                </div>
+                <UploadCard
+                    onFiles={handleFile}
+                    title={"Drag & drop a scanned PDF file here"}
+                    hint={"or click to browse"}
+                />
             ) : (
                 <>
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-card">

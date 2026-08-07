@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { UploadCard } from "@/components/tools/upload-card";
 import { CheckCheck, Sparkles, Copy, Loader2, Upload, FileText, X, ArrowRight } from "lucide-react";
 
 export default function GrammarCheckerPage() {
@@ -95,20 +96,11 @@ if (!res.ok) {
                     </label>
 
                     {!fileMeta ? (
-                        <div
-                            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                            onDragLeave={() => setIsDragging(false)}
-                            onDrop={(e) => { e.preventDefault(); setIsDragging(false); handleFile(e.dataTransfer.files); }}
-                            onClick={() => inputRef.current?.click()}
-                            className={`cursor-pointer flex-1 rounded-xl border-2 border-dashed p-8 text-center flex flex-col items-center justify-center transition-colors ${
-                                isDragging ? "border-[var(--primary)] bg-purple-900/10" : "border-white/10 bg-black/10 hover:border-[var(--primary)]/50"
-                            }`}
-                        >
-                            <input ref={inputRef} type="file" accept="application/pdf" hidden onChange={(e) => handleFile(e.target.files)} />
-                            <Upload className="text-muted mb-2" size={24} />
-                            <p className="text-fg font-medium text-sm">Drag & drop your PDF here</p>
-                            <p className="text-muted text-xs mt-1">or click to browse files</p>
-                        </div>
+                        <UploadCard
+                            onFiles={handleFile}
+                            title={"Drag & drop your PDF here"}
+                            hint={"or click to browse files"}
+                        />
                     ) : (
                         <div className="flex-1 flex flex-col justify-between">
                             <div className="flex items-center gap-3 p-3 rounded-xl bg-black/20 border border-white/5">

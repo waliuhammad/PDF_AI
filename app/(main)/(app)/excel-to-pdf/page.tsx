@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, JSX } from "react";
+import { UploadCard } from "@/components/tools/upload-card";
 import { FileSpreadsheet, Trash2, Download, UploadCloud, ShieldCheck, Sparkles, Layers, Sliders } from "lucide-react";
 import { loadJsPdfWithAutoTable, loadXlsx } from "@/lib/pdf-libs";
 
@@ -23,8 +24,8 @@ export default function ExcelToPdf(): JSX.Element {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    const file = e.target.files?.[0];
+  const handleFileUpload = (fileList: FileList | null): void => {
+    const file = fileList?.[0];
     if (!file) return;
 
     if (!file.name.match(/\.(xlsx|xls|csv)$/i)) {
@@ -137,8 +138,8 @@ export default function ExcelToPdf(): JSX.Element {
   const previewSlicedData = currentSheet ? getSlicedData(currentSheet.data) : [];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#0b0e14] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 antialiased selection:bg-slate-900 dark:selection:bg-slate-700 selection:text-white">
-      <div className="max-w-4xl w-full space-y-8 bg-white dark:bg-[#121824] border border-slate-200 dark:border-slate-800/80 p-8 rounded-3xl shadow-xl dark:shadow-2xl backdrop-blur-xl">
+    <div className="min-h-screen bg-white dark:bg-[var(--background)] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 antialiased selection:bg-slate-900 dark:selection:bg-slate-700 selection:text-white">
+      <div className="max-w-4xl w-full space-y-8 bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800/80 p-8 rounded-3xl shadow-xl dark:shadow-2xl backdrop-blur-xl">
         
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold tracking-wide uppercase">
@@ -152,25 +153,17 @@ export default function ExcelToPdf(): JSX.Element {
         </div>
 
         {sheets.length === 0 && (
-          <label className="group relative border-2 border-dashed border-slate-300 dark:border-slate-700/70 hover:border-slate-900 dark:hover:border-slate-500 rounded-2xl p-10 flex flex-col items-center justify-center cursor-pointer bg-slate-50 dark:bg-[#182030]/50 hover:bg-slate-100/50 dark:hover:bg-[#182030] transition-all duration-300">
-            <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-900 dark:text-slate-300 mb-4 group-hover:scale-110 transition-transform duration-300">
-              <UploadCloud className="w-8 h-8" />
-            </div>
-            <span className="font-semibold text-slate-900 dark:text-slate-200 text-base mb-1">Click to upload spreadsheet file</span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">Supports .xlsx, .xls, and .csv formats</span>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".xlsx, .xls, .csv"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-          </label>
+          <UploadCard
+            onFiles={handleFileUpload}
+            accept=".xlsx,.xls,.csv"
+            title="Click to upload spreadsheet file"
+            hint="Supports .xlsx, .xls, and .csv formats"
+          />
         )}
 
         {sheets.length > 0 && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between bg-slate-50 dark:bg-[#182030] border border-slate-200 dark:border-slate-700/60 p-4 rounded-2xl">
+            <div className="flex items-center justify-between bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-200 dark:border-slate-700/60 p-4 rounded-2xl">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                   <FileSpreadsheet className="w-5 h-5" />
@@ -202,7 +195,7 @@ export default function ExcelToPdf(): JSX.Element {
                       className={`py-2 px-4 rounded-xl text-xs font-semibold tracking-wide transition shrink-0 cursor-pointer border ${
                         selectedSheetIndex === idx
                           ? "bg-slate-900 border-slate-900 text-white shadow-sm dark:bg-slate-900 dark:border-slate-700"
-                          : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 dark:bg-[#182030] dark:border-slate-700/60 dark:text-slate-400 dark:hover:bg-slate-800"
+                          : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100 dark:bg-[var(--background-secondary)] dark:border-slate-700/60 dark:text-slate-400 dark:hover:bg-slate-800"
                       }`}
                     >
                       {s.name}
@@ -212,7 +205,7 @@ export default function ExcelToPdf(): JSX.Element {
               </div>
             )}
 
-            <div className="bg-slate-50 dark:bg-[#182030] border border-slate-200 dark:border-slate-700/60 rounded-2xl p-5 space-y-4">
+            <div className="bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-200 dark:border-slate-700/60 rounded-2xl p-5 space-y-4">
               <div className="flex items-center space-x-2 text-slate-900 dark:text-slate-200 text-sm font-semibold border-b border-slate-200 dark:border-slate-700 pb-2">
                 <Sliders className="w-4 h-4 text-slate-700 dark:text-slate-400" />
                 <span>Row & Column Range Restrictions</span>
@@ -226,7 +219,7 @@ export default function ExcelToPdf(): JSX.Element {
                     min={1}
                     value={startRow}
                     onChange={(e) => setStartRow(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full bg-white dark:bg-[#121824] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
+                    className="w-full bg-white dark:bg-[var(--card)] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                   />
                 </div>
                 <div>
@@ -236,7 +229,7 @@ export default function ExcelToPdf(): JSX.Element {
                     min={1}
                     value={maxRows}
                     onChange={(e) => setMaxRows(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full bg-white dark:bg-[#121824] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
+                    className="w-full bg-white dark:bg-[var(--card)] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                   />
                 </div>
                 <div>
@@ -246,7 +239,7 @@ export default function ExcelToPdf(): JSX.Element {
                     min={1}
                     value={startCol}
                     onChange={(e) => setStartCol(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full bg-white dark:bg-[#121824] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
+                    className="w-full bg-white dark:bg-[var(--card)] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                   />
                 </div>
                 <div>
@@ -256,14 +249,14 @@ export default function ExcelToPdf(): JSX.Element {
                     min={1}
                     value={maxCols}
                     onChange={(e) => setMaxCols(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full bg-white dark:bg-[#121824] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
+                    className="w-full bg-white dark:bg-[var(--card)] border border-slate-300 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-slate-200 mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                   />
                 </div>
               </div>
             </div>
 
             {currentSheet && (
-              <div className="bg-slate-50 dark:bg-[#182030] border border-slate-200 dark:border-slate-700/60 rounded-2xl p-4 space-y-3">
+              <div className="bg-slate-50 dark:bg-[var(--background-secondary)] border border-slate-200 dark:border-slate-700/60 rounded-2xl p-4 space-y-3">
                 <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider">
                   Clipped Range Preview ({previewSlicedData.length} rows x {previewSlicedData[0]?.length || 0} cols)
                 </span>

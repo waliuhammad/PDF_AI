@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import PDFParser from "pdf2json";
 import pptxgen from "pptxgenjs";
 
+// renders every page into a slide,
+// so the platform default is not enough.
+export const maxDuration = 60;
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();

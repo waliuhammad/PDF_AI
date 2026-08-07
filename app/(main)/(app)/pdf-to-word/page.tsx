@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { UploadCard } from "@/components/tools/upload-card";
 import {
   Upload,
   FileText,
@@ -183,33 +184,14 @@ export default function PdfToWordPage() {
       />
 
       {!selectedFile ? (
-        <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsDragging(true);
-          }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={(e) => {
-            e.preventDefault();
-            setIsDragging(false);
-            handleFileAdded(e.dataTransfer.files);
-          }}
-          onClick={() => fileInputRef.current?.click()}
-          className={`cursor-pointer rounded-3xl border-2 border-dashed p-16 text-center transition-all ${
-            isDragging 
-              ? "border-purple-900 bg-purple-100/50 dark:border-cyan-500 dark:bg-cyan-500/10 scale-[1.01]" 
-              : "border-slate-300 bg-white dark:border-slate-800 dark:bg-[#121622] hover:border-purple-900 dark:hover:border-cyan-500 shadow-xl"
-          }`}
-        >
-          <div className="w-16 h-16 rounded-2xl bg-purple-50 dark:bg-cyan-500/10 mx-auto flex items-center justify-center mb-4 text-purple-900 dark:text-cyan-400 shadow-sm border border-purple-200 dark:border-cyan-500/20">
-            <Upload size={32} />
-          </div>
-          <p className="text-slate-900 dark:text-white font-semibold text-lg">Click to browse or drag & drop a PDF</p>
-          <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">Supports standard text, multi-column blocks, and embedded structures</p>
-        </div>
+        <UploadCard
+          onFiles={handleFileAdded}
+          title="Click to browse or drag & drop a PDF"
+          hint="Supports standard text, multi-column blocks, and embedded structures"
+        />
       ) : (
         <div className="space-y-6">
-          <div className="bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex items-center justify-between gap-4">
+          <div className="bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800 rounded-2xl p-5 shadow-sm flex items-center justify-between gap-4">
             <div className="flex items-center gap-3.5 min-w-0">
               <div className="w-12 h-12 rounded-xl bg-purple-900/10 dark:bg-cyan-500/10 flex items-center justify-center shrink-0 text-purple-900 dark:text-cyan-400 border border-purple-900/20 dark:border-cyan-500/20">
                 <FileText size={24} />
@@ -232,13 +214,13 @@ export default function PdfToWordPage() {
           </div>
 
           {/* Viewer Container with further reduced display size and sharp high-DPI text rendering */}
-          <div className="bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col items-center justify-center relative min-h-[360px] shadow-sm overflow-hidden">
+          <div className="bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800 rounded-2xl p-6 flex flex-col items-center justify-center relative min-h-[360px] shadow-sm overflow-hidden">
             {isRendering && !renderedPages && (
               <div className="absolute inset-0 bg-black/10 backdrop-blur-xs flex items-center justify-center z-10">
                 <Loader2 className="animate-spin text-purple-900 dark:text-cyan-400" size={32} />
               </div>
             )}
-            <div className="max-h-[320px] max-w-[260px] w-full overflow-y-auto flex flex-col items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800 [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-300 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full">
+            <div className="max-h-[320px] max-w-[260px] w-full overflow-y-auto flex flex-col items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-[var(--background)] border border-slate-200 dark:border-slate-800 [&::-webkit-scrollbar]:w-2.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-slate-300 dark:[&::-webkit-scrollbar-thumb]:bg-slate-700 [&::-webkit-scrollbar-thumb]:rounded-full">
               {renderedPages && Object.keys(renderedPages).length > 0 ? (
                 Object.entries(renderedPages).map(([pageNum, dataUrl]) => (
                   <div key={pageNum} className="flex flex-col items-center w-full">
@@ -282,7 +264,7 @@ export default function PdfToWordPage() {
               type="button"
               onClick={executeConversion}
               disabled={processing}
-              className="flex-1 py-4 rounded-2xl bg-slate-900 dark:bg-[#0d1322] border border-slate-900 dark:border-slate-700 hover:bg-slate-800 dark:hover:bg-[#111827] text-white font-bold text-base shadow-lg disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all"
+              className="flex-1 py-4 rounded-2xl bg-slate-900 dark:bg-[var(--card)] border border-slate-900 dark:border-slate-700 hover:bg-slate-800 dark:hover:bg-[var(--card)] text-white font-bold text-base shadow-lg disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all"
             >
               {processing ? <Loader2 className="animate-spin" size={20} /> : <Download size={20} />}
               {processing ? "Converting to Word..." : "Convert to Word (.docx)"}

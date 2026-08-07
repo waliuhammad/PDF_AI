@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, JSX } from "react";
+import { UploadCard } from "@/components/tools/upload-card";
 import { FileText, Trash2, Download, UploadCloud, ShieldCheck, Sparkles, Presentation } from "lucide-react";
 
 export default function PdfToPpt(): JSX.Element {
@@ -12,8 +13,8 @@ export default function PdfToPpt(): JSX.Element {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>): Promise<void> => {
-    const uploadedFile = e.target.files?.[0];
+  const handleFileUpload = async (fileList: FileList | null): Promise<void> => {
+    const uploadedFile = fileList?.[0];
     if (!uploadedFile) return;
 
     if (!uploadedFile.type.includes("pdf")) {
@@ -98,20 +99,11 @@ export default function PdfToPpt(): JSX.Element {
         </div>
 
         {!file && (
-          <label className="group relative border-2 border-dashed border-slate-300 dark:border-slate-800 hover:border-blue-500/85 rounded-2xl p-10 flex flex-col items-center justify-center cursor-pointer bg-slate-50/50 dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-900 transition-all duration-300">
-            <div className="w-16 h-16 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-4 group-hover:scale-110 transition-transform duration-300">
-              <UploadCloud className="w-8 h-8" />
-            </div>
-            <span className="font-semibold text-slate-800 dark:text-slate-200 text-base mb-1">Click to upload PDF document</span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">Supports text documents and reports</span>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-          </label>
+          <UploadCard
+            onFiles={handleFileUpload}
+            title="Click to upload PDF document"
+            hint="Supports text documents and reports"
+          />
         )}
 
         {file && (

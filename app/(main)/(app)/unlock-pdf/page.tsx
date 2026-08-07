@@ -77,9 +77,9 @@ export default function UnlockPdfPage() {
     };
 
     return (
-        <div className="min-h-screen bg-white dark:bg-[#070b14] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 transition-colors">
+        <div className="min-h-screen bg-white dark:bg-[var(--background)] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 transition-colors">
             {!file ? (
-                <div className="max-w-4xl mx-auto w-full bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800/80 rounded-3xl p-12 shadow-2xl transition-colors">
+                <div className="max-w-4xl mx-auto w-full bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800/80 rounded-3xl p-12 shadow-2xl transition-colors">
                     <div className="text-center mb-8">
                         <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-purple-50 dark:bg-cyan-950/60 border border-purple-200 dark:border-cyan-800/40 text-purple-900 dark:text-cyan-400 text-xs font-semibold mb-4 shadow-sm">
                             <Sparkles size={13} />
@@ -102,7 +102,7 @@ export default function UnlockPdfPage() {
                     />
                 </div>
             ) : (
-                <div className="max-w-2xl mx-auto w-full bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6 transition-colors">
+                <div className="max-w-2xl mx-auto w-full bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-2xl space-y-6 transition-colors">
                     <div className="text-center space-y-2">
                         <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-purple-50 dark:bg-cyan-950/60 border border-purple-200 dark:border-cyan-800/40 text-purple-900 dark:text-cyan-400 text-xs font-semibold mb-2 shadow-sm">
                             <Sparkles size={13} />
@@ -113,7 +113,7 @@ export default function UnlockPdfPage() {
                     </div>
 
                     <form onSubmit={handleUnlock} className="space-y-6">
-                        <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800">
+                        <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-[var(--background)] border border-slate-200 dark:border-slate-800">
                             <div className="w-9 h-9 rounded-lg bg-purple-100 dark:bg-cyan-500/10 text-purple-900 dark:text-cyan-400 flex items-center justify-center shrink-0 border border-purple-200 dark:border-cyan-500/20">
                                 <FileText size={16} />
                             </div>
@@ -126,7 +126,7 @@ export default function UnlockPdfPage() {
                             </button>
                         </div>
 
-                        <div className="p-5 rounded-2xl bg-slate-50 dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800 space-y-4">
+                        <div className="p-5 rounded-2xl bg-slate-50 dark:bg-[var(--background)] border border-slate-200 dark:border-slate-800 space-y-4">
                             <label className="text-xs text-slate-700 dark:text-slate-400 block mb-1 font-medium uppercase tracking-wider">Document Password</label>
                             <div className="relative">
                                 <input
@@ -134,7 +134,7 @@ export default function UnlockPdfPage() {
                                     value={password}
                                     onChange={(e) => { setPassword(e.target.value); setError(""); }}
                                     placeholder="Enter current password"
-                                    className="w-full px-3 py-2.5 pr-12 rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-[#121622] text-slate-900 dark:text-white text-sm focus:outline-none focus:border-purple-900 dark:focus:border-cyan-500"
+                                    className="w-full px-3 py-2.5 pr-12 rounded-xl border border-slate-300 dark:border-slate-800 bg-white dark:bg-[var(--card)] text-slate-900 dark:text-white text-sm focus:outline-none focus:border-purple-900 dark:focus:border-cyan-500"
                                 />
                                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-purple-900 dark:hover:text-cyan-400">
                                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -152,7 +152,7 @@ export default function UnlockPdfPage() {
                             <button
                                 type="submit"
                                 disabled={processing || !file || !password}
-                                className="w-full py-3.5 px-4 rounded-xl bg-slate-900 dark:bg-[#0d1322] border border-slate-900 dark:border-slate-700/80 text-white font-semibold hover:bg-slate-800 dark:hover:bg-[#111827] transition-all disabled:opacity-50 text-sm tracking-wide shadow-lg flex items-center justify-center gap-2"
+                                className="w-full py-3.5 px-4 rounded-xl bg-slate-900 dark:bg-[var(--card)] border border-slate-900 dark:border-slate-700/80 text-white font-semibold hover:bg-slate-800 dark:hover:bg-[var(--card)] transition-all disabled:opacity-50 text-sm tracking-wide shadow-lg flex items-center justify-center gap-2"
                             >
                                 {processing ? (
                                     "Unlocking PDF..."

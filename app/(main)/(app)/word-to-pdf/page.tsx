@@ -77,8 +77,8 @@ export default function WordToPdfPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#070b14] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 transition-colors">
-      <div className="max-w-3xl mx-auto w-full bg-white dark:bg-[#121622] border border-slate-200 dark:border-slate-800/80 rounded-3xl p-8 sm:p-12 shadow-2xl transition-colors">
+    <div className="min-h-screen bg-white dark:bg-[var(--background)] text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 transition-colors">
+      <div className="max-w-3xl mx-auto w-full bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-slate-800/80 rounded-3xl p-8 sm:p-12 shadow-2xl transition-colors">
         <div className="text-center mb-8 lg:mb-10">
           <div className="w-12 h-12 lg:w-14 lg:h-14 mx-auto rounded-2xl bg-purple-50 dark:bg-cyan-950/60 border border-purple-200 dark:border-cyan-800/40 flex items-center justify-center mb-4">
             <FileText className="text-purple-900 dark:text-cyan-400" size={24} />
@@ -96,7 +96,7 @@ export default function WordToPdfPage() {
           />
         ) : (
           <div className="space-y-6">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-[#0b0f19] border border-slate-200 dark:border-slate-800/80">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 dark:bg-[var(--background)] border border-slate-200 dark:border-slate-800/80">
               <div className="w-9 h-9 rounded-lg bg-purple-100 dark:bg-cyan-500/10 border border-purple-200 dark:border-cyan-500/20 flex items-center justify-center shrink-0">
                 <FileText size={16} className="text-purple-900 dark:text-cyan-400" />
               </div>
@@ -122,7 +122,7 @@ export default function WordToPdfPage() {
               <button
                 onClick={handleConvert}
                 disabled={loading}
-                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-slate-900 dark:bg-[#0d1322] border border-slate-900 dark:border-slate-700/80 hover:bg-slate-800 dark:hover:bg-[#111827] text-white font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2 mx-auto text-sm shadow-lg"
+                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-slate-900 dark:bg-[var(--card)] border border-slate-900 dark:border-slate-700/80 hover:bg-slate-800 dark:hover:bg-[var(--card)] text-white font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2 mx-auto text-sm shadow-lg"
               >
                 {loading && <Loader2 className="animate-spin" size={18} />}
                 {loading ? "Converting..." : "Convert to PDF (.pdf)"}

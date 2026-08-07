@@ -275,7 +275,7 @@ export default function SplitPdfPage() {
   return (
     <div className="max-w-6xl mx-auto w-full px-4">
       <div className="text-center mb-8">
-        <div className="w-14 h-14 mx-auto rounded-2xl bg-white dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] flex items-center justify-center mb-3 text-slate-900 dark:text-white shadow-sm">
+        <div className="w-14 h-14 mx-auto rounded-2xl bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-[#272b36] flex items-center justify-center mb-3 text-slate-900 dark:text-white shadow-sm">
           <Scissors size={28} />
         </div>
         <h1 className="text-2xl lg:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Split PDF Pages</h1>
@@ -305,11 +305,11 @@ export default function SplitPdfPage() {
             handleFile(e.dataTransfer.files);
           }}
           onClick={() => inputRef.current?.click()}
-          className={`cursor-pointer rounded-[32px] p-16 h-[380px] flex flex-col items-center justify-center text-center transition-all bg-white dark:bg-[#1b1e29] border border-slate-200 dark:border-[#272c3a] shadow-xl ${
+          className={`cursor-pointer rounded-[32px] p-16 h-[380px] flex flex-col items-center justify-center text-center transition-all bg-white dark:bg-[var(--background-secondary)] border border-slate-200 dark:border-[#272c3a] shadow-xl ${
             isDragging ? "border-slate-400 dark:border-white scale-[1.01]" : "hover:border-slate-300 dark:hover:border-[#333a4a]"
           }`}
         >
-          <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-[#232836] mx-auto flex items-center justify-center mb-4 text-slate-900 dark:text-white shadow-sm border border-slate-200 dark:border-[#32394a]">
+          <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-[var(--background-secondary)] mx-auto flex items-center justify-center mb-4 text-slate-900 dark:text-white shadow-sm border border-slate-200 dark:border-[#32394a]">
             <Upload size={26} />
           </div>
           <p className="text-slate-900 dark:text-white font-semibold text-lg">Click to browse or drag & drop PDFs</p>
@@ -317,9 +317,9 @@ export default function SplitPdfPage() {
         </div>
       ) : (
         <div className="space-y-6">
-          <div className="bg-white dark:bg-[#111318] border border-slate-200 dark:border-[#222632] rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-[#222632] rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] flex items-center justify-center shrink-0 text-slate-900 dark:text-white">
+              <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-[var(--card)] border border-slate-200 dark:border-[#272b36] flex items-center justify-center shrink-0 text-slate-900 dark:text-white">
                 <FileText size={20} />
               </div>
               <div className="min-w-0">
@@ -346,7 +346,7 @@ export default function SplitPdfPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
             {/* Left Side: Page Preview (Reduced width: col-span-5, removed left/right padding: px-0) */}
-            <div className="lg:col-span-5 bg-white dark:bg-[#111318] border border-slate-200 dark:border-[#222632] rounded-3xl py-3 px-0 shadow-md flex flex-col justify-between">
+            <div className="lg:col-span-5 bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-[#222632] rounded-3xl py-3 px-0 shadow-md flex flex-col justify-between">
               <div className="flex items-center justify-between pb-2 px-4 border-b border-slate-200 dark:border-[#222632]">
                 <span className="text-xs font-extrabold text-slate-900 dark:text-white uppercase tracking-wider">Page Preview</span>
                 <span className="text-xs text-slate-500 dark:text-[#9ca3af]">Scroll down • Click to select</span>
@@ -376,14 +376,14 @@ export default function SplitPdfPage() {
                           onClick={() => !done && handlePageClick(page)}
                           className={`cursor-pointer w-full max-w-[340px] h-[300px] rounded-2xl border p-0.5 flex flex-col items-center justify-between transition-all select-none shrink-0 ${
                             isEdge
-                              ? "border-slate-900 dark:border-white bg-slate-50 dark:bg-[#181b22] shadow-md"
+                              ? "border-slate-900 dark:border-white bg-slate-50 dark:bg-[var(--card)] shadow-md"
                               : inRange
-                              ? "border-slate-400 dark:border-[#4a5568] bg-slate-50/50 dark:bg-[#181b22]/30"
-                              : "border-slate-200 dark:border-[#222632] bg-white dark:bg-[#111318] hover:border-slate-300 dark:hover:border-[#333a4a]"
+                              ? "border-slate-400 dark:border-[#4a5568] bg-slate-50/50 dark:bg-[var(--card)]/30"
+                              : "border-slate-200 dark:border-[#222632] bg-white dark:bg-[var(--card)] hover:border-slate-300 dark:hover:border-[#333a4a]"
                           }`}
                         >
                           <div className="w-full flex items-center justify-between px-2 pt-1 mb-0.5 shrink-0">
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${isEdge ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900" : "bg-slate-100 dark:bg-[#181b22] text-slate-700 dark:text-[#d1d5db]"}`}>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${isEdge ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900" : "bg-slate-100 dark:bg-[var(--card)] text-slate-700 dark:text-[#d1d5db]"}`}>
                               Page {page} of {pageCount}
                             </span>
                             <span className="text-[10px] font-medium text-slate-500 dark:text-[#9ca3af]">
@@ -391,7 +391,7 @@ export default function SplitPdfPage() {
                             </span>
                           </div>
 
-                          <div className="flex-1 w-full flex items-center justify-center bg-slate-100 dark:bg-[#0d0f13] rounded-xl overflow-hidden border border-slate-200 dark:border-[#222632] p-0 m-0">
+                          <div className="flex-1 w-full flex items-center justify-center bg-slate-100 dark:bg-[var(--background)] rounded-xl overflow-hidden border border-slate-200 dark:border-[#222632] p-0 m-0">
                             {thumbnails[idx] ? (
                               <img src={thumbnails[idx]} alt={`Page ${page}`} className="object-cover h-full w-full rounded m-0 p-0 block" />
                             ) : (
@@ -406,7 +406,7 @@ export default function SplitPdfPage() {
                   <div
                     ref={trackRef}
                     onClick={handleTrackClick}
-                    className="relative w-2 bg-slate-200 dark:bg-[#181b22] rounded-full cursor-pointer my-1 shrink-0"
+                    className="relative w-2 bg-slate-200 dark:bg-[var(--card)] rounded-full cursor-pointer my-1 shrink-0"
                   >
                     <div
                       onMouseDown={handleThumbMouseDown}
@@ -436,7 +436,7 @@ export default function SplitPdfPage() {
 
             {/* Right Side: Split Configuration (Increased width: col-span-7) */}
             <div className="lg:col-span-7 flex">
-              <div className="bg-white dark:bg-[#111318] border border-slate-200 dark:border-[#222632] rounded-3xl p-3 shadow-md flex flex-col justify-between w-full">
+              <div className="bg-white dark:bg-[var(--card)] border border-slate-200 dark:border-[#222632] rounded-3xl p-3 shadow-md flex flex-col justify-between w-full">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between pb-2 px-2 border-b border-slate-200 dark:border-[#222632]">
                     <div className="flex items-center gap-2">
@@ -453,7 +453,7 @@ export default function SplitPdfPage() {
                         className={`flex-1 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
                           splitMode === "range"
                             ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
-                            : "bg-slate-100 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
+                            : "bg-slate-100 dark:bg-[var(--card)] border border-slate-200 dark:border-[#272b36] text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
                         }`}
                       >
                         Extract Page Range
@@ -464,7 +464,7 @@ export default function SplitPdfPage() {
                         className={`flex-1 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
                           splitMode === "every"
                             ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
-                            : "bg-slate-100 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
+                            : "bg-slate-100 dark:bg-[var(--card)] border border-slate-200 dark:border-[#272b36] text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
                         }`}
                       >
                         Split Every N Pages
@@ -486,7 +486,7 @@ export default function SplitPdfPage() {
                               setDone(false);
                               setErrorMessage(null);
                             }}
-                            className="w-full bg-slate-50 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] rounded-xl px-3 py-2 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-slate-900 dark:focus:border-white"
+                            className="w-full bg-slate-50 dark:bg-[var(--card)] border border-slate-200 dark:border-[#272b36] rounded-xl px-3 py-2 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-slate-900 dark:focus:border-white"
                           />
                         </div>
                         <div>
@@ -502,7 +502,7 @@ export default function SplitPdfPage() {
                               setDone(false);
                               setErrorMessage(null);
                             }}
-                            className="w-full bg-slate-50 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] rounded-xl px-3 py-2 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-slate-900 dark:focus:border-white"
+                            className="w-full bg-slate-50 dark:bg-[var(--card)] border border-slate-200 dark:border-[#272b36] rounded-xl px-3 py-2 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-slate-900 dark:focus:border-white"
                           />
                         </div>
                       </div>
@@ -519,7 +519,7 @@ export default function SplitPdfPage() {
                             setDone(false);
                             setErrorMessage(null);
                           }}
-                          className="w-full bg-slate-50 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] rounded-xl px-3 py-2 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-slate-900 dark:focus:border-white"
+                          className="w-full bg-slate-50 dark:bg-[var(--card)] border border-slate-200 dark:border-[#272b36] rounded-xl px-3 py-2 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-slate-900 dark:focus:border-white"
                         />
                       </div>
                     )}
@@ -571,7 +571,7 @@ export default function SplitPdfPage() {
                           className={`w-full px-4 py-2.5 rounded-xl text-xs font-bold transition-all text-left flex items-center justify-between ${
                             downloadChoice === "split"
                               ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
-                              : "bg-slate-100 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
+                              : "bg-slate-100 dark:bg-[var(--card)] border border-slate-200 dark:border-[#272b36] text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
                           }`}
                         >
                           <span>Split Part</span>
@@ -583,7 +583,7 @@ export default function SplitPdfPage() {
                           className={`w-full px-4 py-2.5 rounded-xl text-xs font-bold transition-all text-left flex items-center justify-between ${
                             downloadChoice === "remaining"
                               ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
-                              : "bg-slate-100 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
+                              : "bg-slate-100 dark:bg-[var(--card)] border border-slate-200 dark:border-[#272b36] text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
                           }`}
                         >
                           <span>Remaining Part</span>
@@ -594,7 +594,7 @@ export default function SplitPdfPage() {
                           className={`w-full px-4 py-2.5 rounded-xl text-xs font-bold transition-all text-left flex items-center justify-between ${
                             downloadChoice === "both"
                               ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
-                              : "bg-slate-100 dark:bg-[#181b22] border border-slate-200 dark:border-[#272b36] text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
+                              : "bg-slate-100 dark:bg-[var(--card)] border border-slate-200 dark:border-[#272b36] text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
                           }`}
                         >
                           <span>Both (Split & Remaining)</span>

@@ -1,6 +1,5 @@
-import { doc, getDoc, setDoc } from "firebase/firestore";
 import { updateProfile, type User } from "firebase/auth";
-import { db } from "./client";
+import { getDb } from "./client";
 
 export interface UserProfile {
     fullName: string;
@@ -11,6 +10,11 @@ export interface UserProfile {
 
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {
     try {
+        const [{ doc, getDoc }, db] = await Promise.all([
+            import("firebase/firestore"),
+            getDb(),
+        ]);
+
         const snap = await getDoc(doc(db, "users", uid));
         if (!snap.exists()) return null;
         return snap.data() as UserProfile;
@@ -37,6 +41,11 @@ export async function updateUserProfile(
     await updateProfile(user, { displayName: fullName });
 
     try {
+        const [{ doc, setDoc }, db] = await Promise.all([
+            import("firebase/firestore"),
+            getDb(),
+        ]);
+
         await setDoc(doc(db, "users", user.uid), { fullName }, { merge: true });
         return { syncedToDatabase: true };
     } catch (err) {
