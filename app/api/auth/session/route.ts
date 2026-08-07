@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
+    adminConfigProblem,
     getAdminAuth,
     isAdminConfigured,
     SESSION_COOKIE,
@@ -24,7 +25,7 @@ export const runtime = "nodejs";
 export async function POST(req: NextRequest) {
     if (!isAdminConfigured()) {
         console.error(
-            "auth/session: Firebase Admin credentials are missing, so no session cookie can be issued."
+            `auth/session: no session cookie can be issued — ${adminConfigProblem()}`
         );
         return NextResponse.json(
             { error: "Sessions are not available right now." },

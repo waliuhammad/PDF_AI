@@ -16,24 +16,49 @@ import { getAuth, type Auth } from "firebase-admin/auth";
 
 let app: App | null = null;
 
-function credentials() {
-    const projectId = process.env.FIREBASE_PROJECT_ID;
-    const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-    // Railway and Vercel store the key with literal \n, so turn those back into
-    // real newlines or the PEM parser rejects it.
-    const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n");
-
+/**
+ * Why the credentials are unusable, or null when they look right.
+ *
+ * The shape of the private key is checked, not just its presence. The service
+ * account JSON holds both `private_key` and `private_key_id`, they sit on
+ * adjacent lines, and copying the wrong one is easy. A key id passes any
+ * is-it-set test but fails at PEM parsing, which surfaces as a plain 401 —
+ * so signing in appears to work and then bounces straight back to /login,
+ * with nothing saying why. Naming the mistake here is the difference between
+ * a one-line fix and a long hunt.
+ */
+function misconfiguration(): string | null {
     const missing = [
-        !projectId && "FIREBASE_PROJECT_ID",
-        !clientEmail && "FIREBASE_CLIENT_EMAIL",
-        !privateKey && "FIREBASE_PRIVATE_KEY",
+        !process.env.FIREBASE_PROJECT_ID && "FIREBASE_PROJECT_ID",
+        !process.env.FIREBASE_CLIENT_EMAIL && "FIREBASE_CLIENT_EMAIL",
+        !process.env.FIREBASE_PRIVATE_KEY && "FIREBASE_PRIVATE_KEY",
     ].filter(Boolean);
 
-    if (missing.length) {
-        throw new Error(`Firebase Admin is not configured: ${missing.join(", ")} missing.`);
+    if (missing.length) return `${missing.join(", ")} not set`;
+
+    if (!process.env.FIREBASE_PRIVATE_KEY!.includes("BEGIN PRIVATE KEY")) {
+        return (
+            "FIREBASE_PRIVATE_KEY is not a private key — it should be the " +
+            '"private_key" field from the service account JSON, about 1700 ' +
+            'characters beginning with -----BEGIN PRIVATE KEY-----. A short ' +
+            'hex string is "private_key_id", which is a different field.'
+        );
     }
 
-    return { projectId: projectId!, clientEmail: clientEmail!, privateKey: privateKey! };
+    return null;
+}
+
+function credentials() {
+    const problem = misconfiguration();
+    if (problem) throw new Error(`Firebase Admin is not configured: ${problem}`);
+
+    return {
+        projectId: process.env.FIREBASE_PROJECT_ID!,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL!,
+        // Railway and Vercel store the key with literal \n, so turn those back
+        // into real newlines or the PEM parser rejects it.
+        privateKey: process.env.FIREBASE_PRIVATE_KEY!.replace(/\\n/g, "\n"),
+    };
 }
 
 export function getAdminApp(): App {
@@ -46,13 +71,14 @@ export function getAdminAuth(): Auth {
     return getAuth(getAdminApp());
 }
 
-/** True when the credentials are present, so callers can degrade rather than throw. */
+/** True when the credentials look usable, so callers can degrade rather than throw. */
 export function isAdminConfigured(): boolean {
-    return Boolean(
-        process.env.FIREBASE_PROJECT_ID &&
-            process.env.FIREBASE_CLIENT_EMAIL &&
-            process.env.FIREBASE_PRIVATE_KEY
-    );
+    return misconfiguration() === null;
+}
+
+/** The reason isAdminConfigured() is false, for logging. Null when it is true. */
+export function adminConfigProblem(): string | null {
+    return misconfiguration();
 }
 
 export const SESSION_COOKIE = "pdfai_session";

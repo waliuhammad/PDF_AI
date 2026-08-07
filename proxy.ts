@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import {
+    adminConfigProblem,
     getAdminAuth,
     isAdminConfigured,
     SESSION_COOKIE,
@@ -37,7 +38,7 @@ export async function proxy(request: NextRequest) {
     // in the log — a misconfigured deploy should be obvious, not invisible.
     if (!isAdminConfigured()) {
         console.error(
-            `proxy: Firebase Admin is not configured, so ${pathname} cannot be verified. Set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL and FIREBASE_PRIVATE_KEY.`
+            `proxy: cannot verify ${pathname} — ${adminConfigProblem()}`
         );
         return redirectToLogin(request);
     }
