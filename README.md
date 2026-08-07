@@ -25,8 +25,10 @@ what stops working when it is missing.
 | --- | --- | --- |
 | `NEXT_PUBLIC_FIREBASE_*` | Accounts, saved documents, chats | Sign-in and the whole signed-in area fail |
 | `AI_SERVICE_URL` | Summary, translate, grammar, OCR, chat | Falls back to `http://localhost:8001` |
-| `CONVERTAPI_SECRET` | Word to PDF, PDF to Word | Both return 503 and the tools are unusable |
-| `NEXT_PUBLIC_SITE_URL` | `sitemap.xml`, canonical URLs, OG tags | Falls back to the Vercel production host, then `http://localhost:3000`. Set it whenever there is a custom domain |
+| `NEXT_PUBLIC_SITE_URL` | `sitemap.xml`, canonical URLs, OG tags | Falls back to the Railway or Vercel host, then `http://localhost:3000`. Set it whenever there is a custom domain |
+
+Every conversion tool runs on this server. Nothing is sent to a third-party
+conversion service, so none of them need an API key.
 
 `NEXT_PUBLIC_*` values are baked in at build time, so changing one means
 rebuilding, not just restarting.
