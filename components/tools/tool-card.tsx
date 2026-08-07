@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { LucideIcon } from "lucide-react";
 
 interface ToolCardProps {
@@ -23,11 +22,12 @@ export default function ToolCard({
     badge,
     comingSoon = false,
 }: ToolCardProps) {
+    // The lift on hover was a framer-motion whileHover. This card is on screen
+    // twenty-two times on /tools, and the profile put framer among the most
+    // expensive scripts there — for a translate and a scale, which CSS does free.
     const card = (
-        <motion.div
-                whileHover={comingSoon ? undefined : { y: -5, scale: 1.02 }}
-                transition={{ duration: 0.2 }}
-                className="
+        <div
+                className={`
           group
           relative
           flex
@@ -41,10 +41,11 @@ export default function ToolCard({
           bg-card
           p-5
           transition-all
-          duration-300
+          duration-200
           hover:border-primary/40
           hover:shadow-xl
-        "
+          ${comingSoon ? "" : "hover:-translate-y-[5px] hover:scale-[1.02]"}
+        `}
             >
                 {/* Badge */}
                 {(comingSoon || badge) && (
@@ -135,14 +136,18 @@ export default function ToolCard({
             to-primary/5
           "
             />
-        </motion.div>
+        </div>
     );
 
     // Tools without a page yet render as a plain container so they can't 404.
     return comingSoon ? (
         <div className="block h-full cursor-not-allowed opacity-60">{card}</div>
     ) : (
-        <Link href={href} className="block h-full">
+        // Twenty-two of these sit on /tools, and Next prefetches every link in
+        // view: 112 requests for a page where one card gets clicked, several of
+        // them fetched repeatedly as the grid re-renders on search. Hover is
+        // early enough to prefetch.
+        <Link href={href} prefetch={false} className="block h-full">
             {card}
         </Link>
     );

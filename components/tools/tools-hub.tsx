@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
 import { Search, Wrench } from "lucide-react";
 
 import ToolCard from "./tool-card";
@@ -86,15 +85,17 @@ export function ToolsHub() {
                 </div>
             ) : (
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                    {/* The stagger was a motion.div per card, so twenty-two more
+                        framer instances on top of the cards themselves. Same
+                        fade-and-rise as a CSS animation, off the main thread. */}
                     {filteredTools.map((tool, index) => (
-                        <motion.div
+                        <div
                             key={tool.name}
-                            initial={{ opacity: 0, y: 12 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: Math.min(index * 0.03, 0.3) }}
+                            className="motion-safe:animate-tool-in"
+                            style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}
                         >
                             <ToolCard {...tool} />
-                        </motion.div>
+                        </div>
                     ))}
                 </div>
             )}

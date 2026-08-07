@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { Reveal } from "@/components/reveal";
 import {
     Users,
     FileText,
@@ -114,18 +114,8 @@ export function Stats() {
                         const Icon = item.icon;
 
                         return (
-                            <motion.div
-                                key={item.title}
-                                initial={{ opacity: 0, y: 25 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: index * 0.1 }}
-                                whileHover={{
-                                    y: -8,
-                                    scale: 1.02,
-                                }}
-                                className="group rounded-3xl border border-border bg-card p-7 transition-all hover:border-primary/40 hover:shadow-xl"
-                            >
+                            <Reveal key={item.title} delay={index * 100}>
+                                <div className="group h-full rounded-3xl border border-border bg-card p-7 transition-all duration-200 hover:border-primary/40 hover:shadow-xl hover:-translate-y-2 hover:scale-[1.02]">
                                 <div className="flex items-center justify-between">
                                     <div className="rounded-2xl bg-primary/10 p-4">
                                         <Icon className="h-7 w-7 text-primary" />
@@ -152,7 +142,8 @@ export function Stats() {
                                 <p className="mt-1 text-sm text-muted">
                                     {item.description}
                                 </p>
-                            </motion.div>
+                                </div>
+                            </Reveal>
                         );
                     })}
                 </div>
