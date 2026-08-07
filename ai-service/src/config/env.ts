@@ -3,7 +3,11 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const env = {
-  PORT: process.env.PORT || "8000",
+  // 8001 because that is where the main app looks when AI_SERVICE_URL is
+  // unset. The old default of 8000 meant a fresh checkout started this service
+  // on a port nothing was calling, and all five AI tools failed with a bare
+  // connection error. It also collided with Chroma's own default of 8000.
+  PORT: process.env.PORT || "8001",
 
   GOOGLE_API_KEY: process.env.GOOGLE_API_KEY || "",
 

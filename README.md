@@ -2,19 +2,59 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+You need **Node 20 to 24** (`node -v` — 25 is not supported yet) and git.
+Nothing else: no Python, no Docker, no database. Every PDF tool runs inside this
+server.
 
 ```bash
+git clone https://github.com/waliuhammad/PDF_AI.git
+cd PDF_AI
+npm install
+cp .env.example .env.local
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000). All 21 PDF tools — merge,
+split, compress, rotate, watermark, sign, and every conversion — already work at
+this point, with `.env.local` still empty.
+
+Two things need filling in before everything works:
+
+**Accounts, the dashboard, saved documents and chat history** need the six
+`NEXT_PUBLIC_FIREBASE_*` values, from Firebase Console → Project settings →
+General → Your apps. They are safe to share within the team.
+
+Signing in also needs a service account key, which is *not* safe to share — it
+can read and write every user's data. Each person downloads their own from
+Firebase Console → Project settings → Service accounts → Generate new private
+key, then runs:
+
+```bash
+node scripts/import-service-account.mjs ~/Downloads/<the-downloaded>.json
+```
+
+That fills in the three `FIREBASE_*` variables and prints nothing sensitive.
+Delete the JSON afterwards. Do not copy the key by hand — the file holds both
+`private_key` and `private_key_id` on adjacent lines, and picking the wrong one
+produces a sign-in that appears to work and then bounces back to `/login`.
+
+**Summary, translate, grammar, OCR and chat** need the service in `ai-service/`
+running alongside, in a second terminal:
+
+```bash
+cd ai-service
+npm install
+cp .env.example .env      # then add GOOGLE_API_KEY
+npm run dev
+```
+
+The key is free from [aistudio.google.com/apikey](https://aistudio.google.com/apikey).
+It defaults to port 8001, which is where the app looks, so no other config is
+needed. Chat also wants a Chroma server on port 8000; the other four AI tools
+do not.
+
+Skip `ai-service` entirely and the site still runs — those five tools return an
+error, the other 21 are unaffected.
 
 ## Environment variables
 

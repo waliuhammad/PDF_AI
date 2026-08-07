@@ -33,6 +33,11 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# ...except the templates, which hold no values and are the only record of
+# which variables exist. Without these a new checkout has nothing to copy from.
+!.env.example
+!ai-service/.env.example
+
 # vercel
 .vercel
 
