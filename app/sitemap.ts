@@ -1,7 +1,8 @@
 import type { MetadataRoute } from "next";
+import { getSiteUrl } from "@/lib/site-url";
 import { tools } from "@/lib/tools";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const siteUrl = getSiteUrl();
 
 /** Marketing and informational pages, highest priority first. */
 const staticPaths: Array<{ path: string; priority: number }> = [

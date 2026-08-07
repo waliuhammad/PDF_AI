@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Search, Wrench } from "lucide-react";
 
@@ -11,12 +11,18 @@ import { tools } from "@/lib/tools";
 // category in lib/tools.ts shows up here without touching this file.
 const categories = ["All", ...Array.from(new Set(tools.map((t) => t.category)))];
 
-/** `initialCategory` lets other pages deep-link a category, e.g. /tools?category=AI%20Tools */
-export function ToolsHub({ initialCategory }: { initialCategory?: string }) {
+export function ToolsHub() {
     const [search, setSearch] = useState("");
-    const [category, setCategory] = useState(() =>
-        initialCategory && categories.includes(initialCategory) ? initialCategory : "All"
-    );
+    const [category, setCategory] = useState("All");
+
+    // Deep links like /tools?category=AI%20Tools still work, but reading the
+    // URL here rather than from searchParams on the server is what lets the
+    // page stay static. The grid is prerendered showing everything, so there is
+    // no empty state to look at while this runs.
+    useEffect(() => {
+        const wanted = new URLSearchParams(window.location.search).get("category");
+        if (wanted && categories.includes(wanted)) setCategory(wanted);
+    }, []);
 
     const filteredTools = useMemo(() => {
         const query = search.trim().toLowerCase();

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js"
+    "start": "tsx src/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -24,14 +24,14 @@
     "helmet": "^8.3.0",
     "morgan": "^1.11.0",
     "multer": "^2.2.0",
-    "pdfjs-dist": "^3.11.174"
+    "pdfjs-dist": "^3.11.174",
+    "tsx": "^4.23.4"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/morgan": "^1.9.10",
     "@types/multer": "^2.2.0",
     "@types/node": "^26.1.2",
-    "tsx": "^4.23.4",
     "typescript": "^7.0.2"
   }
 }

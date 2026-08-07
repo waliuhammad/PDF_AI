@@ -2,7 +2,7 @@ import { parsePDF } from "../parser";
 import { cleanText } from "../cleaner";
 import { chunkText } from "../chunking";
 import { ExtractionResult, PipelineResult } from "./pipeline.types";
-import { generateEmbedding } from "../embeddings";
+import { generateEmbeddings } from "../embeddings";
 import {
   clearCollection,
   storeEmbeddings,
@@ -36,8 +36,9 @@ export async function processPDF(
 ): Promise<PipelineResult> {
   const extraction = await extractText(buffer);
 
-  const embeddings = await Promise.all(
-    extraction.chunker.chunks.map((chunk) => generateEmbedding(chunk.content))
+  // One request per hundred chunks, not one per chunk.
+  const embeddings = await generateEmbeddings(
+    extraction.chunker.chunks.map((chunk) => chunk.content)
   );
 
   // Remove previous PDF chunks (development mode)

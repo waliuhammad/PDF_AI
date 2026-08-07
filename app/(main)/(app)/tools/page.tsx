@@ -6,15 +6,13 @@ export const metadata: Metadata = {
     description: "Every PDF tool in one place — convert, edit, organise and secure your documents.",
 };
 
-// Next 16 passes searchParams as a Promise. Reading it here (rather than with
-// useSearchParams in the client) keeps the tool grid in the server-rendered
-// HTML instead of hiding it behind a Suspense fallback.
-export default async function ToolsPage({
-    searchParams,
-}: {
-    searchParams: Promise<{ category?: string | string[] }>;
-}) {
-    const { category } = await searchParams;
-
-    return <ToolsHub initialCategory={Array.isArray(category) ? category[0] : category} />;
+/**
+ * Static. This used to await searchParams to seed the category filter, which
+ * made the whole page server-render on every request — the browse page that
+ * gets hit most, rebuilt each time for a value that never changes the tool
+ * list, only which of it is shown. ToolsHub reads ?category from the URL after
+ * mount instead, so the full grid is prerendered and served from the CDN.
+ */
+export default function ToolsPage() {
+    return <ToolsHub />;
 }
