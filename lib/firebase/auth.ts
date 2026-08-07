@@ -10,7 +10,7 @@ import {
     type AuthProvider,
     type User,
 } from "firebase/auth";
-import { auth, getDb } from "./client";
+import { getFirebaseAuth, getDb } from "./client";
 
 export interface RegisterInput {
     fullName: string;
@@ -50,7 +50,7 @@ async function createUserDocIfNotExists(user: User, extra?: Record<string, unkno
 }
 
 export async function registerWithEmail(input: RegisterInput) {
-    const credential = await createUserWithEmailAndPassword(auth, input.email, input.password);
+    const credential = await createUserWithEmailAndPassword(getFirebaseAuth(), input.email, input.password);
     await updateProfile(credential.user, { displayName: input.fullName });
     await createUserDocIfNotExists(credential.user, {
         fullName: input.fullName,
@@ -81,36 +81,36 @@ function buildProvider(id: SocialProviderId): AuthProvider {
  * Firebase returns auth/operation-not-allowed, which the caller surfaces.
  */
 export async function signInWithSocial(id: SocialProviderId) {
-    const credential = await signInWithPopup(auth, buildProvider(id));
+    const credential = await signInWithPopup(getFirebaseAuth(), buildProvider(id));
     await createUserDocIfNotExists(credential.user);
     return credential.user;
 }
 import { signInWithEmailAndPassword } from "firebase/auth";
 
 export async function signInWithEmail(email: string, password: string) {
-    const credential = await signInWithEmailAndPassword(auth, email, password);
+    const credential = await signInWithEmailAndPassword(getFirebaseAuth(), email, password);
     return credential.user;
 }
 import { signOut as firebaseSignOut } from "firebase/auth";
 
 export async function logout() {
-    await firebaseSignOut(auth);
+    await firebaseSignOut(getFirebaseAuth());
 }
 import { sendPasswordResetEmail, confirmPasswordReset, verifyPasswordResetCode } from "firebase/auth";
 
 export async function sendResetEmail(email: string) {
-    await sendPasswordResetEmail(auth, email, {
+    await sendPasswordResetEmail(getFirebaseAuth(), email, {
         url: `${window.location.origin}/login`, // where Firebase sends them after successful reset
     });
 }
 
 export async function verifyResetCode(oobCode: string) {
     // Returns the user's email if the code is valid, throws if expired/invalid
-    return await verifyPasswordResetCode(auth, oobCode);
+    return await verifyPasswordResetCode(getFirebaseAuth(), oobCode);
 }
 
 export async function confirmReset(oobCode: string, newPassword: string) {
-    await confirmPasswordReset(auth, oobCode, newPassword);
+    await confirmPasswordReset(getFirebaseAuth(), oobCode, newPassword);
 }
 
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
@@ -121,7 +121,7 @@ export function hasPasswordProvider(user: User | null) {
 }
 
 export async function changePassword(currentPassword: string, newPassword: string) {
-    const user = auth.currentUser;
+    const user = getFirebaseAuth().currentUser;
     if (!user?.email) throw new Error("You need to be signed in to change your password.");
 
     // Firebase requires a recent login before it will accept a password change.
