@@ -6,7 +6,6 @@ const testimonials = [
         name: "Sarah Ahmed",
         role: "Product Designer",
         company: "Adobe",
-        image: "https://i.pravatar.cc/150?img=32",
         review:
             "PDF AI completely transformed the way I work with documents. The AI summary saves me hours every week.",
     },
@@ -14,7 +13,6 @@ const testimonials = [
         name: "James Walker",
         role: "Project Manager",
         company: "Microsoft",
-        image: "https://i.pravatar.cc/150?img=12",
         review:
             "Fast, reliable and incredibly easy to use. OCR and PDF conversion are the best I've tried.",
     },
@@ -22,7 +20,6 @@ const testimonials = [
         name: "Emily Carter",
         role: "Marketing Lead",
         company: "Spotify",
-        image: "https://i.pravatar.cc/150?img=47",
         review:
             "Our team processes hundreds of PDFs every month. PDF AI made the workflow effortless.",
     },
@@ -107,11 +104,16 @@ export default function Testimonials() {
 
                             <div className="flex items-center gap-3.5">
 
-                                <img
-                                    src={item.image}
-                                    alt={item.name}
-                                    className="h-12 w-12 rounded-full object-cover"
-                                />
+                                {/* Was an <img> from i.pravatar.cc, a random-avatar
+                                    service: three third-party requests on every visit,
+                                    and photographs of strangers presented as customers.
+                                    Initials say as much and cost nothing. */}
+                                <div
+                                    aria-hidden="true"
+                                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary"
+                                >
+                                    {item.name.split(" ").map((part) => part[0]).slice(0, 2).join("")}
+                                </div>
 
                                 <div>
 
