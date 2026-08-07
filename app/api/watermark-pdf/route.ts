@@ -26,6 +26,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No PDF file uploaded" }, { status: 400 });
     }
 
+    // The work happens inside `if (type === "text")` / `else if (type ===
+    // "image")`. With neither, both branches were skipped and the file came
+    // back saved but unwatermarked — a 200 and an unchanged PDF, which reads
+    // as success.
+    if (watermarkType !== "text" && watermarkType !== "image") {
+      return NextResponse.json(
+        { error: 'Choose a watermark type: "text" or "image".' },
+        { status: 400 }
+      );
+    }
+
     const fileBuffer = await file.arrayBuffer();
     const pdfDoc = await PDFDocument.load(fileBuffer);
     const pages = pdfDoc.getPages();
