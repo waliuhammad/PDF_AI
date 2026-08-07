@@ -14,7 +14,6 @@
     "@pdfsmaller/pdf-encrypt-lite": "^1.2.0",
     "@swc/helpers": "^0.5.23",
     "adm-zip": "^0.6.0",
-    "canvas": "^3.2.3",
     "clsx": "^2.1.1",
     "fast-xml-parser": "^5.10.1",
     "firebase": "^12.17.0",
@@ -45,9 +44,9 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.12",
+    "shadcn": "^4.15.0",
     "tailwindcss": "^4",
-    "typescript": "^5",
-    "shadcn": "^4.15.0"
+    "typescript": "^5"
   },
   "allowScripts": {
     "sharp@0.34.5": true,
@@ -55,5 +54,8 @@
   },
   "optionalDependencies": {
     "lightningcss-win32-x64-msvc": "^1.33.0"
+  },
+  "engines": {
+    "node": ">=20 <25"
   }
 }
