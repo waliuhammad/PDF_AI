@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { Mail, ArrowLeft } from "lucide-react";
 import { sendResetEmail } from "@/lib/firebase/auth";
 
@@ -29,11 +28,7 @@ export default function ForgotPasswordPage() {
 
     return (
         <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 bg-[var(--background-secondary)]">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-md bg-card border border-card rounded-2xl p-6 sm:p-8"
-            >
+            <div className="w-full max-w-md bg-card border border-card rounded-2xl p-6 sm:p-8 animate-tool-in">
                 <Link href="/login" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg mb-6 transition-colors">
                     <ArrowLeft size={16} /> Back to login
                 </Link>
@@ -80,7 +75,7 @@ export default function ForgotPasswordPage() {
                         </button>
                     </form>
                 )}
-            </motion.div>
+            </div>
         </div>
     );
 }

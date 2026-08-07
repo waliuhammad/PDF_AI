@@ -2,7 +2,6 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import {
     FileText,
     MessageSquare,
@@ -51,7 +50,7 @@ export default function DashboardPage() {
 
     return (
         <div>
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+            <div className="mb-8 animate-tool-in">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                     <div>
                         <h1 className="text-2xl font-bold text-fg">Welcome back, {displayName} 👋</h1>
@@ -61,7 +60,7 @@ export default function DashboardPage() {
                         {planLabel}
                     </span>
                 </div>
-            </motion.div>
+            </div>
 
             {/* Stats */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

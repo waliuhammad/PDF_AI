@@ -3,7 +3,6 @@
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "framer-motion";
 import { Eye, EyeOff, Lock, ArrowLeft } from "lucide-react";
 import { verifyResetCode, confirmReset } from "@/lib/firebase/auth";
 
@@ -73,11 +72,7 @@ function ResetPasswordForm() {
     if (verifyState === "invalid") {
         return (
             <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 bg-[var(--background-secondary)]">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="w-full max-w-md bg-card border border-card rounded-2xl p-6 sm:p-8 text-center"
-                >
+                <div className="w-full max-w-md bg-card border border-card rounded-2xl p-6 sm:p-8 text-center animate-tool-in">
                     <h1 className="text-xl sm:text-2xl font-bold text-fg mb-2">Link expired or invalid</h1>
                     <p className="text-muted text-sm mb-6">This password reset link is no longer valid. Please request a new one.</p>
                     <Link
@@ -86,18 +81,14 @@ function ResetPasswordForm() {
                     >
                         Request New Link
                     </Link>
-                </motion.div>
+                </div>
             </div>
         );
     }
 
     return (
         <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 bg-[var(--background-secondary)]">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-md bg-card border border-card rounded-2xl p-6 sm:p-8"
-            >
+            <div className="w-full max-w-md bg-card border border-card rounded-2xl p-6 sm:p-8 animate-tool-in">
                 <Link href="/login" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg mb-6 transition-colors">
                     <ArrowLeft size={16} /> Back to login
                 </Link>
@@ -166,7 +157,7 @@ function ResetPasswordForm() {
                         </button>
                     </form>
                 )}
-            </motion.div>
+            </div>
         </div>
     );
 }

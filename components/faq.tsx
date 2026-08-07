@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
 interface FAQItem {
@@ -59,9 +58,8 @@ export default function FAQ() {
 
                 <div className="space-y-3.5">
                     {faqs.map((faq: FAQItem, index: number) => (
-                        <motion.div
+                        <div
                             key={faq.question}
-                            layout
                             className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm"
                         >
                             <button
@@ -78,29 +76,28 @@ export default function FAQ() {
                                     </h3>
                                 </div>
 
-                                <motion.div
-                                    animate={{ rotate: open === index ? 180 : 0 }}
-                                    className="text-muted shrink-0 ml-4"
+                                <div
+                                    className={`text-muted shrink-0 ml-4 transition-transform duration-200 ${open === index ? "rotate-180" : ""
+                                        }`}
                                 >
                                     <ChevronDown size={18} />
-                                </motion.div>
+                                </div>
                             </button>
 
-                            <AnimatePresence>
-                                {open === index && (
-                                    <motion.div
-                                        initial={{ height: 0, opacity: 0 }}
-                                        animate={{ height: "auto", opacity: 1 }}
-                                        exit={{ height: 0, opacity: 0 }}
-                                        transition={{ duration: 0.2 }}
-                                    >
-                                        <div className="border-t border-border px-5 pb-5 pt-3 text-xs leading-relaxed text-muted">
-                                            {faq.answer}
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </motion.div>
+                            {/* grid-template-rows 0fr -> 1fr animates to the content's
+                                own height without measuring it, which is what
+                                AnimatePresence and height:auto were doing in JS. */}
+                            <div
+                                className={`grid transition-all duration-200 ease-out ${open === index ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+                                    }`}
+                            >
+                                <div className="overflow-hidden">
+                                    <div className="border-t border-border px-5 pb-5 pt-3 text-xs leading-relaxed text-muted">
+                                        {faq.answer}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     ))}
                 </div>
             </div>

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Menu, X, FileText } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 import { ThemeToggle } from "./theme-toggle";
 
 const navLinks = [
@@ -109,17 +108,13 @@ export function Navbar() {
               >
                 {item.name}
 
-                {active && (
-                  <motion.span
-                    layoutId="navbar-underline"
-                    className="absolute -bottom-1 left-0 h-[2px] w-full rounded-full bg-primary"
-                    transition={{
-                      type: "spring",
-                      stiffness: 500,
-                      damping: 35,
-                    }}
-                  />
-                )}
+                {/* Was a layoutId span, which slid between links — framer's shared
+                    layout animation, loaded on every page for one underline. It
+                    grows in place instead. */}
+                <span
+                  className={`absolute -bottom-1 left-0 h-[2px] rounded-full bg-primary transition-all duration-300 ${active ? "w-full opacity-100" : "w-0 opacity-0"
+                    }`}
+                />
               </Link>
             );
           })}
@@ -154,14 +149,9 @@ export function Navbar() {
       </div>
 
       {/* Mobile Menu */}
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -15 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.2 }}
-            className="border-t border-border bg-background lg:hidden"
+      {open && (
+          <div
+            className="border-t border-border bg-background lg:hidden animate-menu-in"
           >
             <div className="space-y-2 px-6 py-6">
               {navLinks.map((item) => {
@@ -209,9 +199,8 @@ export function Navbar() {
                 </Link>
               </div>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
     </header>
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { Search } from "lucide-react";
-import { motion } from "framer-motion";
 
 interface SearchToolProps {
     searchQuery: string;
@@ -13,12 +12,7 @@ export default function SearchTool({
     setSearchQuery,
 }: SearchToolProps) {
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35 }}
-            className="mx-auto max-w-5xl pb-12"
-        >
+        <div className="mx-auto max-w-5xl pb-12 animate-tool-in">
             <div className="relative">
 
                 <Search
@@ -59,6 +53,6 @@ export default function SearchTool({
                 />
 
             </div>
-        </motion.div>
+        </div>
     );
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 
 
 interface CategoryFilterProps {
@@ -41,17 +40,9 @@ export default function CategoryFilter({
             {categories.map((category) => (
 
 
-                <motion.button
+                <button
 
                     key={category}
-
-                    whileTap={{
-                        scale: 0.95
-                    }}
-
-                    whileHover={{
-                        y: -2
-                    }}
 
                     onClick={() =>
                         setActiveCategory(category)
@@ -67,6 +58,8 @@ export default function CategoryFilter({
                         font-medium
                         transition-all
                         duration-300
+                        hover:-translate-y-0.5
+                        active:scale-95
                         border
 
                         ${activeCategory === category
@@ -92,27 +85,14 @@ export default function CategoryFilter({
                     {category}
 
 
-                    {
-                        activeCategory === category && (
-
-                            <motion.span
-
-                                layoutId="category-active"
-
-                                className="
-                                    absolute
-                                    inset-0
-                                    -z-10
-                                    bg-indigo-600
-                                "
-
-                            />
-
-                        )
-                    }
+                    {/* Was a layoutId span that slid between pills. Toggling opacity keeps
+                        the highlight without framer's shared layout engine. */}
+                    <span
+                        className={`absolute inset-0 -z-10 bg-indigo-600 transition-opacity duration-200 ${activeCategory === category ? "opacity-100" : "opacity-0"}`}
+                    />
 
 
-                </motion.button>
+                </button>
 
 
             ))}
