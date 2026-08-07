@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { readFormData } from "@/lib/api";
 import { pdfToPng } from "pdf-to-png-converter";
 import fs from "fs";
 import path from "path";
@@ -11,7 +12,10 @@ export const maxDuration = 60;
 
 export async function POST(req: Request) {
   try {
-    const formData = await req.formData();
+    const formData = await readFormData(req);
+        if (!formData) {
+            return NextResponse.json({ error: "No file provided." }, { status: 400 });
+        }
     const action = formData.get("action");
     const file = formData.get("file") as File;
 

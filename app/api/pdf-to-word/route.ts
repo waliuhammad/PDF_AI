@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { readFormData } from "@/lib/api";
 
 export async function POST(req: NextRequest) {
   const secret = process.env.CONVERTAPI_SECRET;
@@ -16,7 +17,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const formData = await req.formData();
+    const formData = await readFormData(req);
+        if (!formData) {
+            return NextResponse.json({ error: "No file provided." }, { status: 400 });
+        }
     const file = formData.get("file") as File;
 
     if (!file) {

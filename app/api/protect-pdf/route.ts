@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
+import { readFormData } from "@/lib/api";
 import { PDFDocument } from "pdf-lib";
 import { encryptPDF } from "@pdfsmaller/pdf-encrypt-lite";
 
 export async function POST(req: NextRequest) {
   try {
-    const formData = await req.formData();
+    const formData = await readFormData(req);
+        if (!formData) {
+            return NextResponse.json({ error: "No file provided." }, { status: 400 });
+        }
     const file = formData.get("file") as File | null;
     const password = formData.get("password") as string | null;
 

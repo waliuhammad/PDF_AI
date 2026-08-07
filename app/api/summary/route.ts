@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { readFormData } from "@/lib/api";
 
 // Gemini summarises the whole document — measured about 6s,
 // so the platform default is not enough.
@@ -9,7 +10,10 @@ const AI_SERVICE =
 
 export async function POST(req: NextRequest) {
   try {
-    const formData = await req.formData();
+    const formData = await readFormData(req);
+        if (!formData) {
+            return NextResponse.json({ error: "No file provided." }, { status: 400 });
+        }
 
     const response = await fetch(`${AI_SERVICE}/api/summary`, {
       method: "POST",

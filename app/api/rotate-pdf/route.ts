@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { readFormData } from "@/lib/api";
 import { PDFDocument, degrees } from "pdf-lib";
 
 /**
@@ -9,7 +10,10 @@ import { PDFDocument, degrees } from "pdf-lib";
  */
 export async function POST(req: NextRequest) {
     try {
-        const formData = await req.formData();
+        const formData = await readFormData(req);
+        if (!formData) {
+            return NextResponse.json({ error: "No file provided." }, { status: 400 });
+        }
         const file = formData.get("file") as File | null;
         const rotation = parseInt((formData.get("rotation") as string) || "90", 10);
         const mode = (formData.get("mode") as string) || "all";

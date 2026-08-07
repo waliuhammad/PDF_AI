@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { readFormData } from "@/lib/api";
 import { PDFDocument } from "pdf-lib";
 
 export const runtime = "nodejs";
@@ -34,7 +35,10 @@ function sniff(bytes: Uint8Array): "png" | "jpeg" | null {
 
 export async function POST(req: NextRequest) {
     try {
-        const formData = await req.formData();
+        const formData = await readFormData(req);
+        if (!formData) {
+            return NextResponse.json({ error: "No file provided." }, { status: 400 });
+        }
 
         const files = formData
             .getAll("files")

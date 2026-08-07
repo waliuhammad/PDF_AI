@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
+import { readFormData } from "@/lib/api";
 import { PDFDocument, degrees } from "pdf-lib";
 
 export async function POST(req: NextRequest) {
   try {
-    const formData = await req.formData();
+    const formData = await readFormData(req);
+        if (!formData) {
+            return NextResponse.json({ error: "No file provided." }, { status: 400 });
+        }
     const files = formData.getAll("files") as File[];
     const pageOrderJson = formData.get("pageOrder") as string;
 

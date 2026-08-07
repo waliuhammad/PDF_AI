@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { readFormData } from "@/lib/api";
 import { PDFDocument, rgb, degrees, StandardFonts } from "pdf-lib";
 
 type Position =
@@ -14,7 +15,10 @@ type Position =
 
 export async function POST(req: NextRequest) {
   try {
-    const formData = await req.formData();
+    const formData = await readFormData(req);
+        if (!formData) {
+            return NextResponse.json({ error: "No file provided." }, { status: 400 });
+        }
     const file = formData.get("file") as File;
     const watermarkType = formData.get("type") as "text" | "image";
 
