@@ -1,4 +1,5 @@
 import JSZip from "jszip";
+import { withOwnPdfWorker } from "./pdf-worker-isolation";
 
 /**
  * Turn a PDF into a .docx here, rather than posting the document to ConvertAPI.
@@ -142,12 +143,16 @@ export async function pdfToDocx(bytes: Uint8Array): Promise<Uint8Array> {
 
     let pdf;
     try {
-        pdf = await getDocument({
-            // pdf.js takes ownership of the array it is handed.
-            data: new Uint8Array(bytes),
-            isEvalSupported: false,
-            useSystemFonts: true,
-        }).promise;
+        // Isolated, because pdf-to-image runs a different pdf.js major in this
+        // same process and the two share a worker global. See the helper.
+        pdf = await withOwnPdfWorker(() =>
+            getDocument({
+                // pdf.js takes ownership of the array it is handed.
+                data: new Uint8Array(bytes),
+                isEvalSupported: false,
+                useSystemFonts: true,
+            }).promise
+        );
     } catch (error) {
         const reason = error instanceof Error ? error.message : String(error);
         throw new Error(`That file could not be read as a PDF: ${reason}`);

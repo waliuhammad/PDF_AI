@@ -6,7 +6,7 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import AdmZip from "adm-zip";
-import {} from "@/lib/errors";
+import { withOwnPdfWorker } from "@/lib/pdf-worker-isolation";
 
 // renders every page to a bitmap,
 // so the platform default is not enough.
@@ -34,9 +34,11 @@ export async function POST(req: Request) {
     fs.writeFileSync(tempFilePath, buffer);
 
     if (action === "get-info") {
-      const pages = await pdfToPng(tempFilePath, {
-        returnMetadataOnly: true,
-      });
+      // Isolated: pdf-to-word runs a different pdf.js major in this same
+      // process and the two share a worker global. See the helper.
+      const pages = await withOwnPdfWorker(() =>
+        pdfToPng(tempFilePath, { returnMetadataOnly: true })
+      );
       
       fs.rmSync(tempDir, { recursive: true, force: true });
       return NextResponse.json({ numPages: pages.length });
@@ -56,7 +58,7 @@ export async function POST(req: Request) {
         options.pagesToProcess = [pageNum];
       }
 
-      const pngPages = await pdfToPng(tempFilePath, options);
+      const pngPages = await withOwnPdfWorker(() => pdfToPng(tempFilePath, options));
 
       if (mode === "custom" && pngPages.length > 0) {
         const singlePage = pngPages[0];
