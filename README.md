@@ -33,10 +33,16 @@ key, then runs:
 node scripts/import-service-account.mjs
 ```
 
-That fills in the three `FIREBASE_*` variables and prints nothing sensitive.
-Delete the JSON afterwards. Do not copy the key by hand — the file holds both
-`private_key` and `private_key_id` on adjacent lines, and picking the wrong one
-produces a sign-in that appears to work and then bounces back to `/login`.
+No argument needed — it finds the file the console just put in your Downloads,
+fills in the three `FIREBASE_*` variables, prints nothing sensitive, and deletes
+the JSON afterwards.
+
+Do not copy the key by hand, and do not send the file or its contents to anyone.
+It holds both `private_key` and `private_key_id` on adjacent lines, so the wrong
+one is easy to grab — that produces a sign-in which appears to work and then
+bounces straight back to `/login`. More importantly, the key can read and write
+every user's data and mint a login token for any account, so a copy in a chat,
+an issue or a screenshot means generating a new one.
 
 **Summary, translate, grammar, OCR and chat** need the service in `ai-service/`
 running alongside, in a second terminal:
