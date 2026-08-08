@@ -6,7 +6,7 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import AdmZip from "adm-zip";
-import { errorMessage } from "@/lib/errors";
+import {} from "@/lib/errors";
 
 // renders every page to a bitmap,
 // so the platform default is not enough.
@@ -94,6 +94,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   } catch (err) {
     console.error("PDF conversion error:", err);
-    return NextResponse.json({ error: errorMessage(err, "Internal Server Error") }, { status: 500 });
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

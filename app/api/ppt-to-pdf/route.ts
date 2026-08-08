@@ -3,7 +3,7 @@ import { readFormData } from "@/lib/api";
 import AdmZip from "adm-zip";
 import { XMLParser } from "fast-xml-parser";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
-import { errorMessage } from "@/lib/errors";
+import {} from "@/lib/errors";
 
 export async function POST(req: NextRequest) {
   try {
@@ -189,7 +189,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error("PPT to PDF Error:", err);
     return NextResponse.json(
-      { error: errorMessage(err, "Failed to process presentation content.") },
+      { error: "Failed to process presentation content." },
       { status: 500 }
     );
   }

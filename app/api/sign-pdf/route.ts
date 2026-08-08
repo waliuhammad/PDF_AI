@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
-import { errorMessage } from "@/lib/errors";
+import {} from "@/lib/errors";
 
 export async function POST(req: NextRequest) {
   try {
@@ -91,6 +91,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error("PDF Signing Error:", err);
-    return NextResponse.json({ error: errorMessage(err, "Failed to sign document.") }, { status: 500 });
+    return NextResponse.json({ error: "Failed to sign document." }, { status: 500 });
   }
 }

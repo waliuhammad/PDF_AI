@@ -203,7 +203,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error("PDF to PPT Error:", err);
     return NextResponse.json(
-      { error: errorMessage(err, "Failed to convert PDF to PowerPoint.") },
+      { error: "Failed to convert PDF to PowerPoint." },
       { status: 500 }
     );
   }

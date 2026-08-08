@@ -135,7 +135,7 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     console.error("PDF Parsing Error:", err);
     return NextResponse.json(
-      { error: errorMessage(err, "Unable to parse PDF document.") },
+      { error: "Unable to parse PDF document." },
       { status: 500 }
     );
   }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import {} from "pdf-lib";
 import { encryptPDF } from "@pdfsmaller/pdf-encrypt-lite";
-import { errorMessage } from "@/lib/errors";
+import {} from "@/lib/errors";
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,6 +36,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err) {
     console.error("PDF Encryption Error:", err);
-    return NextResponse.json({ error: errorMessage(err, "Failed to protect PDF document.") }, { status: 500 });
+    return NextResponse.json({ error: "Failed to protect PDF document." }, { status: 500 });
   }
 }
