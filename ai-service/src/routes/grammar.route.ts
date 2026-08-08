@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { upstreamBusy } from "../modules/shared/upstream";
 import multer from "multer";
 import { extractText } from "../modules/pipeline";
 import { checkGrammar } from "../modules/grammar";
@@ -43,12 +44,10 @@ router.post("/", upload.single("file"), async (req, res) => {
   } catch (error: any) {
     console.error(error);
 
-    if (error?.status === 429) {
-      return res.status(429).json({
-        success: false,
-        message: error.message,
-      });
-    }
+    // Was 429-only, and passed Gemini's raw message straight through. 503 is
+    // the commoner of the two and was falling to the generic failure below.
+    const busy = upstreamBusy(error);
+    if (busy) return res.status(busy.status).json(busy.body);
 
     return res.status(500).json({
       success: false,

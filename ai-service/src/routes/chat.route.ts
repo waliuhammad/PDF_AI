@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { upstreamBusy } from "../modules/shared/upstream";
 import multer from "multer";
 
 import { processPDF } from "../modules/pipeline";
@@ -75,13 +76,10 @@ router.post("/", async (req, res) => {
   } catch (error: any) {
     console.error(error);
 
-    // Same as the other AI routes: a quota limit is not a failed question.
-    if (error?.status === 429) {
-      return res.status(429).json({
-        success: false,
-        message: error.message,
-      });
-    }
+    // Same as the other AI routes: a quota limit or a saturated model is not a
+    // failed question, and saying so lets the visitor just ask again.
+    const busy = upstreamBusy(error);
+    if (busy) return res.status(busy.status).json(busy.body);
 
     return res.status(500).json({
       success: false,

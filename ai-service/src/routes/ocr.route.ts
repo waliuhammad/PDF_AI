@@ -1,5 +1,6 @@
 import fs from "fs/promises";
 import { extractTextWithOCR } from "../modules/ocr";
+import { upstreamBusy } from "../modules/shared/upstream";
 
 import { Router } from "express";
 import multer from "multer";
@@ -68,6 +69,9 @@ router.post("/ocr", upload.single("file"), async (req, res) => {
 
   } catch (error: any) {
     console.error(error);
+
+    const busy = upstreamBusy(error);
+    if (busy) return res.status(busy.status).json(busy.body);
 
     if (error.message === "Unsupported file type.") {
       return res.status(400).json({
