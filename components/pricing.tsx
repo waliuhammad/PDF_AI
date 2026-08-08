@@ -207,8 +207,16 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
 
                     {plans.map((plan, index) => (
 
-                        <Reveal key={plan.name} delay={index * 100}>
-<div className=" duration-200 hover:-translate-y-1.5 hover:scale-[1.01]">
+                        <Reveal key={plan.name} delay={index * 100} className="h-full">
+<div className={`
+                                relative flex h-full flex-col rounded-2xl bg-card p-7
+                                shadow-sm transition-all duration-200
+                                hover:-translate-y-1.5 hover:scale-[1.01] hover:shadow-xl
+                                ${plan.popular
+                                ? "border-2 border-primary shadow-lg shadow-primary/10"
+                                : "border border-card hover:border-primary/40"
+                            }
+                            `}>
 
 
                             {plan.popular && (
@@ -302,8 +310,12 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
 
 
 
+                            {/* mb-7 rather than mt-7 on the button below it: the
+                                button uses mt-auto to sit on the card's bottom
+                                edge, and a margin cannot be both auto and 7. */}
                             <ul className="
                                 mt-6
+                                mb-7
                                 space-y-3.5
                             ">
 
@@ -338,7 +350,7 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                             <Link
                                 href="/register"
                                 className={`
-                                    mt-7
+                                    mt-auto
                                     block
                                     w-full
                                     py-3

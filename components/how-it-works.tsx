@@ -92,8 +92,8 @@ export function HowItWorks() {
                     {steps.map((step, index) => (
 
 
-                        <Reveal key={step.title} delay={index * 150}>
-<div className="relative
+                        <Reveal key={step.title} delay={index * 150} className="h-full">
+<div className="relative h-full
                                 rounded-2xl
                                 border
                                 border-[var(--card-border)]

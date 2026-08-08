@@ -75,9 +75,15 @@ export function AIFeatures() {
                     {features.map((feature, index) => {
                         const Icon = feature.icon;
 
+                        // h-full has to run the whole way down: the grid stretches
+                        // the Link, the Link stretches Reveal, and only then does
+                        // the card's own h-full have a height to match. Miss any
+                        // link in that chain and every card falls back to its
+                        // content height, so a two-line description makes one card
+                        // taller than the one beside it.
                         return (
-                            <Link key={feature.title} href={`/${feature.slug}`} className="block">
-                                <Reveal delay={index * 50}>
+                            <Link key={feature.title} href={`/${feature.slug}`} className="block h-full">
+                                <Reveal delay={index * 50} className="h-full">
 <div className="group
                                         relative
                                         overflow-hidden
@@ -90,7 +96,7 @@ export function AIFeatures() {
                                         transition-all
                                         hover:border-primary/40
                                         hover:shadow-xl
-                                        h-full duration-200 hover:-translate-y-1.5 hover:scale-[1.01]">
+                                        flex h-full flex-col duration-200 hover:-translate-y-1.5 hover:scale-[1.01]">
                                     <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-primary/5 blur-2xl transition-all group-hover:bg-primary/10" />
 
                                     <div className="flex items-center justify-between">
@@ -111,7 +117,11 @@ export function AIFeatures() {
                                         {feature.description}
                                     </p>
 
-                                    <div className="mt-4 flex items-center gap-1.5 text-sm font-medium text-primary transition group-hover:gap-2">
+                                    {/* mt-auto so it sits on the card's bottom edge
+                                        rather than under the text — otherwise a
+                                        one-line description leaves it floating
+                                        halfway up next to a two-line neighbour. */}
+                                    <div className="mt-auto flex items-center gap-1.5 pt-4 text-sm font-medium text-primary transition group-hover:gap-2">
                                         <span>Learn More</span>
                                         <ArrowRight size={16} />
                                     </div>

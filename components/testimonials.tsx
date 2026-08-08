@@ -94,7 +94,7 @@ export default function Testimonials() {
 
                     {testimonials.map((item, index) => (
 
-                        <Reveal key={item.name} delay={index * 100}>
+                        <Reveal key={item.name} delay={index * 100} className="h-full">
                             <div className="relative rounded-2xl border border-border bg-card p-6 shadow-lg hover:border-primary/40 transition-all h-full duration-200 hover:-translate-y-1.5 hover:scale-[1.01]">
 
                             <Quote

@@ -69,8 +69,8 @@ export function ToolsGrid() {
 
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredTools.map((tool, index) => (
-                        <Reveal key={tool.name} delay={index * 50}>
-<div className="">
+                        <Reveal key={tool.name} delay={index * 50} className="h-full">
+<div className="h-full">
                             <ToolCard {...tool} />
                         </div>
 </Reveal>

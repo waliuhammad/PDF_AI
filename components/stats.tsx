@@ -114,7 +114,7 @@ export function Stats() {
                         const Icon = item.icon;
 
                         return (
-                            <Reveal key={item.title} delay={index * 100}>
+                            <Reveal key={item.title} delay={index * 100} className="h-full">
                                 <div className="group h-full rounded-3xl border border-border bg-card p-7 transition-all duration-200 hover:border-primary/40 hover:shadow-xl hover:-translate-y-2 hover:scale-[1.02]">
                                 <div className="flex items-center justify-between">
                                     <div className="rounded-2xl bg-primary/10 p-4">
