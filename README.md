@@ -30,7 +30,7 @@ Firebase Console → Project settings → Service accounts → Generate new priv
 key, then runs:
 
 ```bash
-node scripts/import-service-account.mjs ~/Downloads/<the-downloaded>.json
+node scripts/import-service-account.mjs
 ```
 
 That fills in the three `FIREBASE_*` variables and prints nothing sensitive.
