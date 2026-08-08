@@ -29,7 +29,11 @@ export default function ForgotPasswordPage() {
     return (
         <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 bg-[var(--background-secondary)]">
             <div className="w-full max-w-md bg-card border border-card rounded-2xl p-6 sm:p-8 animate-tool-in">
-                <Link href="/login" className="inline-flex items-center gap-1.5 text-sm text-muted hover:text-fg mb-6 transition-colors">
+                {/* py-1 takes this from 20px to 28px. WCAG 2.5.8 AA wants 24,
+                    and the inline-in-a-sentence exemption does not apply — this
+                    is a standalone navigation link. mb drops by the 4px the
+                    padding adds so the spacing below is unchanged. */}
+                <Link href="/login" className="inline-flex items-center gap-1.5 py-1 text-sm text-muted hover:text-fg mb-5 transition-colors">
                     <ArrowLeft size={16} /> Back to login
                 </Link>
 

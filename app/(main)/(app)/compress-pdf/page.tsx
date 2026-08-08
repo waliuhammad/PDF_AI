@@ -152,7 +152,17 @@ export default function CompressPdfPage() {
             handleFile(e.dataTransfer.files);
           }}
           onClick={() => inputRef.current?.click()}
-          className={`cursor-pointer rounded-[32px] p-16 h-[380px] flex flex-col items-center justify-center text-center transition-all bg-[var(--background-secondary)] border border-card shadow-xl ${
+          // See split-pdf: a bare div with an onClick is unreachable without a
+          // mouse, and the input behind it is display:none.
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              inputRef.current?.click();
+            }
+          }}
+          className={`cursor-pointer rounded-[32px] p-16 h-[380px] flex flex-col items-center justify-center text-center transition-all bg-[var(--background-secondary)] border border-card shadow-xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${
             isDragging ? "border-slate-900 dark:border-white scale-[1.01]" : "hover:border-slate-300 dark:hover:border-[#333a4a]"
           }`}
         >

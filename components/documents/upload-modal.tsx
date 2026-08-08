@@ -98,7 +98,18 @@ export function UploadModal({ onClose, onUploadComplete }: UploadModalProps) {
                     onDragLeave={() => setDragActive(false)}
                     onDrop={handleDrop}
                     onClick={() => inputRef.current?.click()}
-                    className={`flex flex-col items-center justify-center gap-2 py-10 rounded-xl border-2 border-dashed cursor-pointer transition-colors ${dragActive ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-card"
+                    // Same as the split and compress drop zones: a div with an
+                    // onClick cannot be reached from the keyboard, and neither
+                    // can the hidden input behind it.
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            inputRef.current?.click();
+                        }
+                    }}
+                    className={`flex flex-col items-center justify-center gap-2 py-10 rounded-xl border-2 border-dashed cursor-pointer transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${dragActive ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-card"
                         }`}
                 >
                     <Upload size={28} className="text-[var(--primary)]" />

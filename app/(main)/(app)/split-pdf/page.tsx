@@ -305,7 +305,22 @@ export default function SplitPdfPage() {
             handleFile(e.dataTransfer.files);
           }}
           onClick={() => inputRef.current?.click()}
-          className={`cursor-pointer rounded-[32px] p-16 h-[380px] flex flex-col items-center justify-center text-center transition-all bg-[var(--background-secondary)] border border-card shadow-xl ${
+          // Without these this was a bare div: not tabbable, no key handler,
+          // and the file input behind it is display:none so it cannot be
+          // reached either. That left no way at all to choose a file without
+          // a mouse. Same treatment the shared UploadCard already has.
+          // No aria-label: role=button takes its name from its own text, and an
+          // aria-label would override the visible wording that voice-control
+          // users say out loud.
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              inputRef.current?.click();
+            }
+          }}
+          className={`cursor-pointer rounded-[32px] p-16 h-[380px] flex flex-col items-center justify-center text-center transition-all bg-[var(--background-secondary)] border border-card shadow-xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${
             isDragging ? "border-slate-400 dark:border-white scale-[1.01]" : "hover:border-slate-300 dark:hover:border-[#333a4a]"
           }`}
         >
