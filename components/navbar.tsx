@@ -43,6 +43,12 @@ export function Navbar() {
   };
 
   useEffect(() => {
+    // The hash never reaches the server — browsers do not send it — so this
+    // cannot be the initial state without the server rendering "#" and the
+    // client rendering something else, which is a hydration mismatch. Reading
+    // it once on mount is the correct shape here, and the extra render is one
+    // class change on a nav link.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveHash(window.location.hash || "#");
 
     const handleHashChange = () => {

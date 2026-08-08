@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import { decryptPDF } from "@pdfsmaller/pdf-decrypt";
 import { PDFDocument } from "pdf-lib";
+import { errorMessage } from "@/lib/errors";
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,9 +25,10 @@ export async function POST(req: NextRequest) {
     try {
       // Try decrypting with the library if it's encrypted
       decryptedBytes = await decryptPDF(pdfBytes, password || "");
-    } catch (decryptErr: any) {
+    } catch (decryptErr) {
       // If the error says it's not encrypted, verify if pdf-lib can load it directly
-      if (decryptErr.message?.includes("not encrypted") || decryptErr.message?.includes("Encrypt dictionary")) {
+      const decryptMessage = errorMessage(decryptErr, "");
+      if (decryptMessage.includes("not encrypted") || decryptMessage.includes("Encrypt dictionary")) {
         const pdfDoc = await PDFDocument.load(pdfBytes);
         decryptedBytes = await pdfDoc.save();
       } else {
@@ -41,10 +43,10 @@ export async function POST(req: NextRequest) {
         "Content-Disposition": `attachment; filename="${file.name.replace(/\.[^/.]+$/, "")}-unlocked.pdf"`,
       },
     });
-  } catch (err: any) {
+  } catch (err) {
     console.error("PDF Decryption Error:", err);
     return NextResponse.json(
-      { error: err.message?.includes("password") ? "Incorrect password. Please try again." : (err.message || "Failed to unlock PDF document.") },
+      { error: errorMessage(err, "").includes("password") ? "Incorrect password. Please try again." : (errorMessage(err, "Failed to unlock PDF document.")) },
       { status: 500 }
     );
   }

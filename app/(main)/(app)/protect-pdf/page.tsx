@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { Upload, FileText, X, Lock, Download, Eye, EyeOff, Wand2, Copy, Check, Sparkles, ShieldCheck } from "lucide-react";
+import { FileText, X, Download, Eye, EyeOff, Wand2, Copy, Check, Sparkles, ShieldCheck } from "lucide-react";
 import { UploadCard } from "@/components/tools/upload-card";
 import { loadPdfjs } from "@/lib/pdf-libs";
+import { errorMessage } from "@/lib/errors";
 
 export default function ProtectPdfPage() {
     const [file, setFile] = useState<{ name: string; size: string; rawFile: File } | null>(null);
-    const [isDragging, setIsDragging] = useState(false);
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -18,7 +18,6 @@ export default function ProtectPdfPage() {
     const [numPages, setNumPages] = useState<number>(0);
     const [error, setError] = useState("");
     
-    const inputRef = useRef<HTMLInputElement>(null);
     const canvasRefs = useRef<HTMLCanvasElement[]>([]);
 
     const formatSize = (bytes: number) => {
@@ -57,7 +56,7 @@ export default function ProtectPdfPage() {
                     }
                 }
             }, 100);
-        } catch (err) {
+        } catch {
             setError("Failed to load PDF preview.");
         }
     };
@@ -127,8 +126,8 @@ export default function ProtectPdfPage() {
             a.remove();
             window.URL.revokeObjectURL(url);
             setDone(true);
-        } catch (err: any) {
-            setError(err.message || "An unexpected error occurred.");
+        } catch (err) {
+            setError(errorMessage(err, "An unexpected error occurred."));
         } finally {
             setProcessing(false);
         }

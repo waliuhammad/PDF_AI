@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import { PDFDocument } from "pdf-lib";
+import { errorMessage } from "@/lib/errors";
 
 export async function POST(req: NextRequest) {
   try {
@@ -71,8 +72,8 @@ export async function POST(req: NextRequest) {
         "Content-Disposition": `attachment; filename="${filename}"`,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("PDF Split Error:", error);
-    return NextResponse.json({ error: error.message || "Failed to split PDF" }, { status: 500 });
+    return NextResponse.json({ error: errorMessage(error, "Failed to split PDF") }, { status: 500 });
   }
 }

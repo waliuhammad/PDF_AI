@@ -1,8 +1,15 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- Every image on this page is a
+   preview the browser just generated from the file the visitor picked: an
+   object URL or a canvas data URL. next/image cannot optimise either, since
+   there is no server-side image to resize; it would need unoptimized, which
+   renders this same tag inside a wrapper. Disabled for the file rather than
+   per line because some of these sit inside ternaries, where a JSX comment is
+   a syntax error and the two comment styles would have to be mixed. */
+
 
 import { useState, useRef, useEffect } from "react";
 import {
-  Upload,
   FileText,
   Download,
   Type,
@@ -41,7 +48,6 @@ type Position =
 
 export default function WatermarkPdfPage() {
   const [rawFile, setRawFile] = useState<File | null>(null);
-  const [isDraggingFile, setIsDraggingFile] = useState(false);
 
   // Watermark Type Options
   const [watermarkType, setWatermarkType] = useState<"text" | "image">("text");
@@ -63,7 +69,7 @@ export default function WatermarkPdfPage() {
   const [position, setPosition] = useState<Position>("center");
   const [visibilityMode, setVisibilityMode] = useState<"transparent" | "visible">("transparent");
   const [opacity, setOpacity] = useState<number>(0.35);
-  const [rotation, setRotation] = useState<number>(45);
+  const [rotation] = useState<number>(45);
 
   const [processing, setProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);

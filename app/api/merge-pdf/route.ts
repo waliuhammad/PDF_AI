@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
         mergedPdf.addPage(copiedPage);
       }
     } else {
-      for (const [_, buffer] of fileMap) {
+      for (const [buffer] of fileMap) {
         const pdf = await PDFDocument.load(buffer);
         const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
         copiedPages.forEach((page) => mergedPdf.addPage(page));
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
         "Content-Disposition": `attachment; filename="merged_document.pdf"`,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Merge PDF error:", error);
     return NextResponse.json(
       { error: "Failed to merge PDF files. Please verify the uploaded documents." },

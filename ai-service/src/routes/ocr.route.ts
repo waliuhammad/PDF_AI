@@ -67,20 +67,26 @@ router.post("/ocr", upload.single("file"), async (req, res) => {
       result,
     });
 
-  } catch (error: any) {
+  } catch (error) {
     console.error(error);
 
     const busy = upstreamBusy(error);
     if (busy) return res.status(busy.status).json(busy.body);
 
-    if (error.message === "Unsupported file type.") {
+    // Two specific failures are worth reporting as 400 rather than 500: our own
+    // unsupported-type guard, and multer's size limit, which arrives as a code
+    // rather than a message.
+    const message = error instanceof Error ? error.message : "";
+    const code = (error as { code?: string } | null)?.code;
+
+    if (message === "Unsupported file type.") {
       return res.status(400).json({
         success: false,
-        message: error.message,
+        message,
       });
     }
 
-    if (error.code === "LIMIT_FILE_SIZE") {
+    if (code === "LIMIT_FILE_SIZE") {
       return res.status(400).json({
         success: false,
         message: "File size exceeds 20 MB.",

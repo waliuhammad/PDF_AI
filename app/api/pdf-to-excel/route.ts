@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import PDFParser from "pdf2json";
+import { errorMessage } from "@/lib/errors";
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,13 +21,15 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(await file.arrayBuffer());
 
     const tableRows = await new Promise<string[][]>((resolve, reject) => {
-      const pdfParser = new PDFParser(null, 1 as any);
+      const pdfParser = new PDFParser(null, true);
 
-      pdfParser.on("pdfParser_dataError", (err: any) => {
-        reject(new Error(err.parserError));
+      pdfParser.on("pdfParser_dataError", (err) => {
+        // pdf2json types this as { parserError: Error } | Error, so it is one or
+        // the other rather than always the wrapper.
+        reject(err instanceof Error ? err : new Error(String(err.parserError)));
       });
 
-      pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
+      pdfParser.on("pdfParser_dataReady", (pdfData) => {
         try {
           const rowsMap: { [y: number]: { x: number; text: string }[] } = {};
 
@@ -77,7 +80,7 @@ export async function POST(req: NextRequest) {
           let expectedColumnCount = 17; // Based on X1 through y headers
 
           for (const yKey of sortedYKeys) {
-            let rowItems = rowsMap[yKey];
+            const rowItems = rowsMap[yKey];
             
             // Sort column elements left to right based on X coordinates
             rowItems.sort((a, b) => a.x - b.x);
@@ -117,8 +120,8 @@ export async function POST(req: NextRequest) {
           resolve(
             finalRows.length > 0 ? finalRows : [["No structured rows found"]]
           );
-        } catch (parseErr: any) {
-          reject(new Error("Failed to map coordinates: " + parseErr.message));
+        } catch (parseErr) {
+          reject(new Error("Failed to map coordinates: " + errorMessage(parseErr, "unknown error")));
         }
       });
 
@@ -129,10 +132,10 @@ export async function POST(req: NextRequest) {
       text: tableRows.map((r) => r.join(" ")).join("\n"),
       rows: tableRows,
     });
-  } catch (err: any) {
+  } catch (err) {
     console.error("PDF Parsing Error:", err);
     return NextResponse.json(
-      { error: err.message || "Unable to parse PDF document." },
+      { error: errorMessage(err, "Unable to parse PDF document.") },
       { status: 500 }
     );
   }

@@ -221,7 +221,7 @@ export async function POST(req: NextRequest) {
         "Content-Disposition": `attachment; filename="watermarked_${file.name}"`,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Watermark generation error:", error);
     return NextResponse.json({ error: "Failed to apply watermark to PDF." }, { status: 500 });
   }

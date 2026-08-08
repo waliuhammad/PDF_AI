@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Upload,
   FileText,
   Layers,
   Download,
@@ -40,7 +39,6 @@ export default function MergePdfPage() {
   const [sourceFiles, setSourceFiles] = useState<PDFSourceFile[]>([]);
   const [pagesList, setPagesList] = useState<PageItem[]>([]);
   const [activePreviewIndex, setActivePreviewIndex] = useState(0);
-  const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
@@ -248,7 +246,7 @@ export default function MergePdfPage() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-    } catch (err) {
+    } catch {
       setErrorMessage("An error occurred while merging your PDF files.");
     } finally {
       setProcessing(false);

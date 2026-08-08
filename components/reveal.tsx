@@ -11,7 +11,10 @@ import { useEffect, useRef, useState } from "react";
  * of the twelve sections mounted it. This does the same thing with one
  * IntersectionObserver and a CSS transition, which runs on the compositor.
  *
- * Honours prefers-reduced-motion by never hiding the content in the first place.
+ * Honours prefers-reduced-motion in globals.css rather than here. Checking
+ * matchMedia in the effect meant setting state during mount, and it read the
+ * setting once — someone turning it on mid-session kept the animation. The CSS
+ * rule just wins over these classes, and re-evaluates on its own.
  */
 export function Reveal({
     children,
@@ -30,11 +33,6 @@ export function Reveal({
         const node = ref.current;
         if (!node) return;
 
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            setShown(true);
-            return;
-        }
-
         const observer = new IntersectionObserver(
             ([entry]) => {
                 if (!entry.isIntersecting) return;
@@ -51,7 +49,7 @@ export function Reveal({
     return (
         <div
             ref={ref}
-            className={`transition-[opacity,transform] duration-500 ease-out ${shown ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
+            className={`reveal transition-[opacity,transform] duration-500 ease-out ${shown ? "opacity-100 translate-y-0" : "opacity-0 translate-y-5"
                 } ${className}`}
             style={{ transitionDelay: `${delay}ms` }}
         >

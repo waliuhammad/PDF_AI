@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, JSX } from "react";
 import { UploadCard } from "@/components/tools/upload-card";
-import { FileText, Trash2, Download, UploadCloud, ShieldCheck, Sparkles, Presentation } from "lucide-react";
+import { FileText, Trash2, Download, ShieldCheck, Sparkles, Presentation } from "lucide-react";
 
 export default function PdfToPpt(): JSX.Element {
   const [file, setFile] = useState<File | null>(null);

@@ -20,6 +20,11 @@ export function ToolsHub() {
     // no empty state to look at while this runs.
     useEffect(() => {
         const wanted = new URLSearchParams(window.location.search).get("category");
+        // Deriving this during render would need useSearchParams, and that opts
+        // the whole page out of static rendering — which is exactly what the
+        // note above says this avoids. As initial state it would mismatch,
+        // since the prerendered HTML cannot know the query string.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (wanted && categories.includes(wanted)) setCategory(wanted);
     }, []);
 

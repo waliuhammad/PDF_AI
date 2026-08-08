@@ -1,14 +1,14 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Upload, FileText, X, Download, ShieldCheck, Sparkles } from "lucide-react";
+import { FileText, X, Download, ShieldCheck, Sparkles } from "lucide-react";
 import { UploadCard } from "@/components/tools/upload-card";
 import type * as PdfjsLib from "pdfjs-dist";
 import { loadPdfjs } from "@/lib/pdf-libs";
+import { errorName } from "@/lib/errors";
 
 export default function SignPdfPage() {
   const [file, setFile] = useState<{ name: string; size: string; rawFile: File } | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
   const [mode, setMode] = useState<"type" | "draw">("type");
   const [signatureText, setSignatureText] = useState("");
   
@@ -23,10 +23,9 @@ export default function SignPdfPage() {
   const [penColor, setPenColor] = useState("#0f172a");
   const [isDrawing, setIsDrawing] = useState(false);
 
-  const inputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const renderTaskRef = useRef<any>(null);
+  const renderTaskRef = useRef<PdfjsLib.RenderTask | null>(null);
 
   const formatSize = (bytes: number) => {
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
@@ -117,8 +116,8 @@ export default function SignPdfPage() {
           }
           context.restore();
         }
-      } catch (err: any) {
-        if (err?.name !== "RenderingCancelledException") {
+      } catch (err) {
+        if (errorName(err) !== "RenderingCancelledException") {
           console.error("Preview render error:", err);
         }
       }
@@ -408,10 +407,15 @@ export default function SignPdfPage() {
             </div>
 
             <div className="pt-2 text-center">
+              {/* isFormValid was computed for this and never used, so a typed
+                  signature left empty still downloaded — a PDF with nothing
+                  signed on it. */}
               <button
                 type="button"
                 onClick={handleDownload}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full text-white font-medium transition-colors text-sm shadow-lg bg-[#0d1322] border border-slate-700 hover:bg-[#131b2e] cursor-pointer"
+                disabled={!isFormValid}
+                title={isFormValid ? undefined : "Type your signature first"}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full text-white font-medium transition-colors text-sm shadow-lg bg-[#0d1322] border border-slate-700 hover:bg-[#131b2e] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#0d1322]"
               >
                 <Download size={18} />
                 Download Signed PDF

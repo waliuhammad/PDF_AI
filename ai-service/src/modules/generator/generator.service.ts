@@ -25,11 +25,14 @@ export function joinChunks(chunks: RetrievedChunk[]): string {
   return chunks.map((chunk) => chunk.content).join(CHUNK_SEPARATOR);
 }
 
-function isQuotaError(error: any): boolean {
+/** Gemini reports a spent quota in more than one shape depending on where it
+ *  fails, so all three are checked. Taking unknown keeps the reads guarded. */
+function isQuotaError(error: unknown): boolean {
+  const e = error as { status?: number; error?: { code?: number; status?: string } } | null;
   return (
-    error?.status === 429 ||
-    error?.error?.code === 429 ||
-    error?.error?.status === "RESOURCE_EXHAUSTED"
+    e?.status === 429 ||
+    e?.error?.code === 429 ||
+    e?.error?.status === "RESOURCE_EXHAUSTED"
   );
 }
 
@@ -43,7 +46,7 @@ async function callGemini(prompt: string): Promise<GeneratorResult> {
     return {
       answer: response.text ?? "",
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error("Gemini Error:", error);
 
     if (isQuotaError(error)) {

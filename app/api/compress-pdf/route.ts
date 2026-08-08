@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import { PDFDocument } from "pdf-lib";
+import { errorMessage } from "@/lib/errors";
 
 export async function POST(req: NextRequest) {
   try {
@@ -68,10 +69,10 @@ export async function POST(req: NextRequest) {
         "Content-Disposition": `attachment; filename="compressed_${targetSizeKB}KB_${file.name}"`,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("PDF Compression Error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to compress PDF" },
+      { error: errorMessage(error, "Failed to compress PDF") },
       { status: 500 }
     );
   }

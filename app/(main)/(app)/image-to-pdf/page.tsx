@@ -1,9 +1,18 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- Every image on this page is a
+   preview the browser just generated from the file the visitor picked: an
+   object URL or a canvas data URL. next/image cannot optimise either, since
+   there is no server-side image to resize; it would need unoptimized, which
+   renders this same tag inside a wrapper. Disabled for the file rather than
+   per line because some of these sit inside ternaries, where a JSX comment is
+   a syntax error and the two comment styles would have to be mixed. */
+
 
 import React, { useState, useRef, JSX } from "react";
 import { UploadCard } from "@/components/tools/upload-card";
-import { Trash2, UploadCloud, Sparkles, Loader2, Image as ImageIcon, Layers, Plus, Sliders, Type } from "lucide-react";
+import { Trash2, UploadCloud, Sparkles, Loader2, Image as Plus, Sliders, Type } from "lucide-react";
 import { loadJsPdf } from "@/lib/pdf-libs";
+import { errorMessage } from "@/lib/errors";
 
 interface TextAnnotation {
   id: string;
@@ -121,7 +130,6 @@ export default function ImageToPdf(): JSX.Element {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const addMoreInputRef = useRef<HTMLInputElement>(null);
 
   const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>, isAppending: boolean = false): void => {
@@ -328,8 +336,8 @@ export default function ImageToPdf(): JSX.Element {
       }
 
       pdf.save("combined-images-layout.pdf");
-    } catch (err: any) {
-      setError(err.message || "Failed to convert images to PDF.");
+    } catch (err) {
+      setError(errorMessage(err, "Failed to convert images to PDF."));
     } finally {
       setLoading(false);
     }

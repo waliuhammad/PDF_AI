@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import { pdfToPng } from "pdf-to-png-converter";
+import type { PdfToPngOptions } from "pdf-to-png-converter";
 import fs from "fs";
 import path from "path";
 import os from "os";
 import AdmZip from "adm-zip";
+import { errorMessage } from "@/lib/errors";
 
 // renders every page to a bitmap,
 // so the platform default is not enough.
@@ -44,7 +46,7 @@ export async function POST(req: Request) {
       const mode = formData.get("mode");
       const pageNumberStr = formData.get("pageNumber") as string;
       
-      let options: any = {
+      const options: PdfToPngOptions = {
         outputFolder: tempDir,
         viewportScale: 2.0,
       };
@@ -90,8 +92,8 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });
-  } catch (err: any) {
+  } catch (err) {
     console.error("PDF conversion error:", err);
-    return NextResponse.json({ error: err.message || "Internal Server Error" }, { status: 500 });
+    return NextResponse.json({ error: errorMessage(err, "Internal Server Error") }, { status: 500 });
   }
 }

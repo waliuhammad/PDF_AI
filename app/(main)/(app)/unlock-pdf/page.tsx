@@ -1,19 +1,18 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import { Upload, FileText, X, Unlock, Download, Eye, EyeOff, Sparkles, ShieldCheck } from "lucide-react";
+import React, { useState} from "react";
+import { FileText, X, Download, Eye, EyeOff, Sparkles, ShieldCheck } from "lucide-react";
 import { UploadCard } from "@/components/tools/upload-card";
+import { errorMessage } from "@/lib/errors";
 
 export default function UnlockPdfPage() {
     const [file, setFile] = useState<{ name: string; size: string; rawFile: File } | null>(null);
-    const [isDragging, setIsDragging] = useState(false);
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [processing, setProcessing] = useState(false);
     const [done, setDone] = useState(false);
     const [error, setError] = useState("");
 
-    const inputRef = useRef<HTMLInputElement>(null);
 
     const formatSize = (bytes: number) => {
         if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
@@ -69,8 +68,8 @@ export default function UnlockPdfPage() {
             a.remove();
             window.URL.revokeObjectURL(url);
             setDone(true);
-        } catch (err: any) {
-            setError(err.message || "An unexpected error occurred.");
+        } catch (err) {
+            setError(errorMessage(err, "An unexpected error occurred."));
         } finally {
             setProcessing(false);
         }

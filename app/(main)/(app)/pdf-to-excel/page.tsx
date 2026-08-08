@@ -2,12 +2,16 @@
 
 import React, { useState, useRef, JSX } from "react";
 import { UploadCard } from "@/components/tools/upload-card";
-import { FileText, Trash2, Download, UploadCloud, ShieldCheck, Sparkles, FileSpreadsheet } from "lucide-react";
+import { FileText, Trash2, Download, ShieldCheck, Sparkles, FileSpreadsheet } from "lucide-react";
 import { loadXlsx } from "@/lib/pdf-libs";
+import { errorMessage } from "@/lib/errors";
+
+/** A cell as xlsx hands it back from sheet_to_json with header:1. */
+type CellValue = string | number | boolean | null;
 
 export default function PdfToExcel(): JSX.Element {
   const [file, setFile] = useState<File | null>(null);
-  const [extractedRows, setExtractedRows] = useState<any[][] | null>(null);
+  const [extractedRows, setExtractedRows] = useState<CellValue[][] | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -40,8 +44,8 @@ export default function PdfToExcel(): JSX.Element {
       if (!response.ok) throw new Error(data.error || "Failed to process PDF.");
 
       setExtractedRows(data.rows || [["No tabular text lines found"]]);
-    } catch (err: any) {
-      setError(err.message || "An error occurred while parsing the PDF.");
+    } catch (err) {
+      setError(errorMessage(err, "An error occurred while parsing the PDF."));
     } finally {
       setLoading(false);
     }

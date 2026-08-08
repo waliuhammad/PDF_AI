@@ -1,18 +1,17 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState} from "react";
 import { UploadCard } from "@/components/tools/upload-card";
-import { Upload, FileText, X, Copy, ScanText } from "lucide-react";
+import { FileText, X, Copy, ScanText } from "lucide-react";
+import { errorMessage } from "@/lib/errors";
 
 export default function OcrPdfPage() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [fileMeta, setFileMeta] = useState<{ name: string; size: string } | null>(null);
-    const [isDragging, setIsDragging] = useState(false);
     const [processing, setProcessing] = useState(false);
     const [extractedText, setExtractedText] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
-    const inputRef = useRef<HTMLInputElement>(null);
 
     const formatSize = (bytes: number) => {
         if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
@@ -56,8 +55,8 @@ export default function OcrPdfPage() {
 
             const resultText = data.text || data.extractedText || JSON.stringify(data, null, 2);
             setExtractedText(resultText);
-        } catch (err: any) {
-            setError(err.message || "Something went wrong connecting to the server.");
+        } catch (err) {
+            setError(errorMessage(err, "Something went wrong connecting to the server."));
         } finally {
             setProcessing(false);
         }

@@ -2,6 +2,9 @@
 
 import React, { useState, useRef } from "react";
 import { Upload, FileText, X, FileArchive, Download, Loader2, CheckCircle2 } from "lucide-react";
+// aliased: this component already has state called errorMessage, which would
+// shadow the import and turn the call below into calling a string.
+import { errorMessage as messageFrom } from "@/lib/errors";
 
 interface TargetOption {
   label: string;
@@ -105,8 +108,8 @@ export default function CompressPdfPage() {
       window.URL.revokeObjectURL(url);
 
       setDone(true);
-    } catch (err: any) {
-      setErrorMessage(err.message || "An error occurred while connecting to the server.");
+    } catch (err) {
+      setErrorMessage(messageFrom(err, "An error occurred while connecting to the server."));
     } finally {
       setProcessing(false);
     }

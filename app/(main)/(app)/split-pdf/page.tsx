@@ -1,8 +1,19 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- Every image on this page is a
+   preview the browser just generated from the file the visitor picked: an
+   object URL or a canvas data URL. next/image cannot optimise either, since
+   there is no server-side image to resize; it would need unoptimized, which
+   renders this same tag inside a wrapper. Disabled for the file rather than
+   per line because some of these sit inside ternaries, where a JSX comment is
+   a syntax error and the two comment styles would have to be mixed. */
+
 
 import React, { useState, useRef, useEffect } from "react";
 import { Upload, FileText, X, Scissors, Download, Loader2 } from "lucide-react";
 import { loadPdfLib, loadPdfjs } from "@/lib/pdf-libs";
+// aliased: this component already has state called errorMessage, which would
+// shadow the import and turn the call below into calling a string.
+import { errorMessage as messageFrom } from "@/lib/errors";
 
 export default function SplitPdfPage() {
   const [rawFile, setRawFile] = useState<File | null>(null);
@@ -265,8 +276,8 @@ export default function SplitPdfPage() {
       } else {
         await downloadSingle(choice);
       }
-    } catch (err: any) {
-      setErrorMessage(err.message || "An unexpected error occurred while connecting to the server.");
+    } catch (err) {
+      setErrorMessage(messageFrom(err, "An unexpected error occurred while connecting to the server."));
     } finally {
       setProcessing(false);
     }

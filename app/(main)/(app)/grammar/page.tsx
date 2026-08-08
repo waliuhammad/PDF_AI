@@ -1,18 +1,17 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState} from "react";
 import { UploadCard } from "@/components/tools/upload-card";
-import { CheckCheck, Sparkles, Copy, Loader2, Upload, FileText, X, ArrowRight } from "lucide-react";
+import { CheckCheck, Sparkles, Copy, Loader2, FileText, X, ArrowRight } from "lucide-react";
+import { errorMessage } from "@/lib/errors";
 
 export default function GrammarCheckerPage() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [fileMeta, setFileMeta] = useState<{ name: string; size: string } | null>(null);
-    const [isDragging, setIsDragging] = useState(false);
     const [correctedText, setCorrectedText] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
-    const inputRef = useRef<HTMLInputElement>(null);
 
     const formatSize = (bytes: number) => {
         if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
@@ -58,8 +57,8 @@ if (!res.ok) {
 
             const result = data.correctedText || data.reply || data.response || data.message || JSON.stringify(data);
             setCorrectedText(result);
-        } catch (err: any) {
-            setError(err.message || "Something went wrong connecting to the server.");
+        } catch (err) {
+            setError(errorMessage(err, "Something went wrong connecting to the server."));
         } finally {
             setLoading(false);
         }

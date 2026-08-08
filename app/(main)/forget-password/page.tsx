@@ -19,7 +19,7 @@ export default function ForgotPasswordPage() {
         try {
             await sendResetEmail(email);
             setSent(true);
-        } catch (err) {
+        } catch {
             setError("Something went wrong. Please check the email and try again.");
         } finally {
             setLoading(false);
@@ -50,7 +50,7 @@ export default function ForgotPasswordPage() {
                     <div className="text-center py-4">
                         <p className="text-fg font-medium">Check your inbox!</p>
                         <p className="text-muted text-sm mt-1">
-                            We've sent a password reset link to <span className="text-fg">{email}</span>. Click it to set a new password.
+                            We&apos;ve sent a password reset link to <span className="text-fg">{email}</span>. Click it to set a new password.
                         </p>
                     </div>
                 ) : (

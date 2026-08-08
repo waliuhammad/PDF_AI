@@ -1,9 +1,16 @@
 "use client";
+/* eslint-disable @next/next/no-img-element -- Every image on this page is a
+   preview the browser just generated from the file the visitor picked: an
+   object URL or a canvas data URL. next/image cannot optimise either, since
+   there is no server-side image to resize; it would need unoptimized, which
+   renders this same tag inside a wrapper. Disabled for the file rather than
+   per line because some of these sit inside ternaries, where a JSX comment is
+   a syntax error and the two comment styles would have to be mixed. */
+
 
 import { useState, useRef, useEffect } from "react";
 import { UploadCard } from "@/components/tools/upload-card";
 import {
-  Upload,
   FileText,
   FileSpreadsheet,
   Download,
@@ -16,7 +23,6 @@ import { loadPdfjs } from "@/lib/pdf-libs";
 
 export default function PdfToWordPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState(false);
@@ -156,7 +162,7 @@ export default function PdfToWordPage() {
       window.URL.revokeObjectURL(url);
 
       setSuccessMessage(true);
-    } catch (err) {
+    } catch {
       setErrorMessage("An unexpected error occurred during conversion.");
     } finally {
       setProcessing(false);

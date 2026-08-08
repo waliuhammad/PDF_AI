@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Upload, FileText, X, Edit3, Download, Loader2, Type, Bold, Italic, Pencil, Trash2, ChevronLeft, ChevronRight, Eraser, Move, Sparkles, ShieldCheck } from "lucide-react";
+import { FileText, X, Download, Loader2, Type, Bold, Italic, Pencil, Trash2, ChevronLeft, ChevronRight, Eraser, Move, Sparkles, ShieldCheck } from "lucide-react";
 import { UploadCard } from "@/components/tools/upload-card";
+import type * as PdfjsLib from "pdfjs-dist";
 
 interface TextAnnotation {
   id: string;
@@ -45,17 +46,16 @@ type Annotation = TextAnnotation | ReplaceAnnotation | DrawAnnotation;
 
 declare global {
   interface Window {
-    pdfjsLib: any;
+    pdfjsLib: typeof import("pdfjs-dist");
   }
 }
 
 export default function EditPdfPage() {
   const [rawFile, setRawFile] = useState<File | null>(null);
   const [fileDetails, setFileDetails] = useState<{ name: string; size: string } | null>(null);
-  const [isDraggingFile, setIsDraggingFile] = useState(false);
   const [pageCount, setPageCount] = useState<number>(0);
   const [selectedPageIndex, setSelectedPageIndex] = useState<number>(0);
-  const [pdfDocProxy, setPdfDocProxy] = useState<any>(null);
+  const [pdfDocProxy, setPdfDocProxy] = useState<PdfjsLib.PDFDocumentProxy | null>(null);
   
   // Active Tool Mode
   const [activeTool, setActiveTool] = useState<"text" | "replace" | "draw">("replace");
@@ -88,7 +88,6 @@ export default function EditPdfPage() {
   const [processing, setProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
-  const inputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const overlayContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -149,7 +148,13 @@ export default function EditPdfPage() {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
+        // getContext returns null when the canvas already has a context of a
+        // different kind, or when the tab is out of memory. This was passed to
+        // page.render() unchecked; typing pdfDocProxy properly is what surfaced
+        // it, because `any` accepted the null happily.
         const context = canvas.getContext("2d");
+        if (!context) return;
+
         const viewport = page.getViewport({ scale: 1.2 });
 
         canvas.height = viewport.height;
@@ -296,7 +301,9 @@ export default function EditPdfPage() {
   const selectedAnn = annotations.find((a) => a.id === selectedAnnotationId);
   const selectedTextAnn = selectedAnn && selectedAnn.type !== "draw" ? (selectedAnn as TextAnnotation | ReplaceAnnotation) : null;
 
-  const updateSelectedAnnotation = (field: string, value: any) => {
+  // Annotations hold text and colours (string), sizes (number), and the bold
+  // and italic toggles (boolean) — that union is the whole set.
+  const updateSelectedAnnotation = (field: string, value: string | number | boolean) => {
     if (!selectedAnnotationId) return;
     setAnnotations((prev) =>
       prev.map((a) => {
@@ -339,7 +346,7 @@ export default function EditPdfPage() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
-    } catch (err) {
+    } catch {
       setErrorMessage("An error occurred while saving the document.");
     } finally {
       setProcessing(false);

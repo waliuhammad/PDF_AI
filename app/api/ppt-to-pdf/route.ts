@@ -3,6 +3,7 @@ import { readFormData } from "@/lib/api";
 import AdmZip from "adm-zip";
 import { XMLParser } from "fast-xml-parser";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { errorMessage } from "@/lib/errors";
 
 export async function POST(req: NextRequest) {
   try {
@@ -47,17 +48,22 @@ export async function POST(req: NextRequest) {
 
       const lines: string[] = [];
 
-      function extractTextNodes(node: any) {
+      // The parsed OOXML is an arbitrarily nested bag of objects, arrays and
+      // strings, so unknown is the honest input type — the walk narrows as it
+      // goes rather than asserting a shape the XML need not have.
+      function extractTextNodes(node: unknown) {
         if (!node || typeof node !== "object") return;
-        for (const key of Object.keys(node)) {
+        const record = node as Record<string, unknown>;
+        for (const key of Object.keys(record)) {
+          const value = record[key];
           if (key === "a:t") {
-            if (typeof node[key] === "string") {
-              lines.push(node[key]);
-            } else if (node[key] && typeof node[key] === "object" && "#text" in node[key]) {
-              lines.push(node[key]["#text"]);
+            if (typeof value === "string") {
+              lines.push(value);
+            } else if (value && typeof value === "object" && "#text" in value) {
+              lines.push(String((value as { "#text": unknown })["#text"]));
             }
           } else {
-            extractTextNodes(node[key]);
+            extractTextNodes(value);
           }
         }
       }
@@ -180,10 +186,10 @@ export async function POST(req: NextRequest) {
         "Content-Disposition": `attachment; filename="${file.name.replace(/\.[^/.]+$/, "")}-converted.pdf"`,
       },
     });
-  } catch (err: any) {
+  } catch (err) {
     console.error("PPT to PDF Error:", err);
     return NextResponse.json(
-      { error: err.message || "Failed to process presentation content." },
+      { error: errorMessage(err, "Failed to process presentation content.") },
       { status: 500 }
     );
   }

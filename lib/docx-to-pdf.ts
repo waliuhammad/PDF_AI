@@ -45,6 +45,27 @@ const asArray = <T,>(v: T | T[] | undefined): T[] =>
     v === undefined ? [] : Array.isArray(v) ? v : [v];
 
 /**
+ * A node of parsed OOXML.
+ *
+ * fast-xml-parser returns whatever the document contains: an object for an
+ * element with children, a string for a bare text node, an array when a tag
+ * repeats. Indexing is what the walk below does throughout, so an index
+ * signature says more than `any` does and still keeps the reads checked.
+ */
+type XmlValue = string | XmlNode | XmlNode[] | undefined;
+interface XmlNode {
+    [key: string]: XmlValue;
+}
+
+/** One step down the tree, or undefined if this is not an element. */
+const child = (node: XmlValue, key: string): XmlValue =>
+    node && typeof node === "object" && !Array.isArray(node) ? node[key] : undefined;
+
+/** True when the element carries a given child tag — how <w:b/> signals bold. */
+const has = (node: XmlValue, key: string): boolean =>
+    !!node && typeof node === "object" && !Array.isArray(node) && key in node;
+
+/**
  * The standard fonts are WinAnsi, which throws on anything outside it — smart
  * quotes survive, CJK and emoji do not. Replacing beats failing the whole file.
  */
@@ -101,24 +122,24 @@ function parseParagraphs(documentXml: string, XMLParser: typeof import("fast-xml
     const body = doc?.["w:document"]?.["w:body"];
     if (!body) return [];
 
-    return asArray<any>(body["w:p"]).map((p): Paragraph => {
-        const styleId: string | undefined = p?.["w:pPr"]?.["w:pStyle"]?.["@w:val"];
-        const headingSize = styleId ? HEADING_SIZES[styleId] : undefined;
+    return asArray<XmlNode>(body["w:p"]).map((p): Paragraph => {
+        const styleId = child(child(child(p, "w:pPr"), "w:pStyle"), "@w:val");
+        const headingSize = typeof styleId === "string" ? HEADING_SIZES[styleId] : undefined;
 
         const runs: Run[] = [];
-        for (const r of asArray<any>(p?.["w:r"])) {
-            const props = r?.["w:rPr"];
+        for (const r of asArray<XmlNode>(child(p, "w:r") as XmlNode | XmlNode[] | undefined)) {
+            const props = child(r, "w:rPr");
             // <w:b/> parses to an empty object or "", both meaning "on".
-            const bold = props ? "w:b" in props : false;
-            const italic = props ? "w:i" in props : false;
+            const bold = has(props, "w:b");
+            const italic = has(props, "w:i");
 
-            for (const t of asArray<any>(r?.["w:t"])) {
-                const text = typeof t === "object" ? (t["#text"] ?? "") : t;
+            for (const t of asArray<XmlValue>(child(r, "w:t"))) {
+                const text = typeof t === "string" ? t : (child(t, "#text") ?? "");
                 if (text !== "") runs.push({ text: String(text), bold, italic });
             }
 
             // <w:br/> and <w:tab/> carry no text but do affect reading.
-            if (r && "w:tab" in r) runs.push({ text: "    ", bold, italic });
+            if (has(r, "w:tab")) runs.push({ text: "    ", bold, italic });
         }
 
         return {

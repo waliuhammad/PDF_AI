@@ -14,7 +14,6 @@ import {
     Sparkles,
     ScanText,
     FileSearch,
-    ShieldCheck,
     Presentation,
     ImagePlus,
     type LucideIcon,

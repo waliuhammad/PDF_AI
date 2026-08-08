@@ -52,7 +52,7 @@ export default function FAQ() {
                     </h2>
 
                     <p className="mt-2 text-sm text-muted">
-                        Can't find your answer? Contact our support team anytime.
+                        Can&apos;t find your answer? Contact our support team anytime.
                     </p>
                 </div>
 

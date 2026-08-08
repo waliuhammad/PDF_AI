@@ -1,7 +1,7 @@
 export interface RetrievedChunk {
   id: string;
   content: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export interface RetrieverResult {

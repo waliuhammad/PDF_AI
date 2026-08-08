@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import { UploadCard } from "@/components/tools/upload-card";
-import { Send, Bot, User, Sparkles, Upload, FileText, X, ArrowRight, Loader2 } from "lucide-react";
+import { Send, Bot, User, Sparkles, FileText, X, ArrowRight, Loader2 } from "lucide-react";
+import { errorMessage } from "@/lib/errors";
 
 interface Message {
     role: "user" | "assistant";
@@ -13,7 +14,6 @@ export default function ChatPdfPage() {
     const [step, setStep] = useState<"upload" | "chat">("upload");
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [fileMeta, setFileMeta] = useState<{ name: string; size: string } | null>(null);
-    const [isDragging, setIsDragging] = useState(false);
     const [uploading, setUploading] = useState(false);
 
     const [messages, setMessages] = useState<Message[]>([]);
@@ -21,7 +21,6 @@ export default function ChatPdfPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     
-    const fileInputRef = useRef<HTMLInputElement>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const formatSize = (bytes: number) => {
@@ -70,8 +69,8 @@ export default function ChatPdfPage() {
                     content: `I have processed **${selectedFile.name}**. What would you like to know about this document?`,
                 },
             ]);
-        } catch (err: any) {
-            setError(err.message || "Something went wrong uploading the file.");
+        } catch (err) {
+            setError(errorMessage(err, "Something went wrong uploading the file."));
         } finally {
             setUploading(false);
         }
@@ -120,10 +119,10 @@ setMessages((prev) => [
         content: botReply,
     },
 ]);
-        } catch (err: any) {
+        } catch (err) {
             setMessages((prev) => [
                 ...prev,
-                { role: "assistant", content: `Error: ${err.message || "Something went wrong."}` },
+                { role: "assistant", content: `Error: ${errorMessage(err, "Something went wrong.")}` },
             ]);
         } finally {
             setLoading(false);

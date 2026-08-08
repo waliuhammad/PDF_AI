@@ -1,6 +1,6 @@
 import { env } from "../../config/env";
 import { VectorDBResult } from "./vectordb.types";
-import { ChromaClient } from "chromadb";
+import { ChromaClient, type Metadata } from "chromadb";
 
 const client = new ChromaClient({
   host: env.CHROMA_HOST,
@@ -27,7 +27,7 @@ export async function storeEmbeddings(
   ids: string[],
   documents: string[],
   embeddings: number[][],
-  metadatas?: Record<string, any>[]
+  metadatas?: Metadata[]
 ): Promise<VectorDBResult> 
  {
   const collection = await getCollection();

@@ -73,7 +73,7 @@ router.post("/", async (req, res) => {
       },
       retrievedChunks: retrieval.totalFound,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error(error);
 
     // Same as the other AI routes: a quota limit or a saturated model is not a

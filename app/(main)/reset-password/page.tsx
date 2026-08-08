@@ -13,7 +13,10 @@ function ResetPasswordForm() {
     const searchParams = useSearchParams();
     const oobCode = searchParams.get("oobCode") || "";
 
-    const [verifyState, setVerifyState] = useState<VerifyState>("checking");
+    // A missing code is knowable at render, so it is the starting value rather
+    // than something the effect corrects a moment later. That also stops the
+    // "Checking your link" state flashing up for a link that has no code at all.
+    const [verifyState, setVerifyState] = useState<VerifyState>(oobCode ? "checking" : "invalid");
     const [email, setEmail] = useState("");
 
     const [showPassword, setShowPassword] = useState(false);
@@ -24,10 +27,8 @@ function ResetPasswordForm() {
     const [done, setDone] = useState(false);
 
     useEffect(() => {
-        if (!oobCode) {
-            setVerifyState("invalid");
-            return;
-        }
+        if (!oobCode) return;
+
         verifyResetCode(oobCode)
             .then((verifiedEmail) => {
                 setEmail(verifiedEmail);
@@ -54,7 +55,7 @@ function ResetPasswordForm() {
             await confirmReset(oobCode, password);
             setDone(true);
             setTimeout(() => router.push("/login"), 1500);
-        } catch (err) {
+        } catch {
             setError("This link may have expired. Please request a new one.");
         } finally {
             setLoading(false);

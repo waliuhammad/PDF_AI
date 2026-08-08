@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useRef, ChangeEvent, DragEvent } from "react";
+import React, { useState, useRef} from "react";
 import { UploadCard } from "@/components/tools/upload-card";
 import { loadPdfjs, loadJsZip } from "@/lib/pdf-libs";
-import { 
-  Upload, 
-  FileText, 
+import { errorMessage } from "@/lib/errors";
+import {
+  FileText,
   Trash2, 
   Download, 
   Loader2, 
@@ -119,18 +119,8 @@ export default function PdfToImageConverter() {
 
   // The worker is configured by loadPdfjs(), when the library is first needed.
 
-  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      await handleFileSelection(e.dataTransfer.files[0]);
-    }
-  };
+  // Drag and drop is handled by UploadCard; the handlers that used to live here
+  // stopped being wired to anything when this page moved onto it.
 
   const handleFileChange = async (fileList: FileList | null) => {
     if (fileList && fileList[0]) {
@@ -156,7 +146,7 @@ export default function PdfToImageConverter() {
       const pages = await getPdfPageCount(buffer);
       setNumPages(pages);
       setPageNumber("1");
-    } catch (err: any) {
+    } catch (err) {
       console.error(err);
       setError("Failed to read PDF structure. Ensure the file is not corrupted or password-protected.");
       setFile(null);
@@ -215,8 +205,8 @@ export default function PdfToImageConverter() {
       window.URL.revokeObjectURL(downloadUrl);
 
       setSuccessMessage("Conversion completed successfully! Your download has started.");
-    } catch (err: any) {
-      setError(err.message || "An unexpected error occurred during conversion.");
+    } catch (err) {
+      setError(errorMessage(err, "An unexpected error occurred during conversion."));
     } finally {
       setLoading(false);
     }

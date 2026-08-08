@@ -217,6 +217,16 @@ body {
 .animate-shimmer { animation: shimmer 2.2s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
+  /* Scroll reveals: show the content outright rather than fading it in. The
+     component used to check matchMedia in an effect, which meant setting state
+     during mount and reading the preference only once. Here it re-evaluates by
+     itself, and !important is needed to beat the utility classes. */
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
   .animate-hero-left,
   .animate-hero-right,
   .animate-float-a,

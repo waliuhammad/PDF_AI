@@ -149,7 +149,7 @@ export default function Testimonials() {
 
                             <p className="mt-4 text-xs leading-relaxed text-muted">
 
-                                "{item.review}"
+                                &ldquo;{item.review}&rdquo;
 
                             </p>
 

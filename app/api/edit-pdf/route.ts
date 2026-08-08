@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { errorMessage } from "@/lib/errors";
 
 interface TextAnnotation {
   type: "text";
@@ -138,10 +139,10 @@ export async function POST(req: NextRequest) {
         "Content-Disposition": `attachment; filename="edited_${file.name}"`,
       },
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error("Edit PDF Error:", error);
     return NextResponse.json(
-      { error: error.message || "Failed to edit PDF" },
+      { error: errorMessage(error, "Failed to edit PDF") },
       { status: 500 }
     );
   }

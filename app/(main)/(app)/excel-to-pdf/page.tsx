@@ -2,12 +2,16 @@
 
 import React, { useState, useRef, JSX } from "react";
 import { UploadCard } from "@/components/tools/upload-card";
-import { FileSpreadsheet, Trash2, Download, UploadCloud, ShieldCheck, Sparkles, Layers, Sliders } from "lucide-react";
+import { FileSpreadsheet, Trash2, Download, ShieldCheck, Sparkles, Layers, Sliders } from "lucide-react";
 import { loadJsPdfWithAutoTable, loadXlsx } from "@/lib/pdf-libs";
+import { errorMessage } from "@/lib/errors";
+
+/** A cell as xlsx hands it back from sheet_to_json with header:1. */
+type CellValue = string | number | boolean | null;
 
 interface SheetData {
   name: string;
-  data: any[][];
+  data: CellValue[][];
 }
 
 export default function ExcelToPdf(): JSX.Element {
@@ -46,7 +50,7 @@ export default function ExcelToPdf(): JSX.Element {
 
         const parsedSheets: SheetData[] = workbook.SheetNames.map((name) => {
           const worksheet = workbook.Sheets[name];
-          const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][];
+          const jsonRows = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as CellValue[][];
           return {
             name,
             data: jsonRows.length > 0 ? jsonRows : [["Empty Sheet"]],
@@ -55,8 +59,8 @@ export default function ExcelToPdf(): JSX.Element {
 
         setSheets(parsedSheets);
         setSelectedSheetIndex(0);
-      } catch (err: any) {
-        setError(err.message || "Failed to parse spreadsheet file.");
+      } catch (err) {
+        setError(errorMessage(err, "Failed to parse spreadsheet file."));
       } finally {
         setLoading(false);
       }
@@ -75,7 +79,7 @@ export default function ExcelToPdf(): JSX.Element {
     }
   };
 
-  const getSlicedData = (fullData: any[][]) => {
+  const getSlicedData = (fullData: CellValue[][]) => {
     const sRow = Math.max(0, startRow - 1);
     const eRow = sRow + maxRows;
     const sCol = Math.max(0, startCol - 1);
@@ -127,8 +131,8 @@ export default function ExcelToPdf(): JSX.Element {
 
       const outputName = fileName ? `${fileName.replace(/\.[^/.]+$/, "")}-custom-range.pdf` : "spreadsheet-export.pdf";
       doc.save(outputName);
-    } catch (err: any) {
-      setError(err.message || "Failed to generate PDF.");
+    } catch (err) {
+      setError(errorMessage(err, "Failed to generate PDF."));
     } finally {
       setLoading(false);
     }

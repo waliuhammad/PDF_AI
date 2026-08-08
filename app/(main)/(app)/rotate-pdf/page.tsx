@@ -2,11 +2,15 @@
 
 import React, { useState, useEffect, useRef, JSX } from "react";
 import { UploadCard } from "@/components/tools/upload-card";
-import { FileText, Trash2, RotateCw, Download, UploadCloud, Layers, ShieldCheck, Sparkles, Loader2 } from "lucide-react";
+import { FileText, Trash2, RotateCw, Download, Layers, ShieldCheck, Sparkles, Loader2 } from "lucide-react";
+import { errorName } from "@/lib/errors";
+// Type-only, so it adds nothing to the bundle — the library itself still
+// arrives through the dynamic import below.
+import type * as PdfjsLib from "pdfjs-dist";
 
 export default function RotatePdfPage(): JSX.Element {
   const [file, setFile] = useState<File | null>(null);
-  const [pdfDoc, setPdfDoc] = useState<any | null>(null);
+  const [pdfDoc, setPdfDoc] = useState<PdfjsLib.PDFDocumentProxy | null>(null);
   const [numPages, setNumPages] = useState<number>(0);
   const [rotation, setRotation] = useState<number>(90);
   const [mode, setMode] = useState<"all" | "custom">("all");
@@ -14,7 +18,7 @@ export default function RotatePdfPage(): JSX.Element {
   const [loading, setLoading] = useState<boolean>(false);
   const [libLoading, setLibLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [pdfjsLib, setPdfjsLib] = useState<any | null>(null);
+  const [pdfjsLib, setPdfjsLib] = useState<typeof PdfjsLib | null>(null);
 
   const canvasRefs = useRef<{ [key: number]: HTMLCanvasElement | null }>({});
 
@@ -74,10 +78,10 @@ export default function RotatePdfPage(): JSX.Element {
 
           setPdfDoc(loadedPdf);
           setNumPages(loadedPdf.numPages);
-        } catch (err: any) {
+        } catch (err) {
           console.error("PDF parse error:", err);
           
-          if (err.name === "PasswordException") {
+          if (errorName(err) === "PasswordException") {
             setError("This PDF is password-protected. Please provide an unprotected file.");
           } else {
             setError("Could not read PDF structure. Ensure the file is a valid, uncorrupted PDF.");

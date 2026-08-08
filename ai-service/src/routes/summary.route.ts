@@ -40,7 +40,7 @@ router.post("/", upload.single("file"), async (req, res) => {
       success: true,
       result,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error(error);
 
     // Was 429-only, and passed Gemini's raw message straight through. 503 is

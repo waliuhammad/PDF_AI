@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import PDFParser from "pdf2json";
 import pptxgen from "pptxgenjs";
+import { errorMessage } from "@/lib/errors";
 
 // renders every page into a slide,
 // so the platform default is not enough.
@@ -26,13 +27,15 @@ export async function POST(req: NextRequest) {
 
     // Step 1: Parse PDF layout and apply smart text correction rules
     const pageWiseTexts = await new Promise<string[][]>((resolve, reject) => {
-      const pdfParser = new PDFParser(null, 1 as any);
+      const pdfParser = new PDFParser(null, true);
 
-      pdfParser.on("pdfParser_dataError", (err: any) => {
-        reject(new Error(err.parserError));
+      pdfParser.on("pdfParser_dataError", (err) => {
+        // pdf2json types this as { parserError: Error } | Error, so it is one or
+        // the other rather than always the wrapper.
+        reject(err instanceof Error ? err : new Error(String(err.parserError)));
       });
 
-      pdfParser.on("pdfParser_dataReady", (pdfData: any) => {
+      pdfParser.on("pdfParser_dataReady", (pdfData) => {
         try {
           const pagesResult: string[][] = [];
 
@@ -109,8 +112,8 @@ export async function POST(req: NextRequest) {
           }
 
           resolve(pagesResult.length > 0 ? pagesResult : [["No content extracted from PDF"]]);
-        } catch (parseErr: any) {
-          reject(new Error("Failed to process layout: " + parseErr.message));
+        } catch (parseErr) {
+          reject(new Error("Failed to process layout: " + errorMessage(parseErr, "unknown error")));
         }
       });
 
@@ -197,10 +200,10 @@ export async function POST(req: NextRequest) {
         "Content-Disposition": `attachment; filename="${file.name.replace(/\.[^/.]+$/, "")}-converted.pptx"`,
       },
     });
-  } catch (err: any) {
+  } catch (err) {
     console.error("PDF to PPT Error:", err);
     return NextResponse.json(
-      { error: err.message || "Failed to convert PDF to PowerPoint." },
+      { error: errorMessage(err, "Failed to convert PDF to PowerPoint.") },
       { status: 500 }
     );
   }

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { UploadCard, FileChip } from "@/components/tools/upload-card";
-import { Sparkles, CloudUpload, ShieldCheck } from "lucide-react";
+import { Sparkles, ShieldCheck } from "lucide-react";
 
 export default function PptToPdfPage() {
   const [file, setFile] = useState<File | null>(null);
