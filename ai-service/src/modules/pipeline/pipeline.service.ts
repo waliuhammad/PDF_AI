@@ -4,7 +4,7 @@ import { chunkText } from "../chunking";
 import { ExtractionResult, PipelineResult } from "./pipeline.types";
 import { generateEmbeddings } from "../embeddings";
 import {
-  clearCollection,
+  clearSession,
   storeEmbeddings,
 } from "../vectordb";
 
@@ -28,11 +28,12 @@ export async function extractText(
 /**
  * Extraction plus embedding and storage, for retrieval-backed chat.
  *
- * Note that clearCollection() wipes the whole collection first, so only one
- * document is searchable at a time and a second upload discards the first.
+ * Everything lands in the session's own collection: uploading replaces
+ * only this session's previous document, and never touches anyone else's.
  */
 export async function processPDF(
-  buffer: Buffer
+  buffer: Buffer,
+  sessionId: string
 ): Promise<PipelineResult> {
   const extraction = await extractText(buffer);
 
@@ -41,10 +42,12 @@ export async function processPDF(
     extraction.chunker.chunks.map((chunk) => chunk.content)
   );
 
-  // Remove previous PDF chunks (development mode)
-  await clearCollection();
+  // Replace this session's previous document, if any.
+  await clearSession(sessionId);
 
   const vectordb = await storeEmbeddings(
+    sessionId,
+
     extraction.chunker.chunks.map((chunk) => `chunk-${chunk.id}`),
 
     extraction.chunker.chunks.map((chunk) => chunk.content),

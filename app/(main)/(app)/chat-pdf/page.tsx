@@ -16,11 +16,16 @@ export default function ChatPdfPage() {
     const [fileMeta, setFileMeta] = useState<{ name: string; size: string } | null>(null);
     const [uploading, setUploading] = useState(false);
 
+    // Identifies this chat session to the AI service, which keeps one vector
+    // collection per session — so two users (or two tabs) can never read or
+    // overwrite each other's documents. A new UUID means a clean session.
+    const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
+
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const formatSize = (bytes: number) => {
@@ -50,12 +55,12 @@ export default function ChatPdfPage() {
         try {
             const formData = new FormData();
             formData.append("file", selectedFile);
+            formData.append("sessionId", sessionId);
 
-            // Optional: Upload/initialize PDF session with your backend
-           const res = await fetch("/api/chat/upload", {
-    method: "POST",
-    body: formData,
-});
+            const res = await fetch("/api/chat/upload", {
+                method: "POST",
+                body: formData,
+            });
 
             if (!res.ok) {
                 const data = await res.json().catch(() => ({}));
@@ -95,14 +100,15 @@ export default function ChatPdfPage() {
 
         try {
             const res = await fetch("/api/chat", {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-        question: userMessage,
-    }),
-});
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    question: userMessage,
+                    sessionId,
+                }),
+            });
 
             const data = await res.json();
 
@@ -112,13 +118,13 @@ export default function ChatPdfPage() {
 
             const botReply = data.result.answer;
 
-setMessages((prev) => [
-    ...prev,
-    {
-        role: "assistant",
-        content: botReply,
-    },
-]);
+            setMessages((prev) => [
+                ...prev,
+                {
+                    role: "assistant",
+                    content: botReply,
+                },
+            ]);
         } catch (err) {
             setMessages((prev) => [
                 ...prev,
@@ -162,9 +168,9 @@ setMessages((prev) => [
                                 <p className="text-fg text-sm font-medium truncate">{fileMeta.name}</p>
                                 <p className="text-muted text-xs">{fileMeta.size}</p>
                             </div>
-                            <button 
+                            <button
                                 type="button"
-                                onClick={() => { setSelectedFile(null); setFileMeta(null); setError(null); }} 
+                                onClick={() => { setSelectedFile(null); setFileMeta(null); setError(null); }}
                                 className="text-muted hover:text-[var(--primary)] shrink-0"
                             >
                                 <X size={18} />
@@ -207,7 +213,15 @@ setMessages((prev) => [
                     </div>
                 </div>
                 <button
-                    onClick={() => { setStep("upload"); setSelectedFile(null); setFileMeta(null); setMessages([]); }}
+                    onClick={() => {
+                        // A new document gets a brand-new session, so nothing
+                        // from the previous PDF can leak into its answers.
+                        setStep("upload");
+                        setSelectedFile(null);
+                        setFileMeta(null);
+                        setMessages([]);
+                        setSessionId(crypto.randomUUID());
+                    }}
                     className="text-xs text-muted hover:text-[var(--primary)] px-3 py-1.5 rounded-lg bg-card border border-card transition-colors"
                 >
                     Change PDF
@@ -219,25 +233,22 @@ setMessages((prev) => [
                 {messages.map((msg, idx) => (
                     <div
                         key={idx}
-                        className={`flex items-start gap-3 ${
-                            msg.role === "user" ? "flex-row-reverse" : "flex-row"
-                        }`}
+                        className={`flex items-start gap-3 ${msg.role === "user" ? "flex-row-reverse" : "flex-row"
+                            }`}
                     >
                         <div
-                            className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${
-                                msg.role === "user"
-                                    ? "bg-[var(--primary)] text-white"
-                                    : "bg-purple-900/30 border border-purple-500/20 text-[var(--primary)]"
-                            }`}
+                            className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${msg.role === "user"
+                                ? "bg-[var(--primary)] text-white"
+                                : "bg-purple-900/30 border border-purple-500/20 text-[var(--primary)]"
+                                }`}
                         >
                             {msg.role === "user" ? <User size={15} /> : <Bot size={15} />}
                         </div>
                         <div
-                            className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                                msg.role === "user"
-                                    ? "bg-[var(--primary)] text-white rounded-tr-none"
-                                    : "bg-black/20 text-fg border border-white/5 rounded-tl-none"
-                            }`}
+                            className={`max-w-[75%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${msg.role === "user"
+                                ? "bg-[var(--primary)] text-white rounded-tr-none"
+                                : "bg-black/20 text-fg border border-white/5 rounded-tl-none"
+                                }`}
                         >
                             <p className="whitespace-pre-wrap">{msg.content}</p>
                         </div>

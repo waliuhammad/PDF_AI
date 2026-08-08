@@ -1,11 +1,40 @@
 import { updateProfile, type User } from "firebase/auth";
 import { getDb } from "./client";
+import { type PlanId } from "@/lib/plans";
 
 export interface UserProfile {
     fullName: string;
     email: string;
     phone: string | null;
-    plan: "free" | "paid";
+    /**
+     * "paid" is the original two-state value, written before the plans had
+     * names. Documents created then still carry it, so it is still read; new
+     * ones store the plan id itself.
+     */
+    plan: PlanId | "paid";
+}
+
+/**
+ * The plan a profile is actually on.
+ *
+ * Firestore hands back whatever is in the document, which is not necessarily
+ * one of these strings — an older record, a hand-edited field, or a missing
+ * profile because the read failed. This decides what someone is entitled to,
+ * so anything unrecognised resolves to "free" rather than being trusted.
+ * Wrongly showing a paying customer the free plan is a support message;
+ * wrongly granting paid features to everyone is not.
+ */
+export function resolvePlan(profile: UserProfile | null | undefined): PlanId {
+    switch (profile?.plan) {
+        case "pro":
+        case "business":
+            return profile.plan;
+        // Predates named plans, and Pro is the tier it was sold as.
+        case "paid":
+            return "pro";
+        default:
+            return "free";
+    }
 }
 
 export async function getUserProfile(uid: string): Promise<UserProfile | null> {

@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useTheme } from "next-themes";
 import { SettingsTabs, SettingsTab } from "@/components/settings/settings-tabs";
 import { Sun, Moon, Monitor, Check, AlertCircle, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { updateUserProfile } from "@/lib/firebase/users";
 import { changePassword, hasPasswordProvider } from "@/lib/firebase/auth";
+import { BillingTab } from "@/components/settings/billing-tab";
 
 type Status =
     | { kind: "idle" }
@@ -392,23 +392,7 @@ export default function SettingsPage() {
                         </div>
                     )}
 
-                    {tab === "billing" && (
-                        <div className="max-w-md">
-                            <h2 className="text-lg font-semibold text-fg mb-4">Subscription &amp; Billing</h2>
-                            <div className="p-4 rounded-xl border border-card mb-4">
-                                <p className="text-sm text-muted">Current plan</p>
-                                <p className="text-lg font-semibold text-fg">
-                                    {profile?.plan === "paid" ? "Paid" : "Free"}
-                                </p>
-                            </div>
-                            <Link
-                                href="/pricing"
-                                className="inline-block px-5 py-2.5 rounded-full bg-[var(--primary)] text-white text-sm font-medium hover:bg-[var(--primary-hover)] transition-colors"
-                            >
-                                {profile?.plan === "paid" ? "Manage Plan" : "Upgrade Plan"}
-                            </Link>
-                        </div>
-                    )}
+                    {tab === "billing" && <BillingTab />}
                 </div>
             </div>
         </div>

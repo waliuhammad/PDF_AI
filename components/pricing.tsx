@@ -1,54 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { Check, Star, Users, Crown } from "lucide-react";
 import { Reveal } from "@/components/reveal";
 import { useState } from "react";
-
-
-const plans = [
-    {
-        name: "Free",
-        monthly: "£0",
-        yearly: "£0",
-        description: "Perfect for trying basic PDF tools.",
-        features: [
-            "Basic PDF conversions",
-            "Merge & split PDFs",
-            "Limited daily usage",
-            "Standard processing speed",
-        ],
-    },
-
-    {
-        name: "Pro",
-        monthly: "£9.99",
-        yearly: "£7.99",
-        description: "Advanced tools for professionals.",
-        popular: true,
-        features: [
-            "Unlimited PDF tools",
-            "AI PDF Summary",
-            "OCR processing",
-            "Fast conversions",
-            "No advertisements",
-        ],
-    },
-
-    {
-        name: "Business",
-        monthly: "£29.99",
-        yearly: "£23.99",
-        description: "Powerful PDF workflow for teams.",
-        features: [
-            "Everything in Pro",
-            "Team collaboration",
-            "Priority processing",
-            "Advanced security",
-            "Dedicated support",
-        ],
-    },
-];
+import { PLANS, type BillingCycle } from "@/lib/plans";
+import { CheckoutButton } from "@/components/pricing/checkout-button";
 
 
 /**
@@ -61,12 +17,12 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
 
 
     const [billing, setBilling] =
-        useState<"monthly" | "yearly">("monthly");
+        useState<BillingCycle>("monthly");
 
 
     return (
 
-       <section id="pricing" className="px-6 py-22">
+        <section id="pricing" className="px-6 py-22">
 
             <div className="max-w-6xl mx-auto">
 
@@ -136,10 +92,9 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                                     transition-all
                                     duration-300
 
-                                    ${
-                                        billing === "monthly"
-                                            ? "bg-indigo-600 text-white"
-                                            : "text-black hover:text-indigo-600"
+                                    ${billing === "monthly"
+                                        ? "bg-indigo-600 text-white"
+                                        : "text-black hover:text-indigo-600"
                                     }
                                 `}
                             >
@@ -158,10 +113,9 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                                     transition-all
                                     duration-300
 
-                                    ${
-                                        billing === "yearly"
-                                            ? "bg-indigo-600 text-white"
-                                            : "text-black hover:text-indigo-600"
+                                    ${billing === "yearly"
+                                        ? "bg-indigo-600 text-white"
+                                        : "text-black hover:text-indigo-600"
                                     }
                                 `}
                             >
@@ -172,10 +126,9 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                                     className={`
                                         ml-2
                                         text-xs
-                                        ${
-                                            billing === "yearly"
-                                                ? "text-white"
-                                                : "text-green-500"
+                                        ${billing === "yearly"
+                                            ? "text-white"
+                                            : "text-green-500"
                                         }
                                     `}
                                 >
@@ -205,24 +158,24 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                 ">
 
 
-                    {plans.map((plan, index) => (
+                    {PLANS.map((plan, index) => (
 
-                        <Reveal key={plan.name} delay={index * 100} className="h-full">
-<div className={`
+                        <Reveal key={plan.id} delay={index * 100} className="h-full">
+                            <div className={`
                                 relative flex h-full flex-col rounded-2xl bg-card p-7
                                 shadow-sm transition-all duration-200
                                 hover:-translate-y-1.5 hover:scale-[1.01] hover:shadow-xl
                                 ${plan.popular
-                                ? "border-2 border-primary shadow-lg shadow-primary/10"
-                                : "border border-card hover:border-primary/40"
-                            }
+                                    ? "border-2 border-primary shadow-lg shadow-primary/10"
+                                    : "border border-card hover:border-primary/40"
+                                }
                             `}>
 
 
-                            {plan.popular && (
+                                {plan.popular && (
 
-                                <div
-                                    className="
+                                    <div
+                                        className="
                                         absolute
                                         -top-3.5
                                         left-1/2
@@ -239,17 +192,17 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                                         items-center
                                         gap-1.5
                                     "
-                                >
+                                    >
 
-                                    <b>Most Popular</b>
-                                </div>
+                                        <b>Most Popular</b>
+                                    </div>
 
-                            )}
+                                )}
 
 
 
-                            <div className="flex items-center justify-between">
-                                <h3 className="
+                                <div className="flex items-center justify-between">
+                                    <h3 className="
                                     text-lg
                                     md:text-xl
                                     font-bold
@@ -258,18 +211,18 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                                     items-center
                                     gap-2
                                 ">
-                                    {plan.name}
-                                    {plan.popular && (
-                                        <span className="inline-flex items-center justify-center bg-amber-500/10 text-amber-500 p-1 rounded-full">
-                                            <Crown size={15} className="fill-amber-500" />
-                                        </span>
-                                    )}
-                                </h3>
-                            </div>
+                                        {plan.name}
+                                        {plan.popular && (
+                                            <span className="inline-flex items-center justify-center bg-amber-500/10 text-amber-500 p-1 rounded-full">
+                                                <Crown size={15} className="fill-amber-500" />
+                                            </span>
+                                        )}
+                                    </h3>
+                                </div>
 
 
 
-                            <div className="
+                                <div className="
                                 mt-3.5
                                 text-3xl
                                 md:text-4xl
@@ -277,112 +230,81 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                                 text-fg
                             ">
 
-                                {
-                                    billing === "monthly"
-                                        ?
-                                        plan.monthly
-                                        :
-                                        plan.yearly
-                                }
+                                    {
+                                        billing === "monthly"
+                                            ?
+                                            plan.monthly
+                                            :
+                                            plan.yearly
+                                    }
 
 
-                                <span className="
+                                    <span className="
                                     text-xs
                                     md:text-sm
                                     font-normal
                                     text-muted
                                 ">
-                                    /month
-                                </span>
+                                        /month
+                                    </span>
 
-                            </div>
+                                </div>
 
 
 
-                            <p className="
+                                <p className="
                                 mt-3.5
                                 text-xs
                                 md:text-sm
                                 text-muted
                             ">
-                                {plan.description}
-                            </p>
+                                    {plan.description}
+                                </p>
 
 
 
-                            {/* mb-7 rather than mt-7 on the button below it: the
+                                {/* mb-7 rather than mt-7 on the button below it: the
                                 button uses mt-auto to sit on the card's bottom
                                 edge, and a margin cannot be both auto and 7. */}
-                            <ul className="
+                                <ul className="
                                 mt-6
                                 mb-7
                                 space-y-3.5
                             ">
 
-                                {plan.features.map(feature => (
+                                    {plan.features.map(feature => (
 
-                                    <li
-                                        key={feature}
-                                        className="
+                                        <li
+                                            key={feature}
+                                            className="
                                             flex
                                             gap-3
                                             text-xs
                                             md:text-sm
                                             text-muted
                                         "
-                                    >
+                                        >
 
-                                        <Check
-                                            size={17}
-                                            className="text-primary shrink-0"
-                                        />
+                                            <Check
+                                                size={17}
+                                                className="text-primary shrink-0"
+                                            />
 
-                                        {feature}
+                                            {feature}
 
-                                    </li>
+                                        </li>
 
-                                ))}
+                                    ))}
 
-                            </ul>
-
-
-
-                            <Link
-                                href="/register"
-                                className={`
-                                    mt-auto
-                                    block
-                                    w-full
-                                    py-3
-                                    rounded-xl
-                                    text-xs
-                                    md:text-sm
-                                    font-medium
-                                    text-center
-                                    transition-all
-
-                                    ${plan.popular
-                                        ?
-                                        "bg-primary text-white shadow-lg shadow-primary/25 hover:opacity-95"
-                                        :
-                                        "border border-border hover:border-primary"
-                                    }
-                                `}
-                            >
-
-                                {
-                                    plan.name === "Free"
-                                        ?
-                                        "Start Free"
-                                        :
-                                        "Upgrade Now"
-                                }
-
-                            </Link>
+                                </ul>
 
 
-                        </div>
-</Reveal>
+
+                                <CheckoutButton plan={plan} billing={billing} />
+
+
+                            </div>
+                        </Reveal>
 
                     ))}
 

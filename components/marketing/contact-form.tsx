@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Check, Loader2 } from "lucide-react";
 
 export function ContactForm() {
     const [name, setName] = useState("");
@@ -9,6 +9,7 @@ export function ContactForm() {
     const [subject, setSubject] = useState("");
     const [message, setMessage] = useState("");
     const [submitting, setSubmitting] = useState(false);
+    const [sent, setSent] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const isValid =
@@ -16,18 +17,60 @@ export function ContactForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!isValid) return;
+        if (!isValid || submitting) return;
 
         setSubmitting(true);
         setError(null);
 
-        // No message endpoint exists yet — say so rather than pretend it sent.
-        setError("Message sending isn't connected yet. This form is ready for the backend.");
-        setSubmitting(false);
+        try {
+            const res = await fetch("/api/contact", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ name, email, subject, message }),
+            });
+
+            const data = await res.json().catch(() => null);
+
+            if (!res.ok || !data?.success) {
+                throw new Error(data?.message || "Could not send your message.");
+            }
+
+            setSent(true);
+            setName("");
+            setEmail("");
+            setSubject("");
+            setMessage("");
+        } catch (err) {
+            setError(
+                err instanceof Error ? err.message : "Could not send your message. Please try again."
+            );
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const inputClass =
         "w-full px-4 py-2.5 rounded-xl border border-card bg-card text-fg placeholder:text-muted text-sm focus:outline-none focus:border-[var(--primary)] transition-colors";
+
+    if (sent) {
+        return (
+            <div className="max-w-xl rounded-2xl border border-card bg-card p-6">
+                <p className="flex items-start gap-2 text-sm text-fg">
+                    <Check size={17} className="shrink-0 mt-0.5 text-green-600" />
+                    <span>
+                        <strong>Message sent.</strong> Thanks for reaching out — we read every
+                        message and will reply to your email if a response is needed.
+                    </span>
+                </p>
+                <button
+                    onClick={() => setSent(false)}
+                    className="mt-4 text-sm text-[var(--primary)] hover:underline"
+                >
+                    Send another message
+                </button>
+            </div>
+        );
+    }
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4 max-w-xl">

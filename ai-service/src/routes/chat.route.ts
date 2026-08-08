@@ -15,6 +15,10 @@ const upload = multer({
 /**
  * Upload PDF
  * POST /api/chat/upload
+ *
+ * sessionId arrives as a multipart form field alongside the file, and picks
+ * which Chroma collection the document lands in. It is required: without
+ * one, uploads would share a bucket and users would overwrite each other.
  */
 router.post("/upload", upload.single("file"), async (req, res) => {
   try {
@@ -25,7 +29,15 @@ router.post("/upload", upload.single("file"), async (req, res) => {
       });
     }
 
-    const result = await processPDF(req.file.buffer);
+    const sessionId = req.body?.sessionId;
+    if (!sessionId || typeof sessionId !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "sessionId is required.",
+      });
+    }
+
+    const result = await processPDF(req.file.buffer, sessionId);
 
     return res.status(200).json({
       success: true,
@@ -48,7 +60,7 @@ router.post("/upload", upload.single("file"), async (req, res) => {
  */
 router.post("/", async (req, res) => {
   try {
-    const { question } = req.body;
+    const { question, sessionId } = req.body;
 
     if (!question) {
       return res.status(400).json({
@@ -57,8 +69,15 @@ router.post("/", async (req, res) => {
       });
     }
 
-    // Retrieve relevant chunks from Chroma
-    const retrieval = await retrieveRelevantChunks(question);
+    if (!sessionId || typeof sessionId !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "sessionId is required.",
+      });
+    }
+
+    // Retrieve relevant chunks from this session's collection
+    const retrieval = await retrieveRelevantChunks(question, sessionId);
 
     // Generate answer with Gemini
     const generation = await generateAnswer(

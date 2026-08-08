@@ -13,7 +13,9 @@ import ocrRoute from "./routes/ocr.route";
 const app = express();
 
 // Middleware
-app.use(express.json());
+// 100kb default is far too small: summary/translate/grammar receive whole
+// documents as JSON text, and a 413 on a normal PDF is not acceptable.
+app.use(express.json({ limit: "10mb" }));
 app.use(cors());
 app.use(helmet());
 app.use(morgan("dev"));

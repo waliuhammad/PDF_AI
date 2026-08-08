@@ -5,7 +5,7 @@ const router = Router();
 
 router.post("/", async (req, res) => {
   try {
-    const { question } = req.body;
+    const { question, sessionId } = req.body;
 
     if (!question) {
       return res.status(400).json({
@@ -14,7 +14,14 @@ router.post("/", async (req, res) => {
       });
     }
 
-    const result = await retrieveRelevantChunks(question);
+    if (!sessionId || typeof sessionId !== "string") {
+      return res.status(400).json({
+        success: false,
+        message: "sessionId is required.",
+      });
+    }
+
+    const result = await retrieveRelevantChunks(question, sessionId);
 
     return res.status(200).json({
       success: true,

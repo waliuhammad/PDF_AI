@@ -1,36 +1,38 @@
 "use client";
 
-import { 
-  Cloud, 
-  ShieldCheck, 
-  FolderLock, 
-  Lock, 
-  Key, 
-  Trash2, 
-  CheckCircle2 
+import {
+  Cloud,
+  ShieldCheck,
+  FolderLock,
+  Lock,
+  Key,
+  Trash2,
+  CheckCircle2
 } from "lucide-react";
 import { ContentPage, Section } from "@/components/marketing/content-page";
-import { DraftNotice } from "@/components/marketing/draft-notice";
 
 /* -------------------------------------------------------------------------- */
 /* MAIN SECURITY PAGE                                                         */
+/*                                                                            */
+/* Every claim on this page must stay true of the running product. It is     */
+/* better to promise less here than to promise controls we don't have.       */
 /* -------------------------------------------------------------------------- */
 
 const productSecurityFeatures = [
   {
     icon: Cloud,
-    title: "Cloud infrastructure",
-    description: "PDFAI utilizes robust cloud infrastructure partnerships for a secure and adaptable environment, ensuring resilience to meet user demands effectively.",
+    title: "Trusted infrastructure",
+    description: "PDFAI runs on established cloud platforms. Accounts and saved data live in Google Firebase, which operates on Google Cloud's certified, globally audited infrastructure.",
   },
   {
     icon: ShieldCheck,
-    title: "Network communications",
-    description: "We rely on a global content delivery and DDoS protection service, guaranteeing rapid access worldwide and robust security against online threats.",
+    title: "Encrypted connections",
+    description: "Every connection to PDFAI — your browser, our servers, and the AI services we call — travels over HTTPS/TLS, so documents and credentials can't be read in transit.",
   },
   {
     icon: FolderLock,
-    title: "Storage",
-    description: "PDFAI's cloud infrastructure is bolstered by a leading data storage provider. It's important to emphasize that PDFAI does not retain user documents.",
+    title: "Minimal retention",
+    description: "Files sent to our one-off tools are processed and then discarded. We keep a document only when you deliberately save it to your account, and you can delete it at any time.",
   },
 ];
 
@@ -39,14 +41,13 @@ export default function SecurityPage() {
     <div className="flex min-h-screen flex-col bg-white text-slate-800 dark:bg-[#13131d] dark:text-purple-100">
       <main className="flex-1">
         <ContentPage title="Security">
-          <DraftNotice />
 
           {/* Product Security Feature Overview (Visual Cards) */}
           <div className="my-10">
             <div className="text-center mb-10">
               <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white">Product Security</h2>
               <p className="mt-2 text-sm text-slate-600 dark:text-purple-200/80">
-                Find details on how we secure and protect user data and document processing
+                How we protect your account, your documents, and their processing
               </p>
             </div>
 
@@ -77,14 +78,26 @@ export default function SecurityPage() {
           <Section heading="Where files are processed">
             <div className="space-y-4 text-sm leading-relaxed text-slate-700 dark:text-purple-200">
               <p>
-                PDFAI uses a hybrid processing architecture designed to maximize speed while safeguarding data privacy:
+                Different tools process your documents in different places, and we always use the
+                most private option the task allows:
               </p>
               <ul className="list-disc pl-5 space-y-2 text-slate-600 dark:text-purple-200/80">
                 <li>
-                  <strong className="text-slate-900 dark:text-white">Client-Side Processing (In Browser):</strong> Lightweight operations like page rotation, PDF merging, page extraction, and client PDF rendering run completely in WebAssembly within your web browser. Your document never leaves your machine.
+                  <strong className="text-slate-900 dark:text-white">In your browser:</strong> lightweight
+                  operations run directly on your device where possible, so the document never
+                  leaves your machine at all.
                 </li>
                 <li>
-                  <strong className="text-slate-900 dark:text-white">Server-Side Processing:</strong> Complex operations including OCR text extraction, file format conversion (e.g., PDF to PNG), and AI-assisted chat run on secure, sandboxed serverless environments with strict memory isolation.
+                  <strong className="text-slate-900 dark:text-white">On our servers:</strong> heavier
+                  operations — format conversion, OCR, and AI features such as summaries and
+                  document chat — are processed on our servers over an encrypted connection.
+                  Working copies exist only for the duration of the operation.
+                </li>
+                <li>
+                  <strong className="text-slate-900 dark:text-white">AI processing:</strong> when you use an
+                  AI feature, the relevant document text is sent to the AI provider (Google&apos;s
+                  Gemini API) over TLS, solely to produce the result you requested. Standard PDF
+                  tools never involve AI providers.
                 </li>
               </ul>
             </div>
@@ -96,9 +109,11 @@ export default function SecurityPage() {
               <div className="flex items-start gap-3">
                 <Lock className="h-5 w-5 text-purple-600 dark:text-purple-400 mt-0.5 shrink-0" />
                 <div>
-                  <h4 className="font-semibold text-slate-900 dark:text-white">Transport Encryption (In Transit)</h4>
+                  <h4 className="font-semibold text-slate-900 dark:text-white">In transit</h4>
                   <p className="mt-1 text-slate-600 dark:text-purple-200/80">
-                    All data sent between your browser and our servers is encrypted using <strong>TLS 1.3</strong> protocols with HTTP Strict Transport Security (HSTS) preloaded to block unauthorized eavesdropping.
+                    All traffic between your browser and PDFAI, and between PDFAI and the services
+                    it uses, is encrypted with <strong>HTTPS/TLS</strong>. We never accept
+                    unencrypted connections.
                   </p>
                 </div>
               </div>
@@ -106,9 +121,12 @@ export default function SecurityPage() {
               <div className="flex items-start gap-3 pt-2">
                 <Key className="h-5 w-5 text-purple-600 dark:text-purple-400 mt-0.5 shrink-0" />
                 <div>
-                  <h4 className="font-semibold text-slate-900 dark:text-white">Storage Encryption (At Rest)</h4>
+                  <h4 className="font-semibold text-slate-900 dark:text-white">At rest</h4>
                   <p className="mt-1 text-slate-600 dark:text-purple-200/80">
-                    Any transient file created during conversion or user workspace storage is encrypted using <strong>AES-256 bit</strong> encryption standard. Access keys are managed separately via isolated cloud KMS systems.
+                    Account data, saved documents, and chats are stored in Google Firebase, where
+                    Google encrypts all data at rest by default using <strong>AES-256</strong>.
+                    Payment card details are never stored by PDFAI at all — billing is handled
+                    entirely by our payment provider.
                   </p>
                 </div>
               </div>
@@ -119,24 +137,25 @@ export default function SecurityPage() {
           <Section heading="Account security">
             <div className="space-y-4 text-sm leading-relaxed text-slate-700 dark:text-purple-200">
               <p>
-                Your account authentication is secured by industry-leading auth infrastructure:
+                Sign-in is handled by <strong>Firebase Authentication</strong>, Google&apos;s
+                identity platform used by hundreds of thousands of applications:
               </p>
               <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                 <li className="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 bg-white dark:border-purple-900/30 dark:bg-[#181824]">
                   <CheckCircle2 className="h-5 w-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
-                  <span><strong>OAuth & Social Sign-In:</strong> Secure authentication via Google and GitHub with zero plain-text password storage on our servers.</span>
+                  <span><strong>Google Sign-In:</strong> OAuth-based social login — no password is ever created or stored for these accounts.</span>
                 </li>
                 <li className="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 bg-white dark:border-purple-900/30 dark:bg-[#181824]">
                   <CheckCircle2 className="h-5 w-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
-                  <span><strong>Password Hashing:</strong> Passwords created directly are salted and hashed using bcrypt/Argon2 algorithm standards.</span>
+                  <span><strong>Hashed passwords:</strong> passwords are never stored in plain text — Firebase hashes them with a hardened, salted algorithm before they touch storage.</span>
                 </li>
                 <li className="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 bg-white dark:border-purple-900/30 dark:bg-[#181824]">
                   <CheckCircle2 className="h-5 w-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
-                  <span><strong>Encrypted Password Resets:</strong> Time-limited, single-use cryptographically signed reset links.</span>
+                  <span><strong>Secure resets:</strong> password reset links are time-limited, single-use, and delivered only to the account&apos;s verified email.</span>
                 </li>
                 <li className="flex items-start gap-2.5 p-3 rounded-xl border border-slate-200 bg-white dark:border-purple-900/30 dark:bg-[#181824]">
                   <CheckCircle2 className="h-5 w-5 text-purple-600 dark:text-purple-400 shrink-0 mt-0.5" />
-                  <span><strong>Multi-Factor Support (MFA):</strong> Optional TOTP authenticator app support for enterprise and pro account tiers.</span>
+                  <span><strong>Server-side session checks:</strong> pages and APIs that touch your data verify your identity on the server, not just in the browser.</span>
                 </li>
               </ul>
             </div>
@@ -148,14 +167,18 @@ export default function SecurityPage() {
               <div className="flex items-start gap-3">
                 <Trash2 className="h-5 w-5 text-purple-600 dark:text-purple-400 mt-0.5 shrink-0" />
                 <div>
-                  <h4 className="font-semibold text-slate-900 dark:text-white">60-Minute Auto-Purge</h4>
+                  <h4 className="font-semibold text-slate-900 dark:text-white">Nothing kept without a reason</h4>
                   <p className="mt-1 text-slate-600 dark:text-purple-200/80">
-                    Guest and temporary processed files are automatically and permanently deleted from disk and RAM within 1 hour. No residual copies remain in backup snapshots.
+                    Files sent to one-off tools are discarded after processing completes. Content
+                    is retained only when you deliberately save a document or chat to your
+                    account — and those you can delete yourself, individually or entirely, from
+                    your dashboard at any time.
                   </p>
                 </div>
               </div>
               <p className="text-xs text-slate-500 dark:text-purple-300/60 pl-8">
-                Users can also manually trigger instant document deletion immediately after downloading converted outputs.
+                Found a security issue? Please report it to us via the contact page — we take
+                every report seriously and will respond as quickly as we can.
               </p>
             </div>
           </Section>
