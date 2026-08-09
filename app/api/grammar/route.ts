@@ -1,3 +1,4 @@
+import { getAppConfig } from "@/lib/remote-config";
 import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 
@@ -10,10 +11,23 @@ const AI_SERVICE =
 
 export async function POST(req: NextRequest) {
   try {
+    // Remote Config kill-switch: lets the AI features be disabled from the
+    // Firebase Console (parameter: ai_tools_enabled) without a redeploy.
+    const { aiToolsEnabled } = await getAppConfig();
+    if (!aiToolsEnabled) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "AI features are temporarily disabled. Please try again later.",
+        },
+        { status: 503 }
+      );
+    }
+
     const formData = await readFormData(req);
-        if (!formData) {
-            return NextResponse.json({ error: "No file provided." }, { status: 400 });
-        }
+    if (!formData) {
+      return NextResponse.json({ error: "No file provided." }, { status: 400 });
+    }
 
     const response = await fetch(`${AI_SERVICE}/api/grammar`, {
       method: "POST",
