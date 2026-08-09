@@ -1,3 +1,4 @@
+import { MaintenanceBanner } from "@/components/maintenance-banner";
 import type { Metadata } from "next";
 import { getSiteUrl } from "@/lib/site-url";
 import { Geist, Geist_Mono } from "next/font/google";

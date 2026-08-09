@@ -1,3 +1,4 @@
+import { getAppConfig } from "@/lib/remote-config";
 import { NextRequest, NextResponse } from "next/server";
 
 // retrieval plus a Gemini answer,
@@ -9,6 +10,20 @@ const AI_SERVICE =
 
 export async function POST(req: NextRequest) {
   try {
+    // Remote Config kill-switch: lets the AI features be disabled from the
+    // Firebase Console (parameter: ai_tools_enabled) without a redeploy —
+    // for example when the Gemini quota is exhausted.
+    const { aiToolsEnabled } = await getAppConfig();
+    if (!aiToolsEnabled) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "AI features are temporarily disabled. Please try again later.",
+        },
+        { status: 503 }
+      );
+    }
+
     const body = await req.json();
 
     const response = await fetch(`${AI_SERVICE}/api/chat`, {
