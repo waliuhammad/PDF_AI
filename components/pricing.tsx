@@ -318,9 +318,10 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                 {/* Reviews */}
 
                 {/* On a phone these were two rows floating in whitespace under a
-                    56px margin. Below md they are grouped into a single bordered
-                    trust bar with a divider, which reads as one deliberate
-                    element. From md it is the original plain centred row. */}
+                    56px margin. Below md they sit on a tinted panel, which groups
+                    them without an outline — the section itself is on
+                    --background, so --background-secondary reads as a soft block
+                    in both themes. From md it is the original plain centred row. */}
                 <div
                     className="
                         mt-8
@@ -333,9 +334,7 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                         items-center
                         gap-3
                         rounded-2xl
-                        border
-                        border-card
-                        bg-card
+                        bg-[var(--background-secondary)]
                         px-5
                         py-4
                         text-xs
@@ -346,7 +345,6 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                         md:justify-center
                         md:gap-7
                         md:rounded-none
-                        md:border-0
                         md:bg-transparent
                         md:px-0
                         md:py-0
