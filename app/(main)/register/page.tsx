@@ -8,6 +8,7 @@ import { registerWithEmail, signInWithSocial, type SocialProviderId } from "@/li
 import { COUNTRY_CODES } from "@/lib/countryCodes";
 import { SocialAuth } from "@/components/auth/social-auth";
 import { TermsAgreement } from "@/components/auth/terms-agreement";
+import { CountryCodeCombobox } from "@/components/auth/country-code-combobox";
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -60,23 +61,23 @@ export default function RegisterPage() {
     };
 
     return (
-        <main className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-10 bg-[var(--background-secondary)]">
-            <div className="w-full max-w-md p-6 sm:p-8 rounded-2xl bg-card border border-card shadow-sm">
-                <Link href="/" className="flex items-center gap-2 text-xl font-bold text-fg mb-6 sm:mb-8">
+        <main className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-4 sm:py-6 bg-[var(--background-secondary)]">
+            <div className="w-full max-w-md p-4 sm:p-5 rounded-2xl bg-card border border-card shadow-sm">
+                <Link href="/" className="flex items-center gap-2 text-xl font-bold text-fg mb-3 sm:mb-4">
                     <FileText className="text-[var(--primary)]" size={22} />
                     PDF<span className="text-[var(--primary)]">AI</span>
                 </Link>
 
-                <h1 className="text-xl sm:text-2xl font-bold text-fg mb-2">Create your account</h1>
-                <p className="text-muted text-sm mb-6 sm:mb-8">Start using every PDF tool for free</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-fg mb-1">Create your account</h1>
+                <p className="text-muted text-sm mb-3 sm:mb-4">Start using every PDF tool for free</p>
 
                 {error && (
                     <div className="mb-4 px-3 py-2 rounded-lg bg-red-50 text-[var(--primary)] text-xs">{error}</div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form onSubmit={handleSubmit} className="space-y-2.5">
                     <div>
-                        <label className="text-sm text-fg mb-1 block">Full name</label>
+                        <label className="text-sm text-fg mb-0.5 block">Full name</label>
                         <div className="relative">
                             <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
                             <input
@@ -85,13 +86,13 @@ export default function RegisterPage() {
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder="Your name"
-                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-card border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
+                                className="w-full pl-10 pr-4 py-2 rounded-xl bg-card border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label className="text-sm text-fg mb-1 block">Email</label>
+                        <label className="text-sm text-fg mb-0.5 block">Email</label>
                         <div className="relative">
                             <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
                             <input
@@ -100,26 +101,15 @@ export default function RegisterPage() {
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="you@example.com"
-                                className="w-full pl-10 pr-4 py-3 rounded-xl bg-card border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
+                                className="w-full pl-10 pr-4 py-2 rounded-xl bg-card border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
                             />
                         </div>
                     </div>
 
                     <div>
-                        <label className="text-sm text-fg mb-1 block">Phone number</label>
+                        <label className="text-sm text-fg mb-0.5 block">Phone number</label>
                         <div className="flex gap-2">
-                            <select
-                                aria-label="Country dialling code"
-                                value={dialCode}
-                                onChange={(e) => setDialCode(e.target.value)}
-                                className="w-24 sm:w-28 shrink-0 py-3 px-2 rounded-xl bg-card border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
-                            >
-                                {COUNTRY_CODES.map((c) => (
-                                    <option key={`${c.code}-${c.dialCode}`} value={c.dialCode}>
-                                        {c.dialCode} {c.code}
-                                    </option>
-                                ))}
-                            </select>
+                            <CountryCodeCombobox value={dialCode} onChange={setDialCode} />
                             <div className="relative flex-1">
                                 <Phone size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
                                 <input
@@ -128,14 +118,14 @@ export default function RegisterPage() {
                                     value={phoneNumber}
                                     onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ""))}
                                     placeholder="300 1234567"
-                                    className="w-full pl-10 pr-4 py-3 rounded-xl bg-card border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
+                                    className="w-full pl-10 pr-4 py-2 rounded-xl bg-card border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
                                 />
                             </div>
                         </div>
                     </div>
 
                     <div>
-                        <label className="text-sm text-fg mb-1 block">Password</label>
+                        <label className="text-sm text-fg mb-0.5 block">Password</label>
                         <div className="relative">
                             <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
                             <input
@@ -145,7 +135,7 @@ export default function RegisterPage() {
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Create a password"
-                                className="w-full pl-10 pr-10 py-3 rounded-xl bg-card border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
+                                className="w-full pl-10 pr-10 py-2 rounded-xl bg-card border border-card text-fg text-sm focus:outline-none focus:border-[var(--primary)] transition-colors"
                             />
                             <button
                                 type="button"
@@ -163,7 +153,7 @@ export default function RegisterPage() {
                     <button
                         type="submit"
                         disabled={loading || !agreed}
-                        className="w-full py-3 rounded-xl bg-[var(--primary)] text-white font-medium hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="w-full py-2 rounded-xl bg-[var(--primary)] text-white font-medium hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                         {loading ? "Creating account..." : "Create Account"}
                     </button>
@@ -171,7 +161,7 @@ export default function RegisterPage() {
 
                 <SocialAuth action="Sign up" disabled={loading} onSelect={handleSocial} />
 
-                <p className="text-center text-sm text-muted mt-6">
+                <p className="text-center text-sm text-muted mt-3">
                     Already have an account?{" "}
                     <Link href="/login" className="text-[var(--primary)] hover:underline">
                         Log in

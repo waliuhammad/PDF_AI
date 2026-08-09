@@ -1,12 +1,9 @@
 import { Navbar } from "@/components/navbar";
 import { Hero } from "@/components/hero";
-import { TrustedBy } from "@/components/trusted-by";
-import { Stats } from "@/components/stats";
 import { ToolsGrid } from "@/components/tools-grid";
 import { AIFeatures } from "@/components/ai-features";
 import { HowItWorks } from "@/components/how-it-works";
 import Pricing from "@/components/pricing";
-import Testimonials from "@/components/testimonials";
 import FAQ from "@/components/faq";
 import { CTA } from "@/components/cta";
 import Footer from "@/components/footer";
@@ -18,10 +15,6 @@ export default function Home() {
 
       <Hero />
 
-      <TrustedBy />
-
-      <Stats />
-
       <ToolsGrid />
 
       <AIFeatures />
@@ -29,8 +22,6 @@ export default function Home() {
       <HowItWorks />
 
       <Pricing />
-
-      <Testimonials />
 
       <FAQ />
 
