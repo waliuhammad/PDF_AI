@@ -317,19 +317,40 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
 
                 {/* Reviews */}
 
+                {/* On a phone these were two rows floating in whitespace under a
+                    56px margin. Below md they are grouped into a single bordered
+                    trust bar with a divider, which reads as one deliberate
+                    element. From md it is the original plain centred row. */}
                 <div
                     className="
-                        mt-14
+                        mt-8
+                        md:mt-14
+                        mx-auto
                         flex
+                        w-full
+                        max-w-xs
                         flex-col
-                        md:flex-row
-                        justify-center
-                        gap-6
-                        sm:gap-7
                         items-center
+                        gap-3
+                        rounded-2xl
+                        border
+                        border-card
+                        bg-card
+                        px-5
+                        py-4
                         text-xs
-                        md:text-sm
                         text-muted
+                        md:w-auto
+                        md:max-w-none
+                        md:flex-row
+                        md:justify-center
+                        md:gap-7
+                        md:rounded-none
+                        md:border-0
+                        md:bg-transparent
+                        md:px-0
+                        md:py-0
+                        md:text-sm
                     "
                 >
 
@@ -339,12 +360,16 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                         gap-2
                     ">
 
-                        <Users size={18} />
+                        <Users size={16} className="shrink-0 md:size-[18px]" />
 
                         Trusted by 50,000+ creators
 
                     </div>
 
+
+                    {/* Separates the two stacked rows on a phone. Hidden from md,
+                        where the desktop row never had one. */}
+                    <span className="h-px w-10 bg-[var(--card-border)] md:hidden" />
 
 
                     <div className="
@@ -354,18 +379,24 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                         text-yellow-400
                     ">
 
-                        {[1, 2, 3, 4, 5].map(star => (
+                        {/* gap-0.5 on a phone: at 8px apart the five stars read as
+                            separate icons rather than one rating. md:gap-2 keeps
+                            the desktop spacing exactly as it was. */}
+                        <div className="flex items-center gap-0.5 md:gap-2">
+                            {[1, 2, 3, 4, 5].map(star => (
 
-                            <Star
-                                key={star}
-                                size={17}
-                                fill="currentColor"
-                            />
+                                <Star
+                                    key={star}
+                                    size={15}
+                                    fill="currentColor"
+                                    className="md:size-[17px]"
+                                />
 
-                        ))}
+                            ))}
+                        </div>
 
 
-                        <span className="text-muted ml-1.5">
+                        <span className="text-muted ml-1 md:ml-1.5">
                             4.9/5 average rating
                         </span>
 
