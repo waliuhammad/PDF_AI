@@ -28,18 +28,18 @@ export function ToolsGrid() {
     }, [searchQuery, activeCategory]);
 
     return (
-        <section id="tools" className="py-16 px-6">
+        <section id="tools" className="py-10 sm:py-16 px-4 sm:px-6">
             <div className="mx-auto max-w-7xl">
 
                 {/* Heading */}
 
                 <Reveal>
-<div className="mb-12 text-center">
+<div className="mb-8 sm:mb-12 text-center">
                     <span className="inline-flex rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-600">
                         PDF Toolkit
                     </span>
 
-                    <h2 className="mt-4 text-4xl font-bold">
+                    <h2 className="mt-3 sm:mt-4 text-2xl sm:text-4xl font-bold">
                         All PDF Tools
                     </h2>
 
@@ -58,7 +58,10 @@ export function ToolsGrid() {
 
                 {/* Categories */}
 
-                <div className="flex justify-center mb-14">
+                {/* Not flex/justify-center any more: the filter row scrolls
+                    horizontally on mobile and needs the full width to do it. It
+                    centres itself from sm up. */}
+                <div className="mb-8 sm:mb-14">
                     <CategoryFilter
                         activeCategory={activeCategory}
                         setActiveCategory={setActiveCategory}
@@ -67,7 +70,10 @@ export function ToolsGrid() {
 
                 {/* Cards */}
 
-                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {/* Two per row on phones. The base was a single column, so a
+                    phone showed one card per screenful and the grid scrolled
+                    forever. */}
+                <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredTools.map((tool, index) => (
                         <Reveal key={tool.name} delay={index * 50} className="h-full">
 <div className="h-full">

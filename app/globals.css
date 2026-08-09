@@ -151,6 +151,17 @@ body {
   .bg-primary-tint {
     background-color: color-mix(in srgb, var(--primary) 10%, transparent);
   }
+
+  /* For the mobile filter rows that scroll sideways: the bar itself would sit
+     on top of the pills and read as a broken layout on a phone. */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 }
 /* Tool cards fading in as the grid renders. This was a framer-motion
    initial/animate per card; as a keyframe it runs on the compositor instead of

@@ -40,14 +40,14 @@ export default function FAQ() {
     const [open, setOpen] = useState<number | null>(0);
 
     return (
-      <section id="faq" className="px-6 py-16 bg-[var(--background-secondary)]">
+      <section id="faq" className="px-4 sm:px-6 py-10 sm:py-16 bg-[var(--background-secondary)]">
             <div className="mx-auto max-w-3xl">
-                <div className="text-center mb-10">
+                <div className="text-center mb-6 sm:mb-10">
                     <span className="inline-flex rounded-full bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary">
                         Frequently Asked Questions
                     </span>
 
-                    <h2 className="mt-3 text-3xl font-bold text-fg">
+                    <h2 className="mt-3 text-2xl sm:text-3xl font-bold text-fg">
                         Everything you need to know
                     </h2>
 
@@ -56,7 +56,7 @@ export default function FAQ() {
                     </p>
                 </div>
 
-                <div className="space-y-3.5">
+                <div className="space-y-3 sm:space-y-3.5">
                     {faqs.map((faq: FAQItem, index: number) => (
                         <div
                             key={faq.question}
@@ -64,14 +64,14 @@ export default function FAQ() {
                         >
                             <button
                                 onClick={() => setOpen(open === index ? null : index)}
-                                className="flex w-full items-center justify-between p-5 text-left"
+                                className="flex w-full items-center justify-between p-4 sm:p-5 text-left"
                             >
                                 <div>
                                     <span className="text-[11px] font-semibold tracking-wide text-primary uppercase">
                                         {faq.category}
                                     </span>
 
-                                    <h3 className="mt-1 text-base font-semibold text-fg">
+                                    <h3 className="mt-1 text-sm sm:text-base font-semibold text-fg">
                                         {faq.question}
                                     </h3>
                                 </div>
@@ -92,7 +92,7 @@ export default function FAQ() {
                                     }`}
                             >
                                 <div className="overflow-hidden">
-                                    <div className="border-t border-border px-5 pb-5 pt-3 text-xs leading-relaxed text-muted">
+                                    <div className="border-t border-border px-4 sm:px-5 pb-4 sm:pb-5 pt-3 text-sm leading-relaxed text-muted">
                                         {faq.answer}
                                     </div>
                                 </div>

@@ -22,14 +22,14 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
 
     return (
 
-        <section id="pricing" className="px-6 py-22">
+        <section id="pricing" className="px-4 sm:px-6 py-12 sm:py-22">
 
             <div className="max-w-6xl mx-auto">
 
 
                 {/* Heading */}
 
-                <div className="text-center mb-10">
+                <div className="text-center mb-6 sm:mb-10">
 
                     <div
                         className="
@@ -54,7 +54,7 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                     </div>
 
 
-                    <Heading className="text-3xl md:text-4xl font-bold text-fg">
+                    <Heading className="text-2xl sm:text-3xl md:text-4xl font-bold text-fg">
                         Simple pricing that scales with you
                     </Heading>
 
@@ -152,7 +152,8 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                 <div className="
                     grid
                     md:grid-cols-3
-                    gap-7
+                    gap-6
+                    sm:gap-7
                     max-w-5xl
                     mx-auto
                 ">
@@ -162,7 +163,7 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
 
                         <Reveal key={plan.id} delay={index * 100} className="h-full">
                             <div className={`
-                                relative flex h-full flex-col rounded-2xl bg-card p-7
+                                relative flex h-full flex-col rounded-2xl bg-card p-5 sm:p-7
                                 shadow-sm transition-all duration-200
                                 hover:-translate-y-1.5 hover:scale-[1.01] hover:shadow-xl
                                 ${plan.popular
@@ -323,7 +324,8 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                         flex-col
                         md:flex-row
                         justify-center
-                        gap-7
+                        gap-6
+                        sm:gap-7
                         items-center
                         text-xs
                         md:text-sm

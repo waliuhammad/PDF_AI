@@ -12,13 +12,14 @@ export default function SearchTool({
     setSearchQuery,
 }: SearchToolProps) {
     return (
-        <div className="mx-auto max-w-5xl pb-12 animate-tool-in">
+        <div className="mx-auto max-w-5xl pb-6 sm:pb-12 animate-tool-in">
             <div className="relative">
 
                 <Search
                     className="
                         absolute
-                        left-5
+                        left-4
+                        sm:left-5
                         top-1/2
                         -translate-y-1/2
                         h-5
@@ -34,14 +35,17 @@ export default function SearchTool({
                     placeholder="Search tools..."
                     className="
                         w-full
-                        h-14
+                        h-12
+                        sm:h-14
                         rounded-2xl
                         border
                         border-border
                         bg-card
-                        pl-14
+                        pl-12
+                        sm:pl-14
                         pr-5
-                        text-lg
+                        text-base
+                        sm:text-lg
                         outline-none
                         transition-all
                         duration-300

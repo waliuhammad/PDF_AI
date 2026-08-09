@@ -86,7 +86,7 @@ const companies: Company[] = [
 
 export function TrustedBy() {
     return (
-        <section className="border-y border-border/50 bg-background min-h-screen flex flex-col justify-center py-16">
+        <section className="border-y border-border/50 bg-background md:min-h-screen flex flex-col justify-center py-10 sm:py-16">
             <div className="mx-auto max-w-7xl px-6 w-full">
 
                 {/* Heading */}

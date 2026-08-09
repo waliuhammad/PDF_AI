@@ -49,7 +49,7 @@ const features = [
 
 export function AIFeatures() {
     return (
-        <section className="relative overflow-hidden py-16 px-6">
+        <section className="relative overflow-hidden py-10 sm:py-16 px-4 sm:px-6">
             <div className="absolute inset-0 bg-background" />
             <div className="absolute left-1/2 top-16 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
 
@@ -61,7 +61,7 @@ export function AIFeatures() {
                         AI Powered Features
                     </span>
 
-                    <h2 className="mt-4 text-3xl font-bold text-foreground md:text-4xl">
+                    <h2 className="mt-3 sm:mt-4 text-2xl sm:text-3xl font-bold text-foreground md:text-4xl">
                         Supercharge your PDFs with AI
                     </h2>
 
@@ -71,7 +71,7 @@ export function AIFeatures() {
                 </div>
 </Reveal>
 
-                <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+                <div className="mt-6 sm:mt-10 grid gap-4 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">
                     {features.map((feature, index) => {
                         const Icon = feature.icon;
 
@@ -133,7 +133,7 @@ export function AIFeatures() {
                 </div>
 
                 <Reveal>
-<div className="mt-10 text-center">
+<div className="mt-6 sm:mt-10 text-center">
                     <Link
                         href="/tools?category=AI%20Tools"
                         className="

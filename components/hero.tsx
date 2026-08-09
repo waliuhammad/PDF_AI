@@ -14,7 +14,7 @@ export function Hero() {
     // -z-10 and body has a solid background-color, so without a stacking
     // context here those blobs paint behind the page itself and never show.
     return (
-        <section id="hero" className="relative isolate overflow-hidden py-14 lg:py-20">
+        <section id="hero" className="relative isolate overflow-hidden py-8 sm:py-14 lg:py-20">
 
             {/* Background */}
             <div className="absolute inset-0 -z-10 overflow-hidden">
@@ -25,7 +25,7 @@ export function Hero() {
                 <div className="animate-drift-b absolute -right-16 bottom-0 h-96 w-96 rounded-full bg-blue-500/25 blur-[100px]" />
             </div>
 
-            <div className="mx-auto grid max-w-6xl items-center gap-10 px-6 lg:grid-cols-2">
+            <div className="mx-auto grid max-w-6xl items-center gap-8 px-4 sm:px-6 lg:gap-10 lg:grid-cols-2">
 
                 {/* LEFT */}
                 <div className="animate-hero-left">
@@ -34,20 +34,20 @@ export function Hero() {
                         AI Powered PDF Workspace
                     </div>
 
-                    <h1 className="mt-5 text-4xl font-bold leading-tight text-fg lg:text-5xl">
+                    <h1 className="mt-4 sm:mt-5 text-3xl sm:text-4xl font-bold leading-tight text-fg lg:text-5xl">
                         Work smarter
                         <br />
                         with your
                         <span className="text-primary"> PDF files</span>
                     </h1>
 
-                    <p className="mt-4 max-w-lg text-base leading-7 text-muted">
+                    <p className="mt-4 max-w-lg text-sm sm:text-base leading-6 sm:leading-7 text-muted">
                         Convert, edit, merge, compress, summarise and chat with PDFs
                         using intelligent AI tools. Fast, secure and built for modern
                         professionals.
                     </p>
 
-                    <div className="mt-7 flex flex-wrap gap-3.5">
+                    <div className="mt-5 sm:mt-7 flex flex-wrap gap-3">
                         <Link
                             href="/login"
                             className="
@@ -85,7 +85,7 @@ export function Hero() {
                     </div>
 
                     {/* Trust */}
-                    <div className="mt-8 flex flex-wrap gap-5">
+                    <div className="mt-6 sm:mt-8 flex flex-wrap gap-x-4 gap-y-2 sm:gap-5">
                         <div className="flex items-center gap-1.5">
                             <Star
                                 className="text-yellow-500"
@@ -119,12 +119,18 @@ export function Hero() {
                     </div>
                 </div>
 
-                {/* RIGHT */}
-                <div className="relative pt-2 pb-16 animate-hero-right">
+                {/* RIGHT
+                    The three cards are a deliberate overlapping composition, but
+                    it only has room to work in the two-column layout. Below lg
+                    the column is full width and the two absolutely positioned
+                    cards (w-56 at left-2, w-48 at right-2) overlapped each other
+                    and their text. They are static and stacked here, and only
+                    become the floating arrangement at lg. */}
+                <div className="relative pt-2 pb-0 lg:pb-16 animate-hero-right">
 
                     {/* Upload Card */}
                     <div
-                        className="animate-float-a rounded-2xl border border-border bg-card p-5 shadow-xl max-w-sm ml-auto mr-4 transition-shadow duration-300 hover:shadow-2xl"
+                        className="animate-float-a rounded-2xl border border-border bg-card p-4 sm:p-5 shadow-xl w-full max-w-sm mx-auto lg:ml-auto lg:mr-4 transition-shadow duration-300 hover:shadow-2xl"
                     >
                         <div className="flex items-center gap-2.5">
                             <div className="rounded-xl bg-primary/10 p-2.5">
@@ -151,7 +157,7 @@ export function Hero() {
 
                     {/* AI Summary */}
                     <div
-                        className="animate-float-b absolute left-2 top-20 w-56 rounded-2xl border border-border bg-card p-4 shadow-xl z-10 transition-shadow duration-300 hover:shadow-2xl"
+                        className="animate-float-b mt-3 w-full max-w-sm mx-auto lg:mt-0 lg:absolute lg:left-2 lg:top-20 lg:w-56 rounded-2xl border border-border bg-card p-4 shadow-xl z-10 transition-shadow duration-300 hover:shadow-2xl"
                     >
                         <div className="flex items-center gap-2">
                             <Brain
@@ -173,7 +179,7 @@ export function Hero() {
 
                     {/* PDF Card */}
                     <div
-                        className="animate-float-c absolute right-2 top-28 w-48 rounded-2xl border border-border bg-card p-4 shadow-xl z-10 transition-shadow duration-300 hover:shadow-2xl"
+                        className="animate-float-c mt-3 w-full max-w-sm mx-auto lg:mt-0 lg:absolute lg:right-2 lg:top-28 lg:w-48 rounded-2xl border border-border bg-card p-4 shadow-xl z-10 transition-shadow duration-300 hover:shadow-2xl"
                     >
                         <div className="flex items-center gap-2.5">
                             <div className="rounded-xl bg-primary/10 p-2.5">

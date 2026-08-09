@@ -67,7 +67,7 @@ export function ToolsHub() {
                     />
                 </div>
 
-                <div className="flex items-center gap-1 p-1 rounded-xl border border-card bg-card overflow-x-auto">
+                <div className="flex items-center gap-1 p-1 rounded-xl border border-card bg-card overflow-x-auto no-scrollbar">
                     {categories.map((option) => (
                         <button
                             key={option}
@@ -89,7 +89,8 @@ export function ToolsHub() {
                     <p className="text-muted text-sm">No tools match &ldquo;{search}&rdquo;.</p>
                 </div>
             ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                // Two per row on phones, matching the landing page grid.
+                <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
                     {/* The stagger was a motion.div per card, so twenty-two more
                         framer instances on top of the cards themselves. Same
                         fade-and-rise as a CSS animation, off the main thread. */}

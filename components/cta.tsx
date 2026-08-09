@@ -29,7 +29,7 @@ export function CTA() {
 
     return (
 
-        <section className="px-6 py-20">
+        <section className="px-4 sm:px-6 py-12 sm:py-20">
 
             <Reveal>
 <div className="relative
@@ -106,7 +106,8 @@ export function CTA() {
                         <h2
                             className="
                                 mt-4
-                                text-3xl
+                                text-2xl
+                                sm:text-3xl
                                 md:text-4xl
                                 font-bold
                                 leading-tight
@@ -257,7 +258,8 @@ export function CTA() {
                             bg-[var(--background-secondary)]
                             border
                             border-border
-                            p-6
+                            p-4
+                            sm:p-6
                         "
                     >
 

@@ -27,7 +27,7 @@ const testimonials = [
 
 export default function Testimonials() {
     return (
-        <section id="testimonials" className="relative overflow-hidden px-6 py-16 bg-[var(--background-secondary)]">
+        <section id="testimonials" className="relative overflow-hidden px-4 sm:px-6 py-10 sm:py-16 bg-[var(--background-secondary)]">
 
             {/* Background Glow */}
             <div className="absolute left-1/2 top-16 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
@@ -44,7 +44,7 @@ export default function Testimonials() {
 
                     </div>
 
-                    <h2 className="mt-3 text-3xl font-bold text-fg">
+                    <h2 className="mt-3 text-2xl sm:text-3xl font-bold text-fg">
 
                         Loved by thousands of professionals
 
@@ -60,7 +60,7 @@ export default function Testimonials() {
 
                 {/* Trust Stats */}
 
-                <div className="mt-8 grid grid-cols-3 gap-6 text-center max-w-3xl mx-auto">
+                <div className="mt-6 sm:mt-8 grid grid-cols-3 gap-3 sm:gap-6 text-center max-w-3xl mx-auto">
 
                     <div>
 
@@ -90,19 +90,20 @@ export default function Testimonials() {
 
                 {/* Cards */}
 
-                <div className="mt-10 grid gap-6 md:grid-cols-3">
+                <div className="mt-8 sm:mt-10 grid gap-4 sm:gap-6 md:grid-cols-3">
 
                     {testimonials.map((item, index) => (
 
                         <Reveal key={item.name} delay={index * 100} className="h-full">
-                            <div className="relative rounded-2xl border border-border bg-card p-6 shadow-lg hover:border-primary/40 transition-all h-full duration-200 hover:-translate-y-1.5 hover:scale-[1.01]">
+                            <div className="relative rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-lg hover:border-primary/40 transition-all h-full duration-200 hover:-translate-y-1.5 hover:scale-[1.01]">
 
                             <Quote
-                                className="absolute right-5 top-5 text-primary/20"
-                                size={32}
+                                className="absolute right-4 top-4 sm:right-5 sm:top-5 size-6 sm:size-8 text-primary/20"
                             />
 
-                            <div className="flex items-center gap-3.5">
+                            {/* pr-8 keeps a long name or company from running under
+                                the quote mark in the corner. */}
+                            <div className="flex items-center gap-3 sm:gap-3.5 pr-8">
 
                                 {/* Was an <img> from i.pravatar.cc, a random-avatar
                                     service: three third-party requests on every visit,

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Mail, Lock, User, Eye, EyeOff, FileText, Phone } from "lucide-react";
 import { registerWithEmail, signInWithSocial, type SocialProviderId } from "@/lib/firebase/auth";
-import { COUNTRY_CODES } from "@/lib/countryCodes";
+import { DEFAULT_DIAL_CODE } from "@/lib/countryCodes";
 import { SocialAuth } from "@/components/auth/social-auth";
 import { TermsAgreement } from "@/components/auth/terms-agreement";
 import { CountryCodeCombobox } from "@/components/auth/country-code-combobox";
@@ -16,7 +16,7 @@ export default function RegisterPage() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [dialCode, setDialCode] = useState(COUNTRY_CODES[0].dialCode);
+    const [dialCode, setDialCode] = useState(DEFAULT_DIAL_CODE);
     const [phoneNumber, setPhoneNumber] = useState("");
     const [agreed, setAgreed] = useState(false);
     const [loading, setLoading] = useState(false);

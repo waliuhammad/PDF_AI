@@ -32,14 +32,16 @@ export default function ToolCard({
           relative
           flex
           h-full
-          min-h-[165px]
+          min-h-[132px]
+          sm:min-h-[165px]
           flex-col
           overflow-hidden
           rounded-2xl
           border
           border-border
           bg-card
-          p-5
+          p-4
+          sm:p-5
           transition-all
           duration-200
           hover:border-primary/40
@@ -52,12 +54,16 @@ export default function ToolCard({
                     <span
                         className="
               absolute
-              right-4
-              top-4
+              right-3
+              top-3
+              sm:right-4
+              sm:top-4
               rounded-full
               bg-primary/10
-              px-2.5
-              py-1
+              px-2
+              sm:px-2.5
+              py-0.5
+              sm:py-1
               text-[10px]
               font-semibold
               uppercase
@@ -72,10 +78,13 @@ export default function ToolCard({
                 {/* Icon */}
                 <div
                     className={`
-            mb-4
+            mb-3
+            sm:mb-4
             flex
-            h-12
-            w-12
+            h-10
+            w-10
+            sm:h-12
+            sm:w-12
             items-center
             justify-center
             rounded-xl
@@ -96,9 +105,11 @@ export default function ToolCard({
                 {/* Title */}
                 <h3
                     className="
-            text-base
+            text-sm
+            sm:text-base
             font-semibold
             text-fg
+            leading-snug
             transition-colors
             duration-300
             group-hover:text-primary
@@ -110,9 +121,11 @@ export default function ToolCard({
                 {/* Description */}
                 <p
                     className="
-            mt-2
-            text-sm
-            leading-6
+            mt-1.5
+            text-xs
+            sm:text-sm
+            leading-5
+            sm:leading-6
             text-muted
             line-clamp-2
           "

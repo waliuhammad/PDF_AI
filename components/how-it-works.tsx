@@ -41,8 +41,10 @@ export function HowItWorks() {
         <section
             id="how-it-works"
             className="
-                px-6
-                py-20
+                px-4
+                sm:px-6
+                py-12
+                sm:py-20
                 bg-[var(--background-secondary)]
             "
         >
@@ -59,7 +61,7 @@ export function HowItWorks() {
 
 
                     <Reveal>
-                        <h2 className="text-3xl md:text-4xl font-bold text-fg">
+                        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-fg">
                             Complete your PDF task in minutes
                         </h2>
                     </Reveal>
@@ -98,7 +100,8 @@ export function HowItWorks() {
                                 border
                                 border-[var(--card-border)]
                                 bg-[var(--card)]
-                                p-7
+                                p-5
+                                sm:p-7
                                 text-center
                                 transition duration-200 hover:-translate-y-1.5 hover:scale-[1.01]">
 

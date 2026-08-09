@@ -91,7 +91,7 @@ const stats = [
 
 export function Stats() {
     return (
-        <section className="py-20 px-6">
+        <section className="py-12 sm:py-20 px-4 sm:px-6">
             <div className="mx-auto max-w-7xl">
 
                 <div className="text-center mb-14">
@@ -99,7 +99,7 @@ export function Stats() {
                         Platform Statistics
                     </span>
 
-                    <h2 className="mt-5 text-3xl md:text-4xl font-bold">
+                    <h2 className="mt-4 sm:mt-5 text-2xl sm:text-3xl md:text-4xl font-bold">
                         Trusted by professionals worldwide
                     </h2>
 
@@ -109,13 +109,13 @@ export function Stats() {
                     </p>
                 </div>
 
-                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+                <div className="grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-4">
                     {stats.map((item, index) => {
                         const Icon = item.icon;
 
                         return (
                             <Reveal key={item.title} delay={index * 100} className="h-full">
-                                <div className="group h-full rounded-3xl border border-border bg-card p-7 transition-all duration-200 hover:border-primary/40 hover:shadow-xl hover:-translate-y-2 hover:scale-[1.02]">
+                                <div className="group h-full rounded-3xl border border-border bg-card p-5 sm:p-7 transition-all duration-200 hover:border-primary/40 hover:shadow-xl hover:-translate-y-2 hover:scale-[1.02]">
                                 <div className="flex items-center justify-between">
                                     <div className="rounded-2xl bg-primary/10 p-4">
                                         <Icon className="h-7 w-7 text-primary" />
@@ -127,7 +127,7 @@ export function Stats() {
                                     </div>
                                 </div>
 
-                                <h3 className="mt-8 text-4xl font-bold">
+                                <h3 className="mt-6 sm:mt-8 text-3xl sm:text-4xl font-bold">
                                     <AnimatedNumber
                                         value={item.value}
                                         decimals={item.decimals}

@@ -4,6 +4,10 @@ export interface CountryCode {
     code: string;
 }
 
+/** Pakistan. The phone field starts here rather than at COUNTRY_CODES[0],
+ *  so reordering the list below cannot silently change the default. */
+export const DEFAULT_DIAL_CODE = "+92";
+
 export const COUNTRY_CODES: CountryCode[] = [
     { name: "United States", dialCode: "+1", code: "US" },
     { name: "United Kingdom", dialCode: "+44", code: "GB" },

@@ -93,16 +93,19 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/60 bg-background/80 backdrop-blur-xl">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-2 px-4 sm:px-6">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+        {/* min-w-0 + truncate: the tagline is the one piece of the bar that can
+            grow, so it shortens rather than pushing the actions off a 320px
+            screen. */}
+        <Link href="/" className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground sm:h-10 sm:w-10">
             <FileText size={20} />
           </div>
 
-          <div>
-            <h2 className="text-lg font-bold text-fg">PDF AI</h2>
-            <p className="text-xs text-muted">Smart PDF Workspace</p>
+          <div className="min-w-0">
+            <h2 className="text-base font-bold text-fg sm:text-lg">PDF AI</h2>
+            <p className="truncate text-xs text-muted">Smart PDF Workspace</p>
           </div>
         </Link>
 
@@ -153,15 +156,23 @@ export function Navbar() {
           </Link>
         </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          onClick={() => setOpen(!open)}
-          aria-label={open ? "Close menu" : "Open menu"}
-          aria-expanded={open}
-          className="rounded-lg p-2 lg:hidden"
-        >
-          {open ? <X size={24} /> : <Menu size={24} />}
-        </button>
+        {/* Mobile actions. The theme toggle sits in the bar itself, beside the
+            menu button, so switching theme on a phone no longer means opening
+            the menu first. */}
+        <div className="flex items-center gap-1 lg:hidden">
+          <ThemeToggle />
+
+          <button
+            onClick={() => setOpen(!open)}
+            aria-label={open ? "Close menu" : "Open menu"}
+            aria-expanded={open}
+            // p-2.5 around a 24px icon gives a 44px target, the minimum
+            // comfortable tap size.
+            className="rounded-lg p-2.5"
+          >
+            {open ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
@@ -169,7 +180,7 @@ export function Navbar() {
           <div
             className="border-t border-border bg-background lg:hidden animate-menu-in"
           >
-            <div className="space-y-2 px-6 py-6">
+            <div className="space-y-1 px-4 py-4 sm:space-y-2 sm:px-6 sm:py-6">
               {navLinks.map((item) => {
                 const active = activeHash === hashOf(item.href);
 
@@ -192,12 +203,9 @@ export function Navbar() {
                 );
               })}
 
-              <div className="mt-4 flex items-center justify-between">
-                <span className="text-sm text-muted">Appearance</span>
-                <ThemeToggle />
-              </div>
-
-              <div className="mt-3 flex flex-col gap-3">
+              {/* The Appearance row lived here; the toggle is now in the header
+                  bar above, visible without opening the menu. */}
+              <div className="mt-4 flex flex-col gap-3">
                 <Link
                   href="/login"
                   onClick={() => setOpen(false)}
