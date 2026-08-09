@@ -5,6 +5,9 @@
  * endpoint all read from here. Prices are display strings, not numbers,
  * because the real charge amounts live with the payment provider — the
  * website only ever shows them.
+ *
+ * Yearly shows the per-month equivalent of the yearly charge, so the two
+ * columns compare like for like: Pro bills $119.88/year = $9.99/month.
  */
 
 export type PlanId = "free" | "pro" | "business";
@@ -24,8 +27,8 @@ export const PLANS: Plan[] = [
     {
         id: "free",
         name: "Free",
-        monthly: "£0",
-        yearly: "£0",
+        monthly: "$0",
+        yearly: "$0",
         description: "Perfect for trying basic PDF tools.",
         features: [
             "Basic PDF conversions",
@@ -37,8 +40,8 @@ export const PLANS: Plan[] = [
     {
         id: "pro",
         name: "Pro",
-        monthly: "£9.99",
-        yearly: "£7.99",
+        monthly: "$12.99",
+        yearly: "$9.99",
         description: "Advanced tools for professionals.",
         popular: true,
         features: [
@@ -52,8 +55,8 @@ export const PLANS: Plan[] = [
     {
         id: "business",
         name: "Business",
-        monthly: "£29.99",
-        yearly: "£23.99",
+        monthly: "$38.99",
+        yearly: "$30.99",
         description: "Powerful PDF workflow for teams.",
         features: [
             "Everything in Pro",
