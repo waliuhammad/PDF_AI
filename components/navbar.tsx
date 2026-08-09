@@ -5,13 +5,20 @@ import { useState, useEffect } from "react";
 import { Menu, X, FileText } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
 
+/** Root-relative, not bare hashes. This navbar renders on the content pages
+ *  (/terms, /privacy, /about, …) as well as the landing page, and a bare
+ *  "#tools" there points at a section that does not exist — the link did
+ *  nothing at all. "/#tools" navigates home and lands on the section. */
 const navLinks = [
-  { name: "Home", href: "#hero" },
-  { name: "Tools", href: "#tools" },
-  { name: "How it Works", href: "#how-it-works" },
-  { name: "Pricing", href: "#pricing" },
-  { name: "FAQ", href: "#faq" },
+  { name: "Home", href: "/#hero" },
+  { name: "Tools", href: "/#tools" },
+  { name: "How it Works", href: "/#how-it-works" },
+  { name: "Pricing", href: "/#pricing" },
+  { name: "FAQ", href: "/#faq" },
 ];
+
+/** "/#tools" -> "#tools". The hash alone is what the DOM and the URL bar use. */
+const hashOf = (href: string) => href.slice(href.indexOf("#"));
 
 export function Navbar() {
   const [open, setOpen] = useState(false);
@@ -21,24 +28,25 @@ export function Navbar() {
     e: React.MouseEvent<HTMLAnchorElement>,
     href: string
   ) => {
-    if (href.startsWith("#")) {
-      e.preventDefault();
-      const targetId = href.replace("#", "");
+    const hash = hashOf(href);
+    const element = document.getElementById(hash.slice(1));
 
-      if (targetId === "hero") {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-        window.history.pushState(null, "", "#hero");
-        setActiveHash("#hero");
-        return;
-      }
+    // Not on this page — leave the click to the Link, which navigates home and
+    // lets the browser scroll to the section. /pricing renders #pricing and
+    // #faq itself, so those two still scroll in place there.
+    if (!element) return;
 
-      const element = document.getElementById(targetId);
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-        window.history.pushState(null, "", href);
-        setActiveHash(href);
-      }
+    e.preventDefault();
+
+    if (hash === "#hero") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      element.scrollIntoView({ behavior: "smooth" });
     }
+
+    // The hash alone, so the current path is preserved rather than rewritten.
+    window.history.pushState(null, "", hash);
+    setActiveHash(hash);
   };
 
   useEffect(() => {
@@ -56,9 +64,10 @@ export function Navbar() {
 
     window.addEventListener("hashchange", handleHashChange);
 
+    // getElementById, not querySelector — "/#tools" is not a valid selector.
+    // On the content pages this finds nothing and the observer simply idles.
     const sections = navLinks
-      .filter((link) => link.href !== "#")
-      .map((link) => document.querySelector(link.href))
+      .map((link) => document.getElementById(hashOf(link.href).slice(1)))
       .filter(Boolean);
 
     const observer = new IntersectionObserver(
@@ -100,7 +109,7 @@ export function Navbar() {
         {/* Desktop Navigation */}
         <nav className="hidden items-center gap-8 lg:flex">
           {navLinks.map((item) => {
-            const active = activeHash === item.href;
+            const active = activeHash === hashOf(item.href);
 
             return (
               <Link
@@ -162,7 +171,7 @@ export function Navbar() {
           >
             <div className="space-y-2 px-6 py-6">
               {navLinks.map((item) => {
-                const active = activeHash === item.href;
+                const active = activeHash === hashOf(item.href);
 
                 return (
                   <Link
