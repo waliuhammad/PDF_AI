@@ -47,7 +47,9 @@ export function Hero() {
                         professionals.
                     </p>
 
-                    <div className="mt-5 sm:mt-7 flex flex-wrap gap-3">
+                    {/* items-center: the two links carry different vertical
+                        padding, so without it they sat on different baselines. */}
+                    <div className="mt-5 sm:mt-7 flex flex-wrap items-center gap-3">
                         <Link
                             href="/login"
                             className="
@@ -155,9 +157,17 @@ export function Hero() {
                         </div>
                     </div>
 
+                    {/* The two smaller cards sit side by side under the upload
+                        card on a phone, which is about 100px of hero instead of
+                        the 200px they took stacked. lg:contents dissolves this
+                        wrapper on desktop so each card is a direct child of the
+                        relative container again and its lg:absolute still
+                        positions against it. */}
+                    <div className="mt-3 grid grid-cols-2 gap-3 max-w-sm mx-auto lg:contents">
+
                     {/* AI Summary */}
                     <div
-                        className="animate-float-b mt-3 w-full max-w-sm mx-auto lg:mt-0 lg:absolute lg:left-2 lg:top-20 lg:w-56 rounded-2xl border border-border bg-card p-4 shadow-xl z-10 transition-shadow duration-300 hover:shadow-2xl"
+                        className="animate-float-b w-full lg:absolute lg:left-2 lg:top-20 lg:w-56 rounded-2xl border border-border bg-card p-3 sm:p-4 shadow-xl z-10 transition-shadow duration-300 hover:shadow-2xl"
                     >
                         <div className="flex items-center gap-2">
                             <Brain
@@ -179,17 +189,17 @@ export function Hero() {
 
                     {/* PDF Card */}
                     <div
-                        className="animate-float-c mt-3 w-full max-w-sm mx-auto lg:mt-0 lg:absolute lg:right-2 lg:top-28 lg:w-48 rounded-2xl border border-border bg-card p-4 shadow-xl z-10 transition-shadow duration-300 hover:shadow-2xl"
+                        className="animate-float-c w-full lg:absolute lg:right-2 lg:top-28 lg:w-48 rounded-2xl border border-border bg-card p-3 sm:p-4 shadow-xl z-10 transition-shadow duration-300 hover:shadow-2xl"
                     >
-                        <div className="flex items-center gap-2.5">
-                            <div className="rounded-xl bg-primary/10 p-2.5">
+                        <div className="flex items-center gap-2 sm:gap-2.5">
+                            <div className="rounded-xl bg-primary/10 p-2 sm:p-2.5 shrink-0">
                                 <FileText
                                     className="text-primary"
                                     size={18}
                                 />
                             </div>
-                            <div>
-                                <p className="font-semibold text-sm">
+                            <div className="min-w-0">
+                                <p className="font-semibold text-sm truncate">
                                     report.pdf
                                 </p>
                                 <p className="text-[11px] text-muted">
@@ -197,6 +207,8 @@ export function Hero() {
                                 </p>
                             </div>
                         </div>
+                    </div>
+
                     </div>
 
                 </div>

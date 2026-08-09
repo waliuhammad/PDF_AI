@@ -70,10 +70,11 @@ export function ToolsGrid() {
 
                 {/* Cards */}
 
-                {/* Two per row on phones. The base was a single column, so a
-                    phone showed one card per screenful and the grid scrolled
-                    forever. */}
-                <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
+                {/* One column on phones. Two columns squeezed the tool names,
+                    and readability wins over column count; the card is a
+                    compact horizontal row at this width, so a single column is
+                    a tight list rather than a stack of big blocks. */}
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
                     {filteredTools.map((tool, index) => (
                         <Reveal key={tool.name} delay={index * 50} className="h-full">
 <div className="h-full">

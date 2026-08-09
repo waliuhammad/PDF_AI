@@ -89,8 +89,8 @@ export function ToolsHub() {
                     <p className="text-muted text-sm">No tools match &ldquo;{search}&rdquo;.</p>
                 </div>
             ) : (
-                // Two per row on phones, matching the landing page grid.
-                <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
+                // One column on phones, matching the landing page grid.
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
                     {/* The stagger was a motion.div per card, so twenty-two more
                         framer instances on top of the cards themselves. Same
                         fade-and-rise as a CSS animation, off the main thread. */}

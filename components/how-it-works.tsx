@@ -180,18 +180,37 @@ export function HowItWorks() {
                             {
                                 index < steps.length - 1 && (
 
-                                    <div
-                                        className="
-                                            hidden
-                                            md:block
-                                            absolute
-                                            top-1/2
-                                            -right-1/2
-                                            w-full
-                                            h-px
-                                            bg-[var(--card-border)]
-                                        "
-                                    />
+                                    <>
+                                        {/* Vertical on a phone, where the steps
+                                            stack, so the sequence still reads as
+                                            one flow. It sits in the grid's gap-6.
+                                            Mobile had no connector at all before. */}
+                                        <div
+                                            className="
+                                                md:hidden
+                                                absolute
+                                                -bottom-6
+                                                left-1/2
+                                                h-6
+                                                w-px
+                                                -translate-x-1/2
+                                                bg-[var(--card-border)]
+                                            "
+                                        />
+
+                                        <div
+                                            className="
+                                                hidden
+                                                md:block
+                                                absolute
+                                                top-1/2
+                                                -right-1/2
+                                                w-full
+                                                h-px
+                                                bg-[var(--card-border)]
+                                            "
+                                        />
+                                    </>
 
                                 )
                             }
