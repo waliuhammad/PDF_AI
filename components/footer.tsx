@@ -55,7 +55,9 @@ const socials: { label: string; icon: IconType; href?: string }[] = [
 
 function FooterColumn({ title, links }: { title: string; links: FooterLink[] }) {
     return (
-        <div>
+        // Centred while the three columns share one row on a phone; left-aligned
+        // from md, where they sit beside the brand block as on desktop.
+        <div className="text-center md:text-left">
             <h3 className="mb-3 text-sm font-semibold text-fg">{title}</h3>
 
             <ul className="space-y-0.5">
@@ -89,8 +91,9 @@ export default function Footer() {
 
                 <div className="grid gap-8 sm:gap-10 md:grid-cols-[1.6fr_1fr_1fr_1fr]">
 
-                    {/* Brand */}
-                    <div>
+                    {/* Brand — centred on a phone to match the link columns
+                        below it, left-aligned from md as on desktop. */}
+                    <div className="text-center md:text-left">
                         <Link href="/" className="inline-flex items-center gap-2">
                             <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary">
                                 <FileText size={18} className="text-primary-foreground" />
@@ -99,11 +102,13 @@ export default function Footer() {
                             <span className="text-lg font-bold text-fg">PDF AI</span>
                         </Link>
 
-                        <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">
+                        {/* mx-auto so the max-w-xs block itself centres, not just
+                            the text inside it. */}
+                        <p className="mt-3 max-w-xs mx-auto md:mx-0 text-sm leading-relaxed text-muted">
                             All-in-one PDF tools powered by modern technology and AI.
                         </p>
 
-                        <div className="mt-4 flex gap-2">
+                        <div className="mt-4 flex justify-center gap-2 md:justify-start">
                             {socials.map(({ label, icon: Icon, href }) =>
                                 href ? (
                                     <a
@@ -130,9 +135,10 @@ export default function Footer() {
                     </div>
 
                     {/* md:contents dissolves this wrapper on desktop so the three
-                        columns join the outer grid. On a phone they stay a 2-up
-                        grid instead of three full-width stacked blocks. */}
-                    <div className="grid grid-cols-2 gap-6 sm:gap-8 md:contents">
+                        columns join the outer grid. On a phone all three sit in
+                        one row; the gap is tight because at 320px each column is
+                        only ~88px and "Terms of Service" needs the room. */}
+                    <div className="grid grid-cols-3 gap-3 sm:gap-6 md:contents">
                         <FooterColumn title="Product" links={productLinks} />
                         <FooterColumn title="Company" links={companyLinks} />
                         <FooterColumn title="Legal" links={legalLinks} />
