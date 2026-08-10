@@ -5,9 +5,9 @@ import { PDFDocument, degrees } from "pdf-lib";
 export async function POST(req: NextRequest) {
   try {
     const formData = await readFormData(req);
-        if (!formData) {
-            return NextResponse.json({ error: "No file provided." }, { status: 400 });
-        }
+    if (!formData) {
+      return NextResponse.json({ error: "No file provided." }, { status: 400 });
+    }
     const files = formData.getAll("files") as File[];
     const pageOrderJson = formData.get("pageOrder") as string;
 
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
         mergedPdf.addPage(copiedPage);
       }
     } else {
-      for (const [buffer] of fileMap) {
+      for (const buffer of fileMap.values()) {
         const pdf = await PDFDocument.load(buffer);
         const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
         copiedPages.forEach((page) => mergedPdf.addPage(page));

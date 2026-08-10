@@ -72,7 +72,12 @@ export async function POST(req: NextRequest) {
 
         const pageSize = (formData.get("pageSize") as string) || "a4";
         const orientation = (formData.get("orientation") as string) || "portrait";
-        const margin = Number(formData.get("margin") ?? 36);
+
+        // A non-numeric margin would turn every layout number below into NaN
+        // and produce a corrupt PDF, so anything unparseable falls back to
+        // the default instead.
+        const rawMargin = Number(formData.get("margin") ?? 36);
+        const margin = Number.isFinite(rawMargin) && rawMargin >= 0 ? rawMargin : 36;
 
         const pdfDoc = await PDFDocument.create();
 
