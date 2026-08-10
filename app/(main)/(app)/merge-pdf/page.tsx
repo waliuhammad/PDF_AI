@@ -293,7 +293,10 @@ export default function MergePdfPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Sidebar Card */}
           <div 
-            className="lg:col-span-5 border border-[#222430]/15 dark:border-white/20 rounded-3xl p-4 shadow-sm flex flex-col h-[600px] bg-[var(--background-secondary)] text-[#222430] dark:text-white transition-colors"
+            // h-[600px] applied at every width, so on a phone one file left ~500px
+            // of empty panel. Height follows the content there; the fixed panel
+            // returns at lg where it keeps the two columns level.
+            className="lg:col-span-5 border border-[#222430]/15 dark:border-white/20 rounded-3xl p-4 shadow-sm flex flex-col h-auto lg:h-[600px] bg-[var(--background-secondary)] text-[#222430] dark:text-white transition-colors"
           >
             <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#222430]/10 dark:border-white/20">
               <span className="text-xs font-bold uppercase tracking-wider text-[#222430]/70 dark:text-white">Source Files ({sourceFiles.length})</span>
@@ -307,7 +310,10 @@ export default function MergePdfPage() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto space-y-3 px-2 pt-1">
+            {/* Caps the list at two rows on a phone and scrolls the rest, with
+                the third row half-showing so it reads as scrollable. Uncapped
+                from lg, where the panel's fixed height already bounds it. */}
+            <div className="flex-1 overflow-y-auto space-y-3 px-2 pt-1 max-h-[172px] lg:max-h-none">
               {sourceFiles.map((sf) => {
                 const isSelected = activeSourceFile?.fileIndex === sf.fileIndex;
                 const isBeingDragged = draggedFileIndex === sf.fileIndex;
@@ -367,9 +373,11 @@ export default function MergePdfPage() {
           <div className="lg:col-span-7 space-y-6">
             {pagesList.length > 0 && (
               <div 
-                className="border border-[#222430]/15 dark:border-white/20 rounded-3xl p-6 shadow-md space-y-6 bg-[var(--background-secondary)] text-[#222430] dark:text-white transition-colors"
+                className="border border-[#222430]/15 dark:border-white/20 rounded-3xl p-4 sm:p-6 shadow-md space-y-4 sm:space-y-6 bg-[var(--background-secondary)] text-[#222430] dark:text-white transition-colors"
               >
-                <div className="flex items-center justify-between pb-3 border-b border-[#222430]/10 dark:border-white/20">
+                {/* flex-wrap: the title and the position chip did not fit on one
+                    line on a phone. */}
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#222430]/10 dark:border-white/20">
                   <div className="flex items-center gap-2">
                     <Eye size={18} className="text-[#222430] dark:text-white" />
                     <span className="text-sm font-extrabold text-[#222430] dark:text-white">Page Viewer</span>
@@ -382,14 +390,14 @@ export default function MergePdfPage() {
                 </div>
 
                 <div 
-                  className="flex flex-col items-center justify-center p-6 rounded-2xl border border-[#222430]/10 dark:border-white/20 bg-[#222430]/5 dark:bg-[var(--background-secondary)] relative min-h-[440px]"
+                  className="flex flex-col items-center justify-center p-3 sm:p-6 rounded-2xl border border-[#222430]/10 dark:border-white/20 bg-[#222430]/5 dark:bg-[var(--background-secondary)] relative min-h-[360px] sm:min-h-[440px]"
                 >
                   <div className="w-full flex flex-col items-center">
                     <div 
                       style={{ 
                         transform: `rotate(${activePage ? activePage.rotation : 0}deg)` 
                       }}
-                      className="w-full max-w-sm h-[360px] rounded-2xl shadow-xl border border-[#222430]/10 dark:border-white/20 bg-[var(--background-secondary)] overflow-auto relative flex flex-col items-center transition-transform duration-300 pointer-events-auto p-2"
+                      className="w-full max-w-sm h-[280px] sm:h-[360px] rounded-2xl shadow-xl border border-[#222430]/10 dark:border-white/20 bg-[var(--background-secondary)] overflow-auto relative flex flex-col items-center transition-transform duration-300 pointer-events-auto p-2"
                     >
                       {activePreviewUrl ? (
                         <div className="w-full h-full min-h-[480px] flex flex-col items-center justify-start pt-2">
@@ -410,18 +418,26 @@ export default function MergePdfPage() {
                       )}
                       
                       <div 
-                        className="absolute top-3 right-3 border border-[#222430]/10 dark:border-white/20 bg-[var(--background-secondary)] text-[#222430] dark:text-white text-[11px] font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1 pointer-events-none shadow-sm z-10"
+                        className="absolute top-2 right-2 sm:top-3 sm:right-3 border border-[#222430]/10 dark:border-white/20 bg-[var(--background-secondary)] text-[#222430] dark:text-white text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg flex items-center gap-1 pointer-events-none shadow-sm z-10"
                       >
                         <Maximize2 size={12} /> Scrollable View
                       </div>
                     </div>
 
                     {activePage && (
-                      <div className="mt-4 text-center space-y-1">
-                        <p className="text-sm font-bold truncate max-w-xs text-[#222430] dark:text-white">
-                          Source File: <span className="text-[#222430]/70 dark:text-white/80">{activePage.fileName}</span>
+                      // The filename was `truncate max-w-xs`, so on a phone it was
+                      // cut to "The_Return_of_the_Gods_Script…" and the user could
+                      // not tell which file the page came from. Label and value are
+                      // separate blocks on mobile and the name wraps in full; one
+                      // line again from sm.
+                      <div className="mt-4 w-full max-w-full px-1 text-center space-y-1">
+                        <p className="text-xs sm:text-sm font-bold text-[#222430] dark:text-white">
+                          <span className="block sm:inline">Source File:</span>{" "}
+                          <span className="block sm:inline font-semibold [overflow-wrap:anywhere] text-[#222430]/70 dark:text-white/80">
+                            {activePage.fileName}
+                          </span>
                         </p>
-                        <p className="text-xs text-[#222430]/60 dark:text-white/80">
+                        <p className="text-[11px] sm:text-xs text-[#222430]/60 dark:text-white/80">
                           Original Document Page: <strong className="text-[#222430] dark:text-white">{activePage.localPageIndex + 1}</strong>
                           {activePage.rotation !== 0 && <span className="ml-2 text-[#222430] dark:text-white font-semibold">({activePage.rotation}° Rotated)</span>}
                         </p>
@@ -490,19 +506,19 @@ export default function MergePdfPage() {
             )}
 
             <div 
-              className="p-5 rounded-2xl border border-[#222430]/15 dark:border-white/20 bg-[var(--background-secondary)] text-[#222430] dark:text-white grid grid-cols-3 gap-4 text-center shadow-sm transition-colors"
+              className="p-4 sm:p-5 rounded-2xl border border-[#222430]/15 dark:border-white/20 bg-[var(--background-secondary)] text-[#222430] dark:text-white grid grid-cols-3 gap-2 sm:gap-4 text-center shadow-sm transition-colors"
             >
               <div>
-                <p className="text-[#222430]/60 dark:text-white/80 text-xs font-semibold">Total Final Pages</p>
-                <p className="text-base font-extrabold mt-1 text-[#222430] dark:text-white">{pagesList.length} Pages</p>
+                <p className="text-[#222430]/60 dark:text-white/80 text-[10px] sm:text-xs font-semibold leading-tight">Total Final Pages</p>
+                <p className="text-sm sm:text-base font-extrabold mt-1 text-[#222430] dark:text-white">{pagesList.length} Pages</p>
               </div>
               <div>
-                <p className="text-[#222430]/60 dark:text-white/80 text-xs font-semibold">Original Combined Size</p>
-                <p className="text-base font-extrabold mt-1 text-[#222430] dark:text-white">{formatSize(totalOriginalSize)}</p>
+                <p className="text-[#222430]/60 dark:text-white/80 text-[10px] sm:text-xs font-semibold leading-tight">Original Combined Size</p>
+                <p className="text-sm sm:text-base font-extrabold mt-1 text-[#222430] dark:text-white">{formatSize(totalOriginalSize)}</p>
               </div>
               <div>
-                <p className="text-[#222430]/60 dark:text-white/80 text-xs font-semibold">Estimated Output Size</p>
-                <p className="text-[#222430] dark:text-white text-base font-extrabold mt-1">{estimatedFinalSize}</p>
+                <p className="text-[#222430]/60 dark:text-white/80 text-[10px] sm:text-xs font-semibold leading-tight">Estimated Output Size</p>
+                <p className="text-[#222430] dark:text-white text-sm sm:text-base font-extrabold mt-1">{estimatedFinalSize}</p>
               </div>
             </div>
 
@@ -514,23 +530,36 @@ export default function MergePdfPage() {
               </div>
             )}
 
-            <div className="flex items-center gap-4 pt-2">
+            {/* Side by side, the merge label wrapped onto three lines and the
+                button grew into a block. They stack full width on a phone, where
+                the primary action gets the whole row and its label fits on one
+                line; the original row returns at sm. */}
+            <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-2">
               <button
                 type="button"
                 onClick={clearAll}
-                className="py-4 px-8 rounded-2xl border border-[#222430]/15 dark:border-white/20 bg-[var(--background-secondary)] text-[#222430] dark:text-white hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] font-bold text-sm transition-colors shadow-sm"
+                className="w-full sm:w-auto shrink-0 py-3.5 px-6 sm:py-4 sm:px-8 rounded-2xl border border-[#222430]/15 dark:border-white/20 bg-[var(--background-secondary)] text-[#222430] dark:text-white hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] font-bold text-sm transition-colors shadow-sm"
               >
                 Clear All
               </button>
-              
+
               <button
                 type="button"
                 onClick={executeMerge}
                 disabled={processing}
-                className="flex-1 py-4 px-6 rounded-2xl border border-[#222430]/20 bg-[#222430] text-white hover:bg-[#2f3242] dark:bg-[#2b1b3d] dark:text-white dark:hover:bg-[#382451] font-extrabold text-base shadow-xl disabled:opacity-40 flex items-center justify-center gap-2.5 transition-all cursor-pointer"
+                className="w-full sm:flex-1 py-3.5 px-4 sm:py-4 sm:px-6 rounded-2xl border border-[#222430]/20 bg-[#222430] text-white hover:bg-[#2f3242] dark:bg-[#2b1b3d] dark:text-white dark:hover:bg-[#382451] font-extrabold text-sm sm:text-base shadow-xl disabled:opacity-40 flex items-center justify-center gap-2 sm:gap-2.5 text-center leading-snug transition-all cursor-pointer"
               >
-                {processing ? <Loader2 className="animate-spin" size={20} /> : <Download size={20} />}
-                {processing ? "Merging PDFs..." : `Merge & Download Final PDF (${pagesList.length} Pages)`}
+                {processing ? <Loader2 className="animate-spin shrink-0" size={18} /> : <Download className="shrink-0" size={18} />}
+                {processing ? (
+                  "Merging PDFs..."
+                ) : (
+                  <>
+                    {/* Drops "Final PDF" on a phone so the label holds one line;
+                        the page count, which is the part that changes, stays. */}
+                    <span className="sm:hidden">Merge &amp; Download ({pagesList.length} Pages)</span>
+                    <span className="hidden sm:inline">Merge &amp; Download Final PDF ({pagesList.length} Pages)</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
