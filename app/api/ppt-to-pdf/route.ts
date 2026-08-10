@@ -3,14 +3,14 @@ import { readFormData } from "@/lib/api";
 import AdmZip from "adm-zip";
 import { XMLParser } from "fast-xml-parser";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
-import {} from "@/lib/errors";
+import { } from "@/lib/errors";
 
 export async function POST(req: NextRequest) {
   try {
     const formData = await readFormData(req);
-        if (!formData) {
-            return NextResponse.json({ error: "No file provided." }, { status: 400 });
-        }
+    if (!formData) {
+      return NextResponse.json({ error: "No file provided." }, { status: 400 });
+    }
     const file = formData.get("file") as File | null;
 
     if (!file) {
@@ -81,7 +81,7 @@ export async function POST(req: NextRequest) {
         .filter(Boolean);
 
       const paragraphText = cleanedLines.join(" ").trim();
-      
+
       slideParagraphs.push({
         slideNum: i + 1,
         paragraphText: paragraphText || "(Empty Slide)",
@@ -174,7 +174,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Space between slide blocks
-      currentY -= 16; 
+      currentY -= 16;
     }
 
     const pdfBytes = await pdfDoc.save();

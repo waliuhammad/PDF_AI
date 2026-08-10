@@ -1,5 +1,5 @@
 "use client";
-
+import { UsageMeter } from "@/components/usage-meter";
 import { useMemo } from "react";
 import Link from "next/link";
 import {
@@ -116,6 +116,8 @@ export default function DashboardPage() {
 
                 {/* Right column */}
                 <div className="space-y-6">
+                    <UsageMeter />
+
                     {/* Storage Usage */}
                     <div className="bg-card border border-card rounded-2xl p-4 sm:p-6">
                         <h2 className="text-lg font-semibold text-fg mb-4">Storage Usage</h2>

@@ -1,4 +1,6 @@
 import { getAppConfig } from "@/lib/remote-config";
+import { getRequestUid } from "@/lib/server-auth";
+import { checkAndCountUsage } from "@/lib/usage";
 import { NextRequest, NextResponse } from "next/server";
 
 // retrieval plus a Gemini answer,
@@ -21,6 +23,32 @@ export async function POST(req: NextRequest) {
           message: "AI features are temporarily disabled. Please try again later.",
         },
         { status: 503 }
+      );
+    }
+
+    // AI features are metered per user, so they require a signed-in user:
+    // an anonymous visitor has no identity to count against.
+    const uid = await getRequestUid(req);
+    if (!uid) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Please sign in to use AI features.",
+        },
+        { status: 401 }
+      );
+    }
+
+    // Count this operation against today's plan allowance (limits come
+    // from the client's Remote Config: free 2/day, pro 20, business 50).
+    const usage = await checkAndCountUsage(uid);
+    if (!usage.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Daily limit reached (${usage.used}/${usage.limit} operations on the ${usage.plan} plan). Upgrade for a higher daily allowance, or come back tomorrow.`,
+        },
+        { status: 429 }
       );
     }
 
