@@ -26,11 +26,11 @@ export default function ToolCard({
     // twenty-two times on /tools, and the profile put framer among the most
     // expensive scripts there — for a translate and a scale, which CSS does free.
     //
-    // Two layouts, one component. On a phone this is a compact horizontal row
-    // — icon, then title and description in a column beside it — which is what
-    // keeps a stacked list from becoming a column of oversized blocks. From sm
-    // it is the original vertical card, unchanged: icon above title above
-    // description, min-h-[165px] so a grid row stays even.
+    // Two layouts, one component. Three of these share a row on a phone, so at
+    // roughly 110px wide the content is centred and the type is small: icon
+    // above a short title above a clamped description. From sm it is the
+    // original left-aligned card, min-h-[165px] included, so a grid row stays
+    // even.
     const card = (
         <div
             className={`
@@ -39,32 +39,33 @@ export default function ToolCard({
                 flex
                 h-full
                 w-full
-                flex-row
-                items-start
-                gap-3
+                flex-col
+                items-center
                 overflow-hidden
                 rounded-2xl
                 border
                 border-border
                 bg-card
-                p-3.5
+                p-3
+                text-center
                 transition-all
                 duration-200
                 hover:border-primary/40
                 hover:shadow-xl
                 sm:min-h-[165px]
-                sm:flex-col
-                sm:gap-0
+                sm:items-stretch
                 sm:p-5
+                sm:text-left
                 ${comingSoon ? "" : "hover:-translate-y-[5px] hover:scale-[1.02]"}
             `}
         >
             {/* Icon */}
             <div
                 className={`
+                    mb-2
                     flex
-                    h-10
-                    w-10
+                    h-9
+                    w-9
                     shrink-0
                     items-center
                     justify-center
@@ -76,35 +77,37 @@ export default function ToolCard({
                 `}
             >
                 <Icon
-                    size={20}
+                    size={18}
                     className="text-primary transition-transform duration-300 group-hover:scale-110 sm:size-[22px]"
                 />
             </div>
 
             {/* min-w-0 lets a long name like "PDF to PowerPoint" wrap inside the
-                column instead of forcing the flex row wider than the card. */}
-            <div className="min-w-0 flex-1">
-                <h3 className="text-sm font-semibold leading-snug text-fg transition-colors duration-300 [overflow-wrap:anywhere] group-hover:text-primary sm:text-base">
+                column instead of forcing the card wider than its grid track. */}
+            <div className="w-full min-w-0">
+                <h3 className="text-[11px] font-semibold leading-tight text-fg transition-colors duration-300 [overflow-wrap:anywhere] group-hover:text-primary sm:text-base sm:leading-snug">
                     {name}
                 </h3>
 
-                <p className="mt-1 text-xs leading-5 text-muted sm:mt-2 sm:text-sm sm:leading-6">
+                <p className="mt-1 text-[10px] leading-tight text-muted line-clamp-3 sm:mt-2 sm:text-sm sm:leading-6 sm:line-clamp-2">
                     {description}
                 </p>
             </div>
 
-            {/* Badge. A third item in the row on a phone, so it can never sit on
-                top of the title; the original absolute top-right corner from sm. */}
+            {/* Badge. Sits under the description on a phone, where a corner chip
+                would cover the title in a 110px-wide card; the original absolute
+                top-right corner from sm. */}
             {(comingSoon || badge) && (
                 <span
                     className="
+                        mt-2
+                        inline-flex
                         shrink-0
-                        self-start
                         rounded-full
                         bg-primary/10
                         px-2
                         py-0.5
-                        text-[10px]
+                        text-[9px]
                         font-semibold
                         uppercase
                         tracking-wide
@@ -112,8 +115,10 @@ export default function ToolCard({
                         sm:absolute
                         sm:right-4
                         sm:top-4
+                        sm:mt-0
                         sm:px-2.5
                         sm:py-1
+                        sm:text-[10px]
                     "
                 >
                     {comingSoon ? "Soon" : badge}

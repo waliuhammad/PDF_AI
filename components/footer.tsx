@@ -89,14 +89,17 @@ export default function Footer() {
                 "
             >
 
-                {/* Brand */}
+                {/* Brand — centred on a phone to match the three link columns
+                    below it, left-aligned from md as on desktop. */}
 
-                <div>
+                <div className="text-center md:text-left">
 
                     <div
                         className="
                             flex
                             items-center
+                            justify-center
+                            md:justify-start
                             gap-2
                             mb-4
                         "
@@ -139,6 +142,8 @@ export default function Footer() {
 
                     <div className="
                         flex
+                        justify-center
+                        md:justify-start
                         gap-4
                         mt-5
                     ">
@@ -179,60 +184,71 @@ export default function Footer() {
 
 
 
-                {/* Product */}
+                {/* The three link groups. They stacked one under another on a
+                    phone; this wrapper puts them in a single row there, and
+                    md:contents dissolves it on desktop so each group is a direct
+                    child of the outer grid again and the four-column layout is
+                    unchanged. */}
 
-                <div>
-
-                    <h3 className="
-                        font-semibold
-                        text-fg
-                        mb-4
-                    ">
-                        Product
-                    </h3>
+                <div className="grid grid-cols-3 gap-2 sm:gap-6 md:contents">
 
 
-                    <FooterLinkList links={productLinks} />
+                    {/* Product */}
 
-                </div>
+                    <div className="text-center md:text-left">
 
-
-
-
-                {/* Company */}
-
-                <div>
-
-                    <h3 className="
-                        font-semibold
-                        text-fg
-                        mb-4
-                    ">
-                        Company
-                    </h3>
+                        <h3 className="
+                            font-semibold
+                            text-fg
+                            mb-4
+                        ">
+                            Product
+                        </h3>
 
 
-                    <FooterLinkList links={companyLinks} />
+                        <FooterLinkList links={productLinks} />
 
-                </div>
+                    </div>
 
 
 
 
-                {/* Legal */}
+                    {/* Company */}
 
-                <div>
+                    <div className="text-center md:text-left">
 
-                    <h3 className="
-                        font-semibold
-                        text-fg
-                        mb-4
-                    ">
-                        Legal
-                    </h3>
+                        <h3 className="
+                            font-semibold
+                            text-fg
+                            mb-4
+                        ">
+                            Company
+                        </h3>
 
 
-                    <FooterLinkList links={legalLinks} />
+                        <FooterLinkList links={companyLinks} />
+
+                    </div>
+
+
+
+
+                    {/* Legal */}
+
+                    <div className="text-center md:text-left">
+
+                        <h3 className="
+                            font-semibold
+                            text-fg
+                            mb-4
+                        ">
+                            Legal
+                        </h3>
+
+
+                        <FooterLinkList links={legalLinks} />
+
+                    </div>
 
                 </div>
 
