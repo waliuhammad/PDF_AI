@@ -50,6 +50,12 @@ let loadedAt = 0;
 // near-live without a Firebase call on every request.
 const TTL_MS = 5 * 60 * 1000;
 
+// A missing Server template is an expected state (it just hasn't been
+// created in the Console yet), not a fault worth repeating on every
+// request — warn once, run on defaults, and keep retrying quietly so
+// the app picks the template up as soon as someone publishes it.
+let warnedMissingTemplate = false;
+
 async function getTemplate(): Promise<ServerTemplate | null> {
     if (!isAdminConfigured()) return null;
 
@@ -61,9 +67,21 @@ async function getTemplate(): Promise<ServerTemplate | null> {
         const next = await rc.getServerTemplate({ defaultConfig: DEFAULTS });
         template = next;
         loadedAt = now;
+        warnedMissingTemplate = false;
     } catch (err) {
-        // Keep serving the previous template (or defaults) rather than fail.
-        console.error("Remote Config fetch failed:", err);
+        const message = err instanceof Error ? err.message : String(err);
+        if (message.includes("NOT_FOUND")) {
+            if (!warnedMissingTemplate) {
+                console.warn(
+                    "Remote Config: no Server template published yet — using built-in defaults. " +
+                    "Create it in Firebase Console -> Remote Config -> (dropdown) Server."
+                );
+                warnedMissingTemplate = true;
+            }
+        } else {
+            // Keep serving the previous template (or defaults) rather than fail.
+            console.error("Remote Config fetch failed:", err);
+        }
     }
     return template;
 }
