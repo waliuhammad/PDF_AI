@@ -89,7 +89,7 @@ export default function ToolCard({
                     {name}
                 </h3>
 
-                <p className="mt-1 text-[10px] leading-tight text-muted line-clamp-3 sm:mt-2 sm:text-sm sm:leading-6 sm:line-clamp-2">
+                <p className="mt-1 text-[10px] leading-tight text-muted line-clamp-3 sm:mt-2 sm:text-sm sm:leading-6 sm:line-clamp-2 sm:block hidden">
                     {description}
                 </p>
             </div>
@@ -100,8 +100,8 @@ export default function ToolCard({
             {(comingSoon || badge) && (
                 <span
                     className="
+                        hidden
                         mt-2
-                        inline-flex
                         shrink-0
                         rounded-full
                         bg-primary/10
@@ -112,13 +112,14 @@ export default function ToolCard({
                         uppercase
                         tracking-wide
                         text-primary
-                        sm:absolute
-                        sm:right-4
-                        sm:top-4
-                        sm:mt-0
-                        sm:px-2.5
-                        sm:py-1
-                        sm:text-[10px]
+                        lg:inline-flex
+                        lg:absolute
+                        lg:right-4
+                        lg:top-4
+                        lg:mt-0
+                        lg:px-2.5
+                        lg:py-1
+                        lg:text-[10px]
                     "
                 >
                     {comingSoon ? "Soon" : badge}

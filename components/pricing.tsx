@@ -1,11 +1,10 @@
 "use client";
 
-import { Check, Star, Users, Crown } from "lucide-react";
+import { Check, Star, Users } from "lucide-react";
 import { Reveal } from "@/components/reveal";
 import { useState } from "react";
 import { PLANS, type BillingCycle } from "@/lib/plans";
 import { CheckoutButton } from "@/components/pricing/checkout-button";
-
 
 /**
  * `heading` exists because this renders in two places. On the landing page it
@@ -15,60 +14,46 @@ import { CheckoutButton } from "@/components/pricing/checkout-button";
 export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
     const Heading = heading;
 
-
     const [billing, setBilling] =
         useState<BillingCycle>("monthly");
 
-
     return (
-
         <section id="pricing" className="px-4 sm:px-6 py-12 sm:py-22">
-
             <div className="max-w-6xl mx-auto">
 
-
                 {/* Heading */}
-
                 <div className="text-center mb-6 sm:mb-10">
-
                     <div
                         className="
                             inline-flex
                             items-center
                             gap-2
                             rounded-full
-                            bg-primary/10
+                            bg-card
+                            border
+                            border-border
                             px-4.5
                             py-2
                             text-xs
                             md:text-sm
-                            text-primary
+                            text-fg
                             mb-5
                         "
                     >
-
-                        <Star size={15} fill="currentColor" />
-
+                        <Star size={15} fill="currentColor" className="text-yellow-400" />
                         Rated 4.9/5 by 50,000+ users
-
                     </div>
-
 
                     <Heading className="text-2xl sm:text-3xl md:text-4xl font-bold text-fg">
                         Simple pricing that scales with you
                     </Heading>
 
-
                     <p className="mt-3 text-sm md:text-base text-muted">
                         Choose the plan that fits your PDF workflow.
                     </p>
 
-
-
                     {/* Billing Toggle */}
-
                     <div className="flex justify-center mt-7">
-
                         <div
                             className="
                                 inline-flex
@@ -79,7 +64,6 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                                 p-1.5
                             "
                         >
-
                             <button
                                 onClick={() => setBilling("monthly")}
                                 className={`
@@ -93,8 +77,8 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                                     duration-300
 
                                     ${billing === "monthly"
-                                        ? "bg-indigo-600 text-white"
-                                        : "text-black hover:text-indigo-600"
+                                        ? "bg-card border border-border text-fg shadow-sm"
+                                        : "text-muted hover:text-fg"
                                     }
                                 `}
                             >
@@ -114,214 +98,171 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                                     duration-300
 
                                     ${billing === "yearly"
-                                        ? "bg-indigo-600 text-white"
-                                        : "text-black hover:text-indigo-600"
+                                        ? "bg-card border border-border text-fg shadow-sm"
+                                        : "text-muted hover:text-fg"
                                     }
                                 `}
                             >
-
                                 Yearly
 
                                 <span
-                                    className={`
-                                        ml-2
-                                        text-xs
-                                        ${billing === "yearly"
-                                            ? "text-white"
-                                            : "text-green-500"
-                                        }
-                                    `}
+                                    className="ml-2 text-xs text-muted font-normal"
                                 >
                                     Save 20%
                                 </span>
-
                             </button>
-
                         </div>
-
                     </div>
-
-
                 </div>
 
-
-
-
-                {/* Pricing Cards */}
-
+                {/* Pricing Cards Carousel for Mobile / Grid for Desktop */}
                 <div className="
-                    grid
+                    flex
+                    overflow-x-auto
+                    snap-x
+                    snap-mandatory
+                    scroll-smooth
+                    gap-4
+                    pb-6
+                    pt-4
+                    -mx-4
+                    px-4
+                    scrollbar-none
+                    [sub-grid]
+                    md:grid
                     md:grid-cols-3
-                    gap-6
-                    sm:gap-7
+                    md:gap-7
+                    md:overflow-visible
+                    md:pb-0
+                    md:pt-0
+                    md:mx-auto
+                    md:px-0
                     max-w-5xl
-                    mx-auto
+                    items-stretch
                 ">
-
-
                     {PLANS.map((plan, index) => (
+                        <div key={plan.id} className="w-[82vw] sm:w-[320px] md:w-auto shrink-0 md:shrink snap-center h-full flex">
+                            <Reveal delay={index * 100} className="h-full w-full flex">
+                                <div className={`
+                                    relative flex h-full w-full flex-col rounded-2xl bg-card p-5 sm:p-7
+                                    shadow-sm transition-all duration-200
+                                    hover:-translate-y-1.5 hover:scale-[1.01] hover:shadow-xl
+                                    ${plan.popular
+                                        ? "border-2 border-indigo-500 shadow-lg shadow-indigo-500/10"
+                                        : "border border-card hover:border-indigo-500/40"
+                                    }
+                                `}>
 
-                        <Reveal key={plan.id} delay={index * 100} className="h-full">
-                            <div className={`
-                                relative flex h-full flex-col rounded-2xl bg-card p-5 sm:p-7
-                                shadow-sm transition-all duration-200
-                                hover:-translate-y-1.5 hover:scale-[1.01] hover:shadow-xl
-                                ${plan.popular
-                                    ? "border-2 border-primary shadow-lg shadow-primary/10"
-                                    : "border border-card hover:border-primary/40"
-                                }
-                            `}>
+                                    {plan.popular && (
+                                        <div
+                                            className="
+                                                absolute
+                                                -top-3.5
+                                                left-1/2
+                                                -translate-x-1/2
+                                                bg-indigo-600
+                                                text-white
+                                                px-4
+                                                py-1
+                                                rounded-full
+                                                text-xs
+                                                font-semibold
+                                                shadow-md
+                                                flex
+                                                items-center
+                                                gap-1.5
+                                                z-10
+                                            "
+                                        >
+                                            <b>Most Popular</b>
+                                        </div>
+                                    )}
 
-
-                                {plan.popular && (
-
-                                    <div
-                                        className="
-                                        absolute
-                                        -top-3.5
-                                        left-1/2
-                                        -translate-x-1/2
-                                        bg-gradient-to-r from-indigo-600 to-violet-600
-                                        text-white
-                                        px-4
-                                        py-1
-                                        rounded-full
-                                        text-xs
-                                        font-semibold
-                                        shadow-md
-                                        flex
-                                        items-center
-                                        gap-1.5
-                                    "
-                                    >
-
-                                        <b>Most Popular</b>
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="
+                                            text-lg
+                                            md:text-xl
+                                            font-bold
+                                            text-fg
+                                            flex
+                                            items-center
+                                            gap-2
+                                        ">
+                                            {plan.name}
+                                        </h3>
                                     </div>
 
-                                )}
+                                    <div className="
+                                        mt-3.5
+                                        text-3xl
+                                        md:text-4xl
+                                        font-bold
+                                        text-fg
+                                    ">
+                                        {
+                                            billing === "monthly"
+                                                ?
+                                                plan.monthly
+                                                :
+                                                plan.yearly
+                                        }
 
-
-
-                                <div className="flex items-center justify-between">
-                                    <h3 className="
-                                    text-lg
-                                    md:text-xl
-                                    font-bold
-                                    text-fg
-                                    flex
-                                    items-center
-                                    gap-2
-                                ">
-                                        {plan.name}
-                                        {plan.popular && (
-                                            <span className="inline-flex items-center justify-center bg-amber-500/10 text-amber-500 p-1 rounded-full">
-                                                <Crown size={15} className="fill-amber-500" />
-                                            </span>
-                                        )}
-                                    </h3>
-                                </div>
-
-
-
-                                <div className="
-                                mt-3.5
-                                text-3xl
-                                md:text-4xl
-                                font-bold
-                                text-fg
-                            ">
-
-                                    {
-                                        billing === "monthly"
-                                            ?
-                                            plan.monthly
-                                            :
-                                            plan.yearly
-                                    }
-
-
-                                    <span className="
-                                    text-xs
-                                    md:text-sm
-                                    font-normal
-                                    text-muted
-                                ">
-                                        /month
-                                    </span>
-
-                                </div>
-
-
-
-                                <p className="
-                                mt-3.5
-                                text-xs
-                                md:text-sm
-                                text-muted
-                            ">
-                                    {plan.description}
-                                </p>
-
-
-
-                                {/* mb-7 rather than mt-7 on the button below it: the
-                                button uses mt-auto to sit on the card's bottom
-                                edge, and a margin cannot be both auto and 7. */}
-                                <ul className="
-                                mt-6
-                                mb-7
-                                space-y-3.5
-                            ">
-
-                                    {plan.features.map(feature => (
-
-                                        <li
-                                            key={feature}
-                                            className="
-                                            flex
-                                            gap-3
+                                        <span className="
                                             text-xs
                                             md:text-sm
+                                            font-normal
                                             text-muted
-                                        "
-                                        >
+                                        ">
+                                            /month
+                                        </span>
+                                    </div>
 
-                                            <Check
-                                                size={17}
-                                                className="text-primary shrink-0"
-                                            />
+                                    <p className="
+                                        mt-3.5
+                                        text-xs
+                                        md:text-sm
+                                        text-muted
+                                    ">
+                                        {plan.description}
+                                    </p>
 
-                                            {feature}
+                                    <ul className="
+                                        mt-6
+                                        mb-7
+                                        space-y-3.5
+                                        flex-1
+                                    ">
+                                        {plan.features.map(feature => (
+                                            <li
+                                                key={feature}
+                                                className="
+                                                    flex
+                                                    gap-3
+                                                    text-xs
+                                                    md:text-sm
+                                                    text-muted
+                                                "
+                                            >
+                                                <Check
+                                                    size={17}
+                                                    className="text-indigo-600 shrink-0"
+                                                />
+                                                {feature}
+                                            </li>
+                                        ))}
+                                    </ul>
 
-                                        </li>
+                                    <div className="mt-auto">
+                                        <CheckoutButton plan={plan} billing={billing} />
+                                    </div>
 
-                                    ))}
-
-                                </ul>
-
-
-
-                                <CheckoutButton plan={plan} billing={billing} />
-
-
-                            </div>
-                        </Reveal>
-
+                                </div>
+                            </Reveal>
+                        </div>
                     ))}
-
-
                 </div>
 
-
-
-
                 {/* Reviews */}
-
-                {/* On a phone these were two rows floating in whitespace under a
-                    56px margin. Below md they sit on a tinted panel, which groups
-                    them without an outline — the section itself is on
-                    --background, so --background-secondary reads as a soft block
-                    in both themes. From md it is the original plain centred row. */}
                 <div
                     className="
                         mt-8
@@ -351,24 +292,16 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                         md:text-sm
                     "
                 >
-
                     <div className="
                         flex
                         items-center
                         gap-2
                     ">
-
                         <Users size={16} className="shrink-0 md:size-[18px]" />
-
                         Trusted by 50,000+ creators
-
                     </div>
 
-
-                    {/* Separates the two stacked rows on a phone. Hidden from md,
-                        where the desktop row never had one. */}
                     <span className="h-px w-10 bg-[var(--card-border)] md:hidden" />
-
 
                     <div className="
                         flex
@@ -376,37 +309,24 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                         gap-2
                         text-yellow-400
                     ">
-
-                        {/* gap-0.5 on a phone: at 8px apart the five stars read as
-                            separate icons rather than one rating. md:gap-2 keeps
-                            the desktop spacing exactly as it was. */}
                         <div className="flex items-center gap-0.5 md:gap-2">
                             {[1, 2, 3, 4, 5].map(star => (
-
                                 <Star
                                     key={star}
                                     size={15}
                                     fill="currentColor"
                                     className="md:size-[17px]"
                                 />
-
                             ))}
                         </div>
-
 
                         <span className="text-muted ml-1 md:ml-1.5">
                             4.9/5 average rating
                         </span>
-
                     </div>
-
-
                 </div>
 
-
             </div>
-
         </section>
-
     );
 }
