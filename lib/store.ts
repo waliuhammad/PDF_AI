@@ -2,14 +2,24 @@
 
 import { create } from "zustand";
 import { formatFileSize } from "@/lib/utils";
+import {
+    deleteChatRecord,
+    deleteDocumentRecord,
+    saveChatRecord,
+    saveDocumentRecord,
+} from "@/lib/firebase/library";
 
 /**
  * Client-side library of the user's documents and chats.
  *
- * This is the single source of truth the documents, chats and dashboard pages
- * read from, so counts and recent lists always agree. It starts empty and
- * lives in memory only — swapping the actions below for Firestore/Storage
- * calls is the backend step, and no component has to change.
+ * This remains the single source of truth the documents, chats and
+ * dashboard pages read from — but it is now backed by Firestore:
+ * `hydrate` fills it from users/{uid}/... on sign-in (see LibraryLoader),
+ * and every mutation writes through to the same records.
+ *
+ * Writes are optimistic: the UI updates immediately and the Firestore
+ * write follows. A failed write is logged rather than surfaced —
+ * losing one history record beats blocking someone's actual work.
  */
 
 export interface DocumentItem {
@@ -39,8 +49,14 @@ export interface ChatItem {
 }
 
 interface LibraryState {
+    /** The signed-in user everything is persisted under; null = signed out. */
+    uid: string | null;
+
     documents: DocumentItem[];
     chats: ChatItem[];
+
+    /** Called by LibraryLoader on sign-in/out. */
+    hydrate: (uid: string | null, documents: DocumentItem[], chats: ChatItem[]) => void;
 
     addDocuments: (files: { name: string; bytes: number }[]) => void;
     removeDocument: (id: string) => void;
@@ -52,9 +68,17 @@ interface LibraryState {
     sendMessage: (chatId: string, content: string) => void;
 }
 
-export const useLibrary = create<LibraryState>((set) => ({
+/** Fire-and-forget persistence: log failures, never block the UI. */
+function persist(operation: Promise<void>, what: string) {
+    operation.catch((err) => console.error(`Failed to save ${what}:`, err));
+}
+
+export const useLibrary = create<LibraryState>((set, get) => ({
+    uid: null,
     documents: [],
     chats: [],
+
+    hydrate: (uid, documents, chats) => set({ uid, documents, chats }),
 
     addDocuments: (files) =>
         set((state) => {
@@ -67,44 +91,67 @@ export const useLibrary = create<LibraryState>((set) => ({
                 timestamp: now,
                 favorite: false,
             }));
+
+            if (state.uid) {
+                const uid = state.uid;
+                added.forEach((item) =>
+                    persist(saveDocumentRecord(uid, item), `document "${item.name}"`)
+                );
+            }
+
             return { documents: [...added, ...state.documents] };
         }),
 
     removeDocument: (id) =>
-        set((state) => ({ documents: state.documents.filter((d) => d.id !== id) })),
+        set((state) => {
+            if (state.uid) persist(deleteDocumentRecord(state.uid, id), "document removal");
+            return { documents: state.documents.filter((d) => d.id !== id) };
+        }),
 
     renameDocument: (id, name) =>
-        set((state) => ({
-            documents: state.documents.map((d) => (d.id === id ? { ...d, name } : d)),
-        })),
+        set((state) => {
+            const documents = state.documents.map((d) => (d.id === id ? { ...d, name } : d));
+            const changed = documents.find((d) => d.id === id);
+            if (state.uid && changed) persist(saveDocumentRecord(state.uid, changed), "rename");
+            return { documents };
+        }),
 
     toggleFavorite: (id) =>
-        set((state) => ({
-            documents: state.documents.map((d) => (d.id === id ? { ...d, favorite: !d.favorite } : d)),
-        })),
+        set((state) => {
+            const documents = state.documents.map((d) =>
+                d.id === id ? { ...d, favorite: !d.favorite } : d
+            );
+            const changed = documents.find((d) => d.id === id);
+            if (state.uid && changed) persist(saveDocumentRecord(state.uid, changed), "favorite");
+            return { documents };
+        }),
 
     createChat: (pdfName, title) => {
         const id = `chat-${Date.now()}`;
-        set((state) => ({
-            chats: [
-                {
-                    id,
-                    title: title?.trim() || `Chat about ${pdfName}`,
-                    pdfName,
-                    timestamp: Date.now(),
-                    messages: [],
-                },
-                ...state.chats,
-            ],
-        }));
+        const chat: ChatItem = {
+            id,
+            title: title?.trim() || `Chat about ${pdfName}`,
+            pdfName,
+            timestamp: Date.now(),
+            messages: [],
+        };
+
+        const { uid } = get();
+        if (uid) persist(saveChatRecord(uid, chat), "chat");
+
+        set((state) => ({ chats: [chat, ...state.chats] }));
         return id;
     },
 
-    removeChat: (id) => set((state) => ({ chats: state.chats.filter((c) => c.id !== id) })),
+    removeChat: (id) =>
+        set((state) => {
+            if (state.uid) persist(deleteChatRecord(state.uid, id), "chat removal");
+            return { chats: state.chats.filter((c) => c.id !== id) };
+        }),
 
     sendMessage: (chatId, content) =>
-        set((state) => ({
-            chats: state.chats.map((chat) => {
+        set((state) => {
+            const chats = state.chats.map((chat) => {
                 if (chat.id !== chatId) return chat;
                 const now = Date.now();
                 return {
@@ -122,6 +169,11 @@ export const useLibrary = create<LibraryState>((set) => ({
                         },
                     ],
                 };
-            }),
-        })),
+            });
+
+            const changed = chats.find((c) => c.id === chatId);
+            if (state.uid && changed) persist(saveChatRecord(state.uid, changed), "chat message");
+
+            return { chats };
+        }),
 }));
