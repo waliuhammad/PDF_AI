@@ -71,8 +71,8 @@ export function AIFeatures() {
                     </div>
                 </Reveal>
 
-                {/* Pricing / Feature Cards Layout Fix: Same card size for mobile, bold/larger text */}
-                <div className="mt-6 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                {/* Mobile tags removed, arrow symbol added on mobile, original badges kept on desktop */}
+                <div className="mt-6 sm:mt-10 grid gap-2 sm:gap-5 md:grid-cols-2 lg:grid-cols-3">
                     {features.map((feature, index) => {
                         const Icon = feature.icon;
 
@@ -82,39 +82,48 @@ export function AIFeatures() {
                                     <div className="group
                                         relative
                                         overflow-hidden
-                                        rounded-2xl
+                                        rounded-xl sm:rounded-2xl
                                         border
                                         border-border
                                         bg-card
-                                        p-5 sm:p-5
+                                        p-2.5 sm:p-5
                                         shadow-sm
                                         transition-all
                                         hover:border-primary/40
                                         hover:shadow-xl
-                                        flex h-full flex-col duration-200 hover:-translate-y-1.5 hover:scale-[1.01]">
-                                        <div className="absolute right-0 top-0 h-32 w-32 rounded-full bg-primary/5 blur-2xl transition-all group-hover:bg-primary/10" />
+                                        flex flex-row sm:flex-col items-center sm:items-stretch h-full duration-200 hover:-translate-y-1.5 hover:scale-[1.01]">
+                                        <div className="absolute right-0 top-0 h-24 w-24 sm:h-32 sm:w-32 rounded-full bg-primary/5 blur-2xl transition-all group-hover:bg-primary/10" />
 
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-primary/10 transition group-hover:scale-105">
-                                                <Icon className="h-5 w-5 text-primary sm:h-5 sm:w-5" />
+                                        <div className="flex sm:flex-row items-center justify-between sm:w-full">
+                                            <div className="flex h-8 w-8 sm:h-11 sm:w-11 items-center justify-center rounded-lg sm:rounded-xl bg-primary/10 transition group-hover:scale-105 shrink-0">
+                                                <Icon className="h-4 w-4 text-primary sm:h-5 sm:w-5" />
                                             </div>
 
-                                            <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
+                                            {/* Badge hidden on mobile, visible on desktop */}
+                                            <span className="hidden sm:inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary">
                                                 {feature.badge}
                                             </span>
                                         </div>
 
-                                        <h3 className="mt-3 sm:mt-4 text-base sm:text-lg font-bold sm:font-semibold text-foreground">
-                                            {feature.title}
-                                        </h3>
+                                        <div className="ml-3 sm:ml-0 flex-1 sm:flex-none flex items-center justify-between sm:block">
+                                            <h3 className="text-xs sm:text-lg font-bold sm:font-semibold text-foreground sm:mt-4">
+                                                {feature.title}
+                                            </h3>
 
-                                        <p className="mt-1.5 sm:mt-2 text-sm sm:text-sm font-medium sm:font-normal leading-relaxed text-muted-foreground line-clamp-2">
-                                            {feature.description}
-                                        </p>
+                                            {/* Arrow icon shown only on mobile to go to next page */}
+                                            <div className="sm:hidden text-primary shrink-0 p-1">
+                                                <ArrowRight size={16} />
+                                            </div>
 
-                                        <div className="mt-auto flex items-center gap-1.5 pt-3 sm:pt-4 text-sm font-semibold sm:font-medium text-primary transition group-hover:gap-2">
+                                            {/* Description hidden on mobile */}
+                                            <p className="hidden sm:block mt-2 text-sm font-normal leading-relaxed text-muted-foreground line-clamp-2">
+                                                {feature.description}
+                                            </p>
+                                        </div>
+
+                                        <div className="hidden sm:flex mt-auto items-center gap-1 pt-4 text-sm font-medium text-primary transition group-hover:gap-2">
                                             <span>Learn More</span>
-                                            <ArrowRight size={16} className="sm:w-4 sm:h-4" />
+                                            <ArrowRight size={16} />
                                         </div>
                                     </div>
                                 </Reveal>
@@ -132,12 +141,12 @@ export function AIFeatures() {
                                 items-center
                                 gap-2
                                 rounded-xl
-                                bg-indigo-600
+                                bg-primary
                                 px-6
                                 py-3
                                 text-sm
                                 font-semibold
-                                text-white
+                                text-primary-foreground
                                 transition
                                 hover:opacity-90
                             "
