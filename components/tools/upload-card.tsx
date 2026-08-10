@@ -59,7 +59,7 @@ export function UploadCard({
                 setDragging(false);
                 if (!disabled) onFiles(e.dataTransfer.files);
             }}
-            className={`w-full rounded-2xl border-2 border-dashed p-10 text-center transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${disabled
+            className={`w-full rounded-2xl border-2 border-dashed p-6 sm:p-10 text-center transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${disabled
                     ? "cursor-not-allowed opacity-60 border-card bg-card"
                     : dragging
                         ? "cursor-pointer border-[var(--primary)] bg-primary-tint"
@@ -83,7 +83,7 @@ export function UploadCard({
             <p className="text-muted text-xs mt-1">{hint}</p>
 
             {note && (
-                <div className="mt-6 pt-4 border-t border-card flex items-center justify-center gap-1.5 text-xs text-muted">
+                <div className="mt-4 pt-3 sm:mt-6 sm:pt-4 border-t border-card flex flex-wrap items-center justify-center gap-1.5 text-center text-xs text-muted">
                     {note}
                 </div>
             )}

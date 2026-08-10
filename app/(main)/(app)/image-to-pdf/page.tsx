@@ -424,14 +424,14 @@ export default function ImageToPdf(): JSX.Element {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-[var(--background-secondary)] border border-card rounded-2xl p-6">
                 
                 {/* Visual Preview Box showing ALL images together on one page */}
-                <div className="flex flex-col items-center justify-center bg-slate-900/5 dark:bg-black/40 border border-card rounded-xl p-4 pt-10 relative min-h-[320px]">
+                <div className="flex flex-col items-center justify-center bg-slate-900/5 dark:bg-black/40 border border-card rounded-xl p-3 sm:p-4 pt-9 sm:pt-10 relative min-h-[240px] sm:min-h-[320px]">
                   <span className="absolute top-3 left-3 text-[11px] text-muted uppercase font-mono tracking-wider">
                     A4 Preview &mdash; {usedPages.length} {usedPages.length === 1 ? "page" : "pages"}
                   </span>
                   <div className="flex gap-3 overflow-x-auto max-w-full pb-1">
                     {usedPages.map((pageNo, pageIdx) => (
                       <div key={pageNo} className="shrink-0 flex flex-col items-center gap-1.5">
-                        <div className="w-[150px] h-[212px] bg-white rounded shadow-lg dark:shadow-md relative overflow-hidden border border-slate-300">
+                        <div className="w-[110px] h-[156px] sm:w-[150px] sm:h-[212px] bg-white rounded shadow-lg dark:shadow-md relative overflow-hidden border border-slate-300">
                           {images
                             .filter((img) => img.page === pageNo)
                             .map((img) => (

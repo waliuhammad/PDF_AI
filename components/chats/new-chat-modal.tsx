@@ -22,7 +22,7 @@ export function NewChatModal({ onClose, onCreate }: NewChatModalProps) {
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
-            <div className="w-full max-w-lg bg-card rounded-2xl border border-card p-6">
+            <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-card rounded-2xl border border-card p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-lg font-semibold text-fg">New Chat</h2>
                     <button onClick={onClose} className="text-muted hover:text-fg p-1" aria-label="Close">

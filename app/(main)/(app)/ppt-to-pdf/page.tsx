@@ -78,7 +78,7 @@ export default function PptToPdfPage() {
 
   return (
     <main className="min-h-screen bg-background text-fg flex flex-col items-center justify-center p-6 selection:bg-slate-900 dark:selection:bg-sky-500 selection:text-white">
-      <div className="max-w-3xl w-full bg-card rounded-3xl shadow-2xl p-10 border border-card flex flex-col items-center">
+      <div className="max-w-3xl w-full bg-card rounded-3xl shadow-2xl p-5 sm:p-10 border border-card flex flex-col items-center">
         
         {/* Badge */}
         <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[var(--background-secondary)] border border-card text-slate-700 dark:text-sky-400 text-xs font-semibold tracking-wide uppercase mb-6 shadow-sm">

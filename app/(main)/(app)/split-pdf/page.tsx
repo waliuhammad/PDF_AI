@@ -400,7 +400,7 @@ export default function SplitPdfPage() {
                         <div
                           key={page}
                           onClick={() => !done && handlePageClick(page)}
-                          className={`cursor-pointer w-full max-w-[340px] h-[300px] rounded-2xl border p-0.5 flex flex-col items-center justify-between transition-all select-none shrink-0 ${
+                          className={`cursor-pointer w-full max-w-[340px] h-auto min-h-[240px] sm:h-[300px] rounded-2xl border p-0.5 flex flex-col items-center justify-between transition-all select-none shrink-0 ${
                             isEdge
                               ? "border-slate-900 dark:border-white bg-card shadow-md"
                               : inRange
@@ -578,7 +578,7 @@ export default function SplitPdfPage() {
                         type="button"
                         onClick={handleInitialSplit}
                         disabled={processing}
-                        className="flex-1 py-3 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
+                        className="w-full sm:flex-1 py-3 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
                       >
                         {processing ? <Loader2 className="animate-spin" size={18} /> : <Scissors size={18} />}
                         {processing ? "Processing..." : "Proceed to Split Options"}
@@ -640,7 +640,7 @@ export default function SplitPdfPage() {
                           type="button"
                           onClick={() => executeDownload(downloadChoice)}
                           disabled={processing}
-                          className="flex-1 py-3 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
+                          className="w-full sm:flex-1 py-3 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
                         >
                           {processing ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
                           {processing

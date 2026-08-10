@@ -15,12 +15,15 @@ const tabs: { id: SettingsTab; label: string; icon: typeof User }[] = [
 
 export function SettingsTabs({ active, onChange }: { active: SettingsTab; onChange: (tab: SettingsTab) => void }) {
     return (
-        <div className="w-full md:w-56 shrink-0 space-y-1">
+        // Six full-width buttons stacked on a phone pushed the actual settings
+        // ~250px down the page. They scroll in one row there — the same pattern
+        // as the tools category filter — and become the vertical sidebar at md.
+        <div className="w-full md:w-56 shrink-0 flex md:flex-col gap-1 overflow-x-auto no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 md:overflow-visible">
             {tabs.map((tab) => (
                 <button
                     key={tab.id}
                     onClick={() => onChange(tab.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left ${active === tab.id
+                    className={`w-auto md:w-full shrink-0 whitespace-nowrap flex items-center gap-2 md:gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors text-left ${active === tab.id
                         ? "bg-[var(--primary)]/10 text-[var(--primary)]"
                         : "text-muted hover:bg-[var(--background-secondary)] hover:text-fg"
                         }`}

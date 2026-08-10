@@ -165,7 +165,7 @@ export default function CompressPdfPage() {
               inputRef.current?.click();
             }
           }}
-          className={`cursor-pointer rounded-[32px] p-16 h-[380px] flex flex-col items-center justify-center text-center transition-all bg-[var(--background-secondary)] border border-card shadow-xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${
+          className={`cursor-pointer rounded-3xl sm:rounded-[32px] p-6 sm:p-16 h-auto min-h-[260px] sm:h-[380px] flex flex-col items-center justify-center text-center transition-all bg-[var(--background-secondary)] border border-card shadow-xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${
             isDragging ? "border-slate-900 dark:border-white scale-[1.01]" : "hover:border-slate-300 dark:hover:border-[#333a4a]"
           }`}
         >
@@ -243,7 +243,7 @@ export default function CompressPdfPage() {
 
             <div className="pt-2">
               {!done ? (
-                <div className="flex items-center gap-4">
+                <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
                   <button
                     type="button"
                     onClick={() => {
@@ -252,7 +252,7 @@ export default function CompressPdfPage() {
                       setDone(false);
                       setErrorMessage(null);
                     }}
-                    className="py-3 px-6 rounded-2xl border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-fg font-bold text-xs transition-colors"
+                    className="w-full sm:w-auto shrink-0 py-3 px-6 rounded-2xl border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-fg font-bold text-xs transition-colors"
                   >
                     Clear All
                   </button>
@@ -260,7 +260,7 @@ export default function CompressPdfPage() {
                     type="button"
                     onClick={executeCompress}
                     disabled={processing}
-                    className="flex-1 py-3.5 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all hover:bg-zinc-200"
+                    className="w-full sm:flex-1 py-3.5 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all hover:bg-zinc-200"
                   >
                     {processing ? <Loader2 className="animate-spin" size={18} /> : <FileArchive size={18} />}
                     {processing ? "Compressing PDF..." : "Compress PDF"}
@@ -285,11 +285,11 @@ export default function CompressPdfPage() {
                     </p>
                   )}
 
-                  <div className="flex items-center gap-4 pt-2">
+                  <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-2">
                     <button
                       type="button"
                       onClick={() => setDone(false)}
-                      className="py-3 px-6 rounded-2xl border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-fg font-bold text-xs transition-colors"
+                      className="w-full sm:w-auto shrink-0 py-3 px-6 rounded-2xl border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-fg font-bold text-xs transition-colors"
                     >
                       Compress Again
                     </button>
@@ -297,7 +297,7 @@ export default function CompressPdfPage() {
                       type="button"
                       onClick={executeCompress}
                       disabled={processing}
-                      className="flex-1 py-3.5 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all hover:bg-zinc-200"
+                      className="w-full sm:flex-1 py-3.5 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all hover:bg-zinc-200"
                     >
                       {processing ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
                       {processing ? "Downloading..." : "Download Compressed PDF"}

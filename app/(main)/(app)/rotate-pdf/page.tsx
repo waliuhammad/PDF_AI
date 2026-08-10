@@ -222,7 +222,7 @@ export default function RotatePdfPage(): JSX.Element {
         </div>
 
         {libLoading ? (
-          <div className="border-2 border-dashed border-card rounded-2xl p-12 flex flex-col items-center justify-center bg-[var(--background-secondary)] space-y-3">
+          <div className="border-2 border-dashed border-card rounded-2xl p-6 sm:p-12 flex flex-col items-center justify-center bg-[var(--background-secondary)] space-y-3">
             <Loader2 className="w-8 h-8 text-fg animate-spin" />
             <span className="text-sm text-muted font-medium">Initializing PDF Engine...</span>
           </div>

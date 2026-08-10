@@ -78,7 +78,7 @@ export default function UnlockPdfPage() {
     return (
         <div className="min-h-screen bg-background text-fg flex flex-col items-center justify-center p-6 transition-colors">
             {!file ? (
-                <div className="max-w-4xl mx-auto w-full bg-card border border-card rounded-3xl p-12 shadow-2xl transition-colors">
+                <div className="max-w-4xl mx-auto w-full bg-card border border-card rounded-3xl p-5 sm:p-12 shadow-2xl transition-colors">
                     <div className="text-center mb-8">
                         <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-purple-50 dark:bg-cyan-950/60 border border-purple-200 dark:border-cyan-800/40 text-purple-900 dark:text-cyan-400 text-xs font-semibold mb-4 shadow-sm">
                             <Sparkles size={13} />
