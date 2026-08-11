@@ -260,7 +260,7 @@ export default function CompressPdfPage() {
                     type="button"
                     onClick={executeCompress}
                     disabled={processing}
-                    className="w-full sm:flex-1 py-3.5 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all hover:bg-zinc-200"
+                    className="w-full sm:flex-1 py-3.5 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
                   >
                     {processing ? <Loader2 className="animate-spin" size={18} /> : <FileArchive size={18} />}
                     {processing ? "Compressing PDF..." : "Compress PDF"}
@@ -268,7 +268,10 @@ export default function CompressPdfPage() {
                 </div>
               ) : (
                 <div className="space-y-4 pt-2">
-                  <div className="flex items-center gap-2 text-emerald-400 font-extrabold text-sm">
+                  {/* emerald-400 had no light variant, so the success line was
+                      washed out on a white background. Same pair the other
+                      tools use. */}
+                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-extrabold text-sm">
                     <CheckCircle2 size={18} />
                     <span>PDF Compressed Successfully!</span>
                   </div>
@@ -278,7 +281,10 @@ export default function CompressPdfPage() {
                       Size reduced from <strong className="text-fg">{fileDetails.formattedSize}</strong> to{" "}
                       <strong className="text-fg">{formatSize(compressedSize)}</strong>
                       {calculateSavings() > 0 && (
-                        <span className="ml-2.5 px-2.5 py-0.5 rounded-full text-xs bg-emerald-950/50 text-emerald-400 border border-emerald-800 font-bold inline-block">
+                        // The savings pill was styled for dark only: a near-black
+                        // green fill in light mode, where the surrounding card is
+                        // white.
+                        <span className="ml-2.5 px-2.5 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800 font-bold inline-block">
                           -{calculateSavings()}%
                         </span>
                       )}
@@ -297,7 +303,7 @@ export default function CompressPdfPage() {
                       type="button"
                       onClick={executeCompress}
                       disabled={processing}
-                      className="w-full sm:flex-1 py-3.5 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all hover:bg-zinc-200"
+                      className="w-full sm:flex-1 py-3.5 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
                     >
                       {processing ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
                       {processing ? "Downloading..." : "Download Compressed PDF"}
