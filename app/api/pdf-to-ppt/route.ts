@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
+import { requireUsageAllowance } from "@/lib/metered";
 import PDFParser from "pdf2json";
 import pptxgen from "pptxgenjs";
 import { errorMessage } from "@/lib/errors";
@@ -10,6 +11,12 @@ export const maxDuration = 60;
 
 export async function POST(req: NextRequest) {
   try {
+    // This was the one conversion route with no allowance check, so it kept
+    // converting after the daily limit was spent. Every sibling route opens
+    // with this same guard.
+    const denied = await requireUsageAllowance(req);
+    if (denied) return denied;
+
     const formData = await readFormData(req);
         if (!formData) {
             return NextResponse.json({ error: "No file provided." }, { status: 400 });
