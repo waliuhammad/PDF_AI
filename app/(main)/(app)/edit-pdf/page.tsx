@@ -52,7 +52,17 @@ declare global {
 
 /** Swatches beside the native pickers: the tiny OS colour chip is easy to
  *  miss and fiddly on phones; one tap on a swatch is unambiguous. */
-const COLOR_SWATCHES = ["#000000", "#dc2626", "#2563eb", "#059669", "#d97706", "#7c3aed"];
+// #4f46e5 is the drawing tool's starting colour. Without it in the row the
+// palette opened with nothing marked, so it read as having picked nothing.
+const COLOR_SWATCHES = [
+  "#000000",
+  "#dc2626",
+  "#2563eb",
+  "#059669",
+  "#d97706",
+  "#7c3aed",
+  "#4f46e5",
+];
 
 export default function EditPdfPage() {
   const [rawFile, setRawFile] = useState<File | null>(null);
@@ -426,7 +436,11 @@ export default function EditPdfPage() {
           key={hex}
           type="button"
           onClick={() => apply(hex)}
-          className={`w-6 h-6 rounded-full border-2 transition-transform ${current.toLowerCase() === hex ? "border-slate-900 dark:border-white scale-110" : "border-transparent"
+          // Both sides lowered: a colour arriving from the native picker or from
+          // a saved annotation can be upper case, and only one side was.
+          className={`w-6 h-6 rounded-full border-2 transition-transform ${current.toLowerCase() === hex.toLowerCase()
+            ? "border-slate-900 dark:border-white scale-110"
+            : "border-transparent"
             }`}
           style={{ backgroundColor: hex }}
           title={hex}
