@@ -24,20 +24,19 @@ const quickActions = [
     { label: "AI Tools", icon: Cpu, href: "/tools?category=AI%20Tools" },
 ];
 
-const STORAGE_QUOTA_GB = 10;
-
 export default function DashboardPage() {
     // Route protection and the loading gate live in the (app) layout.
     const { user, profile } = useAuth();
     const documents = useLibrary((s) => s.documents);
     const chats = useLibrary((s) => s.chats);
 
-    const { storageUsedGb, storagePercent, favouriteCount, recentDocs, recentChats } = useMemo(() => {
+    // storagePercent went with the Storage Usage card; storageUsedGb still
+    // feeds the "Storage Used" stat tile at the top of the page.
+    const { storageUsedGb, favouriteCount, recentDocs, recentChats } = useMemo(() => {
         const usedGb = documents.reduce((total, doc) => total + doc.sizeMb, 0) / 1024;
 
         return {
             storageUsedGb: usedGb,
-            storagePercent: Math.min((usedGb / STORAGE_QUOTA_GB) * 100, 100),
             favouriteCount: documents.filter((d) => d.favorite).length,
             recentDocs: [...documents].sort((a, b) => b.timestamp - a.timestamp).slice(0, 3),
             recentChats: [...chats].sort((a, b) => b.timestamp - a.timestamp).slice(0, 2),
@@ -117,20 +116,6 @@ export default function DashboardPage() {
                 {/* Right column */}
                 <div className="space-y-6">
                     <UsageMeter />
-
-                    {/* Storage Usage */}
-                    <div className="bg-card border border-card rounded-2xl p-4 sm:p-6">
-                        <h2 className="text-lg font-semibold text-fg mb-4">Storage Usage</h2>
-                        <div className="w-full h-2 rounded-full bg-[var(--background-secondary)] overflow-hidden mb-2">
-                            <div
-                                className="h-full rounded-full bg-[var(--primary)] transition-all"
-                                style={{ width: `${storagePercent}%` }}
-                            />
-                        </div>
-                        <p className="text-sm text-muted">
-                            {storageUsedGb.toFixed(2)} GB of {STORAGE_QUOTA_GB} GB used
-                        </p>
-                    </div>
 
                     {/* Quick Actions */}
                     <div className="bg-card border border-card rounded-2xl p-4 sm:p-6">

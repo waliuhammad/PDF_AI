@@ -12,7 +12,11 @@ interface UsageInfo {
 }
 
 /**
- * "X of Y AI operations used today", read from /api/usage.
+ * "X of Y tool operations used today", read from /api/usage.
+ *
+ * It says tools rather than AI because the same daily allowance is spent by
+ * every metered route — the conversions and the PDF utilities as well as the
+ * AI features — so naming only the AI ones understated what the bar measures.
  *
  * Renders nothing while loading or signed out — a meter that can't be
  * filled in honestly is better absent than wrong. When the allowance is
@@ -74,7 +78,7 @@ export function UsageMeter() {
             <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                 <h2 className="text-lg font-semibold text-fg flex items-center gap-2">
                     <Cpu size={17} className="text-[var(--primary)]" />
-                    AI Usage Today
+                    Tools Usage Today
                 </h2>
                 <span className="text-xs text-muted capitalize">{usage.plan} plan</span>
             </div>

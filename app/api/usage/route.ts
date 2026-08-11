@@ -4,7 +4,7 @@ import { getRequestUid } from "@/lib/server-auth";
 import { peekUsage } from "@/lib/usage";
 
 /**
- * Reports the signed-in user's AI usage for today without consuming any:
+ * Reports the signed-in user's tool usage for today without consuming any:
  * { used, limit, plan }. The dashboard and tool pages read this to show
  * "X of Y operations used today" and to explain a 429 before it happens.
  */
