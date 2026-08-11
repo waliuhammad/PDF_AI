@@ -1,18 +1,18 @@
 "use client";
 
-import React, { useState, useRef} from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { UploadCard } from "@/components/tools/upload-card";
 import { loadPdfjs, loadJsZip } from "@/lib/pdf-libs";
 import { errorMessage } from "@/lib/errors";
 import {
   FileText,
-  Trash2, 
-  Download, 
-  Loader2, 
-  CheckCircle2, 
-  AlertCircle, 
-  Layers, 
-  FileCheck 
+  Trash2,
+  Download,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
+  Layers,
+  FileCheck
 } from "lucide-react";
 
 // Supported image format configurations
@@ -23,6 +23,36 @@ const FORMAT_OPTIONS = [
   { label: "GIF Image (.gif)", mimeType: "image/gif", ext: ".gif" },
   { label: "BMP Image (.bmp)", mimeType: "image/bmp", ext: ".bmp" },
 ];
+
+const EXT_BY_MIME: Record<string, string> = {
+  "image/png": ".png",
+  "image/jpeg": ".jpg",
+  "image/webp": ".webp",
+  "image/gif": ".gif",
+  "image/bmp": ".bmp",
+};
+
+/**
+ * The extension for what the canvas actually produced, not what was asked for.
+ *
+ * A canvas can only encode a few types - GIF and BMP are not among them in any
+ * current browser - and rather than failing it silently returns PNG. Naming the
+ * file from the request therefore produced "page_1.gif" holding PNG bytes: the
+ * download looked like the wrong kind of file and some viewers refused it.
+ */
+function extensionFor(actualMime: string, requestedExt: string): string {
+  const clean = actualMime.split(";")[0].trim().toLowerCase();
+  return EXT_BY_MIME[clean] ?? requestedExt;
+}
+
+/** Whether this browser can really encode a type, rather than falling back. */
+function canEncode(mimeType: string): boolean {
+  if (typeof document === "undefined") return false;
+  const probe = document.createElement("canvas");
+  probe.width = 1;
+  probe.height = 1;
+  return probe.toDataURL(mimeType).startsWith(`data:${mimeType}`);
+}
 
 // Helper: Get PDF Page Count from ArrayBuffer
 async function getPdfPageCount(arrayBuffer: ArrayBuffer): Promise<number> {
@@ -74,7 +104,7 @@ async function convertPdfToImages(
 
     return {
       blob,
-      filename: `${baseName}_page_${pageNumber}${ext}`,
+      filename: `${baseName}_page_${pageNumber}${extensionFor(blob.type, ext)}`,
     };
   } else {
     const JSZip = await loadJsZip();
@@ -90,8 +120,11 @@ async function convertPdfToImages(
       await page.render({ canvasContext: ctx, viewport }).promise;
 
       const dataUrl = canvas.toDataURL(mimeType);
-      const base64Data = dataUrl.replace(/^data:image\/(png|jpeg|webp|gif|bmp);base64,/, "");
-      zip.file(`page_${i}${ext}`, base64Data, { base64: true });
+      // The prefix reports what was really encoded, which is not always what
+      // was asked for, so each entry is named after its own bytes.
+      const actualMime = dataUrl.slice(5, dataUrl.indexOf(";"));
+      const base64Data = dataUrl.replace(/^data:image\/[a-z+.-]+;base64,/, "");
+      zip.file(`page_${i}${extensionFor(actualMime, ext)}`, base64Data, { base64: true });
     }
 
     const zipBlob = await zip.generateAsync({ type: "blob" });
@@ -109,7 +142,19 @@ export default function PdfToImageConverter() {
   const [mode, setMode] = useState<"whole" | "custom">("whole");
   const [pageNumber, setPageNumber] = useState<string>("1");
   const [selectedFormat, setSelectedFormat] = useState(FORMAT_OPTIONS[0]);
-  
+
+  // Only the types this browser can genuinely encode. Offering GIF and BMP was
+  // misleading: picking one produced a PNG under a .gif or .bmp name. Resolved
+  // on the client because canvas support cannot be known while rendering on the
+  // server; PNG is always supported, so the list is never empty.
+  const [formatOptions, setFormatOptions] = useState(FORMAT_OPTIONS);
+
+  useEffect(() => {
+    const supported = FORMAT_OPTIONS.filter((f) => canEncode(f.mimeType));
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setFormatOptions(supported.length > 0 ? supported : [FORMAT_OPTIONS[0]]);
+  }, []);
+
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingInfo, setLoadingInfo] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -215,7 +260,7 @@ export default function PdfToImageConverter() {
   return (
     <main className="min-h-screen bg-card text-fg py-12 px-4 sm:px-6 lg:px-8 transition-colors">
       <div className="max-w-3xl mx-auto space-y-8">
-        
+
         {/* Header Badge & Title */}
         <div className="text-center space-y-3">
           <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-purple-50 dark:bg-slate-800 border border-purple-200 dark:border-slate-700 text-purple-900 dark:text-purple-300 text-xs font-semibold tracking-wide uppercase shadow-sm">
@@ -231,7 +276,7 @@ export default function PdfToImageConverter() {
 
         {/* Main Card Container */}
         <div className="bg-card rounded-3xl shadow-2xl border border-card p-6 sm:p-8 space-y-6 transition-colors">
-          
+
           {error && (
             <div className="flex items-center gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800/80 text-red-700 dark:text-red-300 text-sm">
               <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-500" />
@@ -286,22 +331,20 @@ export default function PdfToImageConverter() {
                 <button
                   type="button"
                   onClick={() => setMode("whole")}
-                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-semibold transition-all ${
-                    mode === "whole"
-                      ? "border-slate-900 dark:border-slate-700 bg-slate-900 dark:bg-slate-800 text-white shadow-md"
-                      : "border-card bg-[var(--background-secondary)] text-muted hover:bg-slate-100 dark:hover:bg-slate-800"
-                  }`}
+                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-semibold transition-all ${mode === "whole"
+                    ? "border-slate-900 dark:border-slate-700 bg-slate-900 dark:bg-slate-800 text-white shadow-md"
+                    : "border-card bg-[var(--background-secondary)] text-muted hover:bg-slate-100 dark:hover:bg-slate-800"
+                    }`}
                 >
                   <Layers className="w-4 h-4" /> Whole Document
                 </button>
                 <button
                   type="button"
                   onClick={() => setMode("custom")}
-                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-semibold transition-all ${
-                    mode === "custom"
-                      ? "border-slate-900 dark:border-slate-700 bg-slate-900 dark:bg-slate-800 text-white shadow-md"
-                      : "border-card bg-[var(--background-secondary)] text-muted hover:bg-slate-100 dark:hover:bg-slate-800"
-                  }`}
+                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-semibold transition-all ${mode === "custom"
+                    ? "border-slate-900 dark:border-slate-700 bg-slate-900 dark:bg-slate-800 text-white shadow-md"
+                    : "border-card bg-[var(--background-secondary)] text-muted hover:bg-slate-100 dark:hover:bg-slate-800"
+                    }`}
                 >
                   <FileText className="w-4 h-4" /> Specific Page
                 </button>
@@ -325,26 +368,34 @@ export default function PdfToImageConverter() {
             </div>
           )}
 
-          {/* 5 Format Selector */}
+          {/* 5 Format Selector — compact pills rather than a dropdown: five
+              known options fit in a small grid, one tap each, no native
+              picker sheet covering the screen on phones. Mirrors the mode
+              buttons above. */}
           {file && (
             <div className="space-y-2">
               <label className="block text-xs font-bold uppercase tracking-wider text-muted">
-                Select Output Image Format
+                Output Image Format
               </label>
-              <select
-                value={selectedFormat.ext}
-                onChange={(e) => {
-                  const target = FORMAT_OPTIONS.find((item) => item.ext === e.target.value);
-                  if (target) setSelectedFormat(target);
-                }}
-                className="w-full px-4 py-3 rounded-xl border border-card focus:ring-2 focus:ring-purple-900 dark:focus:ring-purple-400 focus:outline-none text-fg bg-card font-medium"
-              >
-                {FORMAT_OPTIONS.map((fmt) => (
-                  <option key={fmt.ext} value={fmt.ext}>
-                    {fmt.label}
-                  </option>
+              {/* formatOptions, not FORMAT_OPTIONS: a browser that cannot encode
+                  a type should not offer it, since picking it silently produced
+                  a PNG under the wrong extension. */}
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                {formatOptions.map((fmt) => (
+                  <button
+                    key={fmt.ext}
+                    type="button"
+                    onClick={() => setSelectedFormat(fmt)}
+                    className={`py-2.5 px-2 rounded-xl border text-xs font-bold uppercase tracking-wide transition-all ${selectedFormat.ext === fmt.ext
+                      ? "border-slate-900 dark:border-slate-700 bg-slate-900 dark:bg-slate-800 text-white shadow-md"
+                      : "border-card bg-[var(--background-secondary)] text-muted hover:bg-slate-100 dark:hover:bg-slate-800"
+                      }`}
+                    title={fmt.label}
+                  >
+                    {fmt.ext.replace(".", "")}
+                  </button>
                 ))}
-              </select>
+              </div>
             </div>
           )}
 
@@ -353,7 +404,7 @@ export default function PdfToImageConverter() {
             <button
               onClick={handleConvert}
               disabled={loading || loadingInfo}
-              className="w-full py-4 px-6 rounded-xl bg-slate-900 dark:bg-slate-800 border border-slate-900 dark:border-slate-700 hover:bg-slate-800 dark:hover:bg-slate-700 text-white font-semibold shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-full py-4 px-6 rounded-xl bg-slate-900 dark:bg-slate-800 border border-slate-900 dark:border-slate-700 hover:bg-slate-800 dark:hover:bg-slate-700 text-white font-semibold text-sm sm:text-base shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {loading ? (
                 <>
@@ -361,7 +412,10 @@ export default function PdfToImageConverter() {
                 </>
               ) : (
                 <>
-                  <Download className="w-5 h-5" /> Convert & Download {mode === "whole" ? `All Images (${selectedFormat.ext.toUpperCase()} in ZIP)` : `Page ${pageNumber} (${selectedFormat.ext})`}
+                  <Download className="w-5 h-5 flex-shrink-0" />
+                  <span className="text-center">
+                    Convert & Download {mode === "whole" ? `All Images (${selectedFormat.ext.replace(".", "").toUpperCase()} in ZIP)` : `Page ${pageNumber} (${selectedFormat.ext})`}
+                  </span>
                 </>
               )}
             </button>
