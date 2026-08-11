@@ -1,5 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
+import { getRequestUid } from "@/lib/server-auth";
+import { requireUsageAllowance } from "@/lib/metered";
 import { pdfToPng } from "pdf-to-png-converter";
 import type { PdfToPngOptions } from "pdf-to-png-converter";
 import fs from "fs";
@@ -12,13 +14,31 @@ import { withOwnPdfWorker } from "@/lib/pdf-worker-isolation";
 // so the platform default is not enough.
 export const maxDuration = 60;
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const formData = await readFormData(req);
-        if (!formData) {
-            return NextResponse.json({ error: "No file provided." }, { status: 400 });
-        }
+    if (!formData) {
+      return NextResponse.json({ error: "No file provided." }, { status: 400 });
+    }
     const action = formData.get("action");
+
+    // Two actions share this route. "get-info" only reads the page count so
+    // the UI can render its controls — signed-in users get that for free.
+    // Only "convert", the actual work, counts against the daily allowance;
+    // charging both would bill every conversion twice.
+    if (action === "get-info") {
+      const uid = await getRequestUid(req);
+      if (!uid) {
+        return NextResponse.json(
+          { error: "Please sign in to use the tools." },
+          { status: 401 }
+        );
+      }
+    } else {
+      const refusal = await requireUsageAllowance(req);
+      if (refusal) return refusal;
+    }
+
     const file = formData.get("file") as File;
 
     if (!file) {
@@ -39,7 +59,7 @@ export async function POST(req: Request) {
       const pages = await withOwnPdfWorker(() =>
         pdfToPng(tempFilePath, { returnMetadataOnly: true })
       );
-      
+
       fs.rmSync(tempDir, { recursive: true, force: true });
       return NextResponse.json({ numPages: pages.length });
     }
@@ -47,7 +67,7 @@ export async function POST(req: Request) {
     if (action === "convert") {
       const mode = formData.get("mode");
       const pageNumberStr = formData.get("pageNumber") as string;
-      
+
       const options: PdfToPngOptions = {
         outputFolder: tempDir,
         viewportScale: 2.0,

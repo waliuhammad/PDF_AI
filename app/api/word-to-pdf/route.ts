@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { requireUsageAllowance } from "@/lib/metered";
 import { docxToPdf } from "@/lib/docx-to-pdf";
 
 export const runtime = "nodejs";
@@ -15,6 +16,11 @@ export const maxDuration = 60;
  */
 export async function POST(req: NextRequest) {
     try {
+        // Every tool counts against the user's daily allowance (2/20/50 by
+        // plan, from Remote Config) and therefore requires sign-in.
+        const refusal = await requireUsageAllowance(req);
+        if (refusal) return refusal;
+
         // formData() throws outright on a request with no multipart body, so a
         // missing file has to be caught here or it surfaces as a 500.
         let formData: FormData;

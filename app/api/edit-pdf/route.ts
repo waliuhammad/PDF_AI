@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
+import { requireUsageAllowance } from "@/lib/metered";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
-import {} from "@/lib/errors";
 
 interface TextAnnotation {
   type: "text";
@@ -50,10 +50,15 @@ function hexToRgb(hex?: string) {
 
 export async function POST(req: NextRequest) {
   try {
+    // Every tool counts against the user's daily allowance (2/20/50 by
+    // plan, from Remote Config) and therefore requires sign-in.
+    const refusal = await requireUsageAllowance(req);
+    if (refusal) return refusal;
+
     const formData = await readFormData(req);
-        if (!formData) {
-            return NextResponse.json({ error: "No file provided." }, { status: 400 });
-        }
+    if (!formData) {
+      return NextResponse.json({ error: "No file provided." }, { status: 400 });
+    }
     const file = formData.get("file") as File | null;
     const annotationsRaw = formData.get("annotations") as string | null;
 

@@ -1,6 +1,5 @@
 import { getAppConfig } from "@/lib/remote-config";
 import { getRequestUid } from "@/lib/server-auth";
-import { checkAndCountUsage } from "@/lib/usage";
 import { NextRequest, NextResponse } from "next/server";
 
 // retrieval plus a Gemini answer,
@@ -26,8 +25,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // AI features are metered per user, so they require a signed-in user:
-    // an anonymous visitor has no identity to count against.
+    // Chat requires a signed-in user, but questions are not counted
+    // against the daily allowance — the chat/upload route counts once per
+    // uploaded document instead, so a session costs one operation however
+    // many questions it holds.
     const uid = await getRequestUid(req);
     if (!uid) {
       return NextResponse.json(
@@ -36,19 +37,6 @@ export async function POST(req: NextRequest) {
           message: "Please sign in to use AI features.",
         },
         { status: 401 }
-      );
-    }
-
-    // Count this operation against today's plan allowance (limits come
-    // from the client's Remote Config: free 2/day, pro 20, business 50).
-    const usage = await checkAndCountUsage(uid);
-    if (!usage.allowed) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: `Daily limit reached (${usage.used}/${usage.limit} operations on the ${usage.plan} plan). Upgrade for a higher daily allowance, or come back tomorrow.`,
-        },
-        { status: 429 }
       );
     }
 

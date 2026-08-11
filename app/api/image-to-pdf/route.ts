@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
+import { requireUsageAllowance } from "@/lib/metered";
 import { PDFDocument } from "pdf-lib";
 
 export const runtime = "nodejs";
@@ -35,6 +36,11 @@ function sniff(bytes: Uint8Array): "png" | "jpeg" | null {
 
 export async function POST(req: NextRequest) {
     try {
+        // Every tool counts against the user's daily allowance (2/20/50 by
+        // plan, from Remote Config) and therefore requires sign-in.
+        const refusal = await requireUsageAllowance(req);
+        if (refusal) return refusal;
+
         const formData = await readFormData(req);
         if (!formData) {
             return NextResponse.json({ error: "No file provided." }, { status: 400 });

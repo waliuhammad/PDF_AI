@@ -67,6 +67,8 @@ export async function POST(req: NextRequest) {
         });
         return response;
     } catch (error) {
+        // The true reason stays in the server log; the browser gets a
+        // deliberately generic message.
         console.error("auth/session: could not create a session cookie:", error);
         return NextResponse.json({ error: "Could not sign you in." }, { status: 401 });
     }

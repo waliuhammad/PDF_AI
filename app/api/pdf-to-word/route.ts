@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
+import { requireUsageAllowance } from "@/lib/metered";
 import { pdfToDocx } from "@/lib/pdf-to-docx";
 
 export const runtime = "nodejs";
@@ -15,6 +16,11 @@ export const maxDuration = 60;
  */
 export async function POST(req: NextRequest) {
     try {
+        // Every tool counts against the user's daily allowance (2/20/50 by
+        // plan, from Remote Config) and therefore requires sign-in.
+        const refusal = await requireUsageAllowance(req);
+        if (refusal) return refusal;
+
         const formData = await readFormData(req);
         if (!formData) {
             return NextResponse.json({ error: "No PDF file provided." }, { status: 400 });
