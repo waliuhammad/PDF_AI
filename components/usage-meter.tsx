@@ -32,6 +32,10 @@ export function UsageMeter({
     hideTitle?: boolean;
 } = {}) {
     const [usage, setUsage] = useState<UsageInfo | null>(null);
+    // Distinguishes "still asking" from "cannot answer". Without it the card
+    // rendered nothing until the fetch resolved, so on the dashboard it was a
+    // gap that filled in a moment later; a skeleton holds its place instead.
+    const [unavailable, setUnavailable] = useState(false);
     const testPlan = useTestPlanOptional();
 
     // The plan tester writes a cookie the API reads, so a switch changes the
@@ -43,13 +47,22 @@ export function UsageMeter({
     const load = useCallback(async (signal: AbortSignal) => {
         try {
             const res = await fetch("/api/usage", { signal, cache: "no-store" });
-            if (!res.ok) return;
-            const data = await res.json();
-            if (data?.success) {
-                setUsage({ used: data.used, limit: data.limit, plan: data.plan });
+            if (!res.ok) {
+                setUnavailable(true);
+                return;
             }
-        } catch {
-            // Signed out, aborted, or unreachable — show nothing rather than guesses.
+            const data = await res.json();
+            if (data?.success && Number.isFinite(data.limit)) {
+                setUsage({ used: data.used, limit: data.limit, plan: data.plan });
+                setUnavailable(false);
+            } else {
+                setUnavailable(true);
+            }
+        } catch (err) {
+            // An abort is this component replacing its own request, not a
+            // failure, and must not blank a card that is about to be filled.
+            if ((err as Error)?.name === "AbortError") return;
+            setUnavailable(true);
         }
     }, []);
 
@@ -76,7 +89,28 @@ export function UsageMeter({
         return () => window.removeEventListener("focus", onFocus);
     }, [load]);
 
-    if (!usage || !Number.isFinite(usage.limit)) return null;
+    const shell = hideHeader ? "" : "bg-card border border-card rounded-2xl p-4 sm:p-6";
+
+    // Nothing to show only once asking has actually failed — signed out, or the
+    // endpoint is unreachable. A meter that cannot be filled in honestly is
+    // still better absent than wrong.
+    if (!usage && unavailable) return null;
+
+    // First load: same footprint as the real card, so the dashboard does not
+    // reflow when the numbers arrive. A refetch (plan switch, window focus)
+    // keeps the old numbers on screen rather than flashing back to this.
+    if (!usage) {
+        return (
+            <div className={shell}>
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    <div className="h-5 w-40 rounded bg-[var(--background-secondary)] animate-pulse" />
+                    <div className="h-3 w-16 rounded bg-[var(--background-secondary)] animate-pulse" />
+                </div>
+                <div className="w-full h-2 rounded-full bg-[var(--background-secondary)] animate-pulse mb-2" />
+                <div className="h-4 w-48 rounded bg-[var(--background-secondary)] animate-pulse" />
+            </div>
+        );
+    }
 
     const percent = usage.limit > 0 ? Math.min((usage.used / usage.limit) * 100, 100) : 100;
     const exhausted = usage.used >= usage.limit;
@@ -84,7 +118,7 @@ export function UsageMeter({
     return (
         // hideHeader means the caller already drew the card, so drawing another
         // here would nest one panel inside an identical one.
-        <div className={hideHeader ? "" : "bg-card border border-card rounded-2xl p-4 sm:p-6"}>
+        <div className={shell}>
             {!hideHeader && (
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                     {!hideTitle && (
