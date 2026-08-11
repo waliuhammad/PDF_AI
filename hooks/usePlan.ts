@@ -1,5 +1,6 @@
 "use client";
 
+import { useTestPlanOptional } from "@/components/dev/TestPlanProvider";
 import { useAuth } from "@/hooks/useAuth";
 import { resolvePlan } from "@/lib/firebase/users";
 import { getPlan, planSatisfies, type PlanId } from "@/lib/plans";
@@ -13,14 +14,23 @@ import { getPlan, planSatisfies, type PlanId } from "@/lib/plans";
  */
 export function usePlan() {
     const { user, profile, loading } = useAuth();
+    const testPlan = useTestPlanOptional();
 
-    const planId = resolvePlan(profile);
-    const plan = getPlan(planId);
+    const effectivePlanId: PlanId = testPlan?.isTestMode
+        ? (testPlan.plan as PlanId)
+        : resolvePlan(profile);
+    const plan = getPlan(effectivePlanId);
 
     const can = (required: PlanId): boolean => {
-        if (loading) return false;
-        return planSatisfies(planId, required);
+        if (loading && !testPlan?.isTestMode) return false;
+        return planSatisfies(effectivePlanId, required);
     };
 
-    return { planId, plan, can, loading, signedIn: !!user };
+    return {
+        planId: effectivePlanId,
+        plan,
+        can,
+        loading: loading && !testPlan?.isTestMode,
+        signedIn: !!user || !!testPlan?.isTestMode,
+    };
 }

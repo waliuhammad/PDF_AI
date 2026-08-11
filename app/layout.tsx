@@ -1,4 +1,6 @@
 import { MaintenanceBanner } from "@/components/maintenance-banner";
+import DevPlanSwitcher from "@/components/dev/DevPlanSwitcher";
+import { TestPlanProvider } from "@/components/dev/TestPlanProvider";
 import type { Metadata } from "next";
 import { getSiteUrl } from "@/lib/site-url";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -51,7 +53,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <TestPlanProvider>
+            {children}
+            <DevPlanSwitcher />
+          </TestPlanProvider>
         </ThemeProvider>
       </body>
     </html>
