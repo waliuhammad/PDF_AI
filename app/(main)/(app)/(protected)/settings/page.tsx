@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { SettingsTabs, SettingsTab } from "@/components/settings/settings-tabs";
-import { Sun, Moon, Monitor, Check, AlertCircle, Loader2 } from "lucide-react";
+import { Sun, Moon, Monitor, Check, AlertCircle, Loader2, ChevronDown, Search } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { updateUserProfile } from "@/lib/firebase/users";
 import { changePassword, hasPasswordProvider } from "@/lib/firebase/auth";
@@ -29,6 +29,30 @@ const DEFAULT_PREFS: Preferences = {
     language: "en",
     notifications: { email: true, product: true, marketing: false },
 };
+
+// Comprehensive list of worldwide languages
+const WORLD_LANGUAGES = [
+    { code: "af", name: "Afrikaans" }, { code: "sq", name: "Albanian" }, { code: "ar", name: "Arabic" },
+    { code: "hy", name: "Armenian" }, { code: "bn", name: "Bengali" }, { code: "bs", name: "Bosnian" },
+    { code: "bg", name: "Bulgarian" }, { code: "ca", name: "Catalan" }, { code: "zh", name: "Chinese" },
+    { code: "hr", name: "Croatian" }, { code: "cs", name: "Czech" }, { code: "da", name: "Danish" },
+    { code: "nl", name: "Dutch" }, { code: "en", name: "English" }, { code: "et", name: "Estonian" },
+    { code: "fi", name: "Finnish" }, { code: "fr", name: "French" }, { code: "ka", name: "Georgian" },
+    { code: "de", name: "German" }, { code: "el", name: "Greek" }, { code: "gu", name: "Gujarati" },
+    { code: "he", name: "Hebrew" }, { code: "hi", name: "Hindi" }, { code: "hu", name: "Hungarian" },
+    { code: "is", name: "Icelandic" }, { code: "id", name: "Indonesian" }, { code: "it", name: "Italian" },
+    { code: "ja", name: "Japanese" }, { code: "kn", name: "Kannada" }, { code: "ko", name: "Korean" },
+    { code: "lv", name: "Latvian" }, { code: "lt", name: "Lithuanian" }, { code: "mk", name: "Macedonian" },
+    { code: "ms", name: "Malay" }, { code: "ml", name: "Malayalam" }, { code: "mr", name: "Marathi" },
+    { code: "ne", name: "Nepali" }, { code: "no", name: "Norwegian" }, { code: "fa", name: "Persian" },
+    { code: "pl", name: "Polish" }, { code: "pt", name: "Portuguese" }, { code: "pa", name: "Punjabi" },
+    { code: "ro", name: "Romanian" }, { code: "ru", name: "Russian" }, { code: "sr", name: "Serbian" },
+    { code: "sk", name: "Slovak" }, { code: "sl", name: "Slovenian" }, { code: "es", name: "Spanish" },
+    { code: "sw", name: "Swahili" }, { code: "sv", name: "Swedish" }, { code: "ta", name: "Tamil" },
+    { code: "te", name: "Telugu" }, { code: "th", name: "Thai" }, { code: "tr", name: "Turkish" },
+    { code: "uk", name: "Ukrainian" }, { code: "ur", name: "Urdu" }, { code: "vi", name: "Vietnamese" },
+    { code: "cy", name: "Welsh" }
+];
 
 function loadPreferences(): Preferences {
     if (typeof window === "undefined") return DEFAULT_PREFS;
@@ -85,6 +109,22 @@ export default function SettingsPage() {
 
     // Preferences persist locally until there is a backend to store them against.
     const [prefs, setPrefs] = useState<Preferences>(loadPreferences);
+
+    // Language Dropdown State
+    const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
+    const [langSearch, setLangSearch] = useState("");
+    const langDropdownRef = useRef<HTMLDivElement>(null);
+
+    // Close language dropdown if user clicks outside of it
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (langDropdownRef.current && !langDropdownRef.current.contains(event.target as Node)) {
+                setIsLangDropdownOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     const savePreferences = (next: Preferences) => {
         setPrefs(next);
@@ -158,6 +198,12 @@ export default function SettingsPage() {
         "px-5 py-2.5 rounded-full bg-[var(--primary)] text-white text-sm font-medium hover:bg-[var(--primary-hover)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed inline-flex items-center gap-2";
 
     const canUsePassword = hasPasswordProvider(user);
+
+    // Derived Language Values
+    const filteredLanguages = WORLD_LANGUAGES.filter(lang =>
+        lang.name.toLowerCase().includes(langSearch.toLowerCase())
+    );
+    const selectedLanguageName = WORLD_LANGUAGES.find(l => l.code === prefs.language)?.name || "Select Language";
 
     return (
         <div>
@@ -372,20 +418,63 @@ export default function SettingsPage() {
                     {tab === "language" && (
                         <div className="max-w-md">
                             <h2 className="text-lg font-semibold text-fg mb-4">Language</h2>
-                            <label htmlFor="language" className="block text-sm font-medium text-fg mb-1.5">
+                            <label className="block text-sm font-medium text-fg mb-1.5">
                                 Interface language
                             </label>
-                            <select
-                                id="language"
-                                value={prefs.language}
-                                onChange={(e) => savePreferences({ ...prefs, language: e.target.value })}
-                                className={inputClass}
-                            >
-                                <option value="en">English</option>
-                                <option value="ur">Urdu</option>
-                                <option value="es">Spanish</option>
-                                <option value="fr">French</option>
-                            </select>
+
+                            {/* Custom Searchable Dropdown */}
+                            <div className="relative" ref={langDropdownRef}>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
+                                    className={`${inputClass} flex items-center text-left relative pr-12`}
+                                >
+                                    <span className="truncate block w-full">{selectedLanguageName}</span>
+                                    {/* Icon moved a little bit toward the left side using absolute positioning (right-4 md:right-5) */}
+                                    <ChevronDown size={18} className="text-muted absolute right-4 md:right-5 pointer-events-none" />
+                                </button>
+
+                                {isLangDropdownOpen && (
+                                    <div className="absolute z-10 w-full mt-1.5 bg-card border border-card rounded-xl shadow-lg overflow-hidden flex flex-col max-h-[300px]">
+                                        {/* Search Input inside Dropdown */}
+                                        <div className="p-2 border-b border-card flex items-center gap-2">
+                                            <Search size={16} className="text-muted ml-2 shrink-0" />
+                                            <input
+                                                type="text"
+                                                placeholder="Search languages..."
+                                                value={langSearch}
+                                                onChange={(e) => setLangSearch(e.target.value)}
+                                                className="w-full bg-transparent border-none focus:outline-none text-sm text-fg py-1.5"
+                                            />
+                                        </div>
+                                        
+                                        {/* Language List */}
+                                        <ul className="overflow-y-auto p-1.5 flex-1">
+                                            {filteredLanguages.length > 0 ? (
+                                                filteredLanguages.map((lang) => (
+                                                    <li key={lang.code}>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                savePreferences({ ...prefs, language: lang.code });
+                                                                setIsLangDropdownOpen(false);
+                                                                setLangSearch("");
+                                                            }}
+                                                            className={`w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-[var(--primary)]/10 transition-colors ${
+                                                                prefs.language === lang.code ? "bg-[var(--primary)]/10 text-[var(--primary)] font-medium" : "text-fg"
+                                                            }`}
+                                                        >
+                                                            {lang.name}
+                                                        </button>
+                                                    </li>
+                                                ))
+                                            ) : (
+                                                <li className="px-3 py-4 text-sm text-center text-muted">No languages found.</li>
+                                            )}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
                             <p className="text-xs text-muted mt-2">
                                 Saved on this device. Translations arrive with the localisation work.
                             </p>

@@ -18,9 +18,9 @@ import { useLibrary } from "@/lib/store";
 import { formatRelativeTime } from "@/lib/utils";
 
 const quickActions = [
-    { label: "Upload PDF", icon: Upload, href: "/documents" },
+    { label: "Upload", icon: Upload, href: "/documents" },
     { label: "Tools", icon: Wrench, href: "/tools" },
-    { label: "New Chat", icon: MessageSquare, href: "/chats" },
+    { label: "Chat", icon: MessageSquare, href: "/chats" },
     { label: "AI Tools", icon: Cpu, href: "/tools?category=AI%20Tools" },
 ];
 
@@ -30,8 +30,11 @@ export default function DashboardPage() {
     const documents = useLibrary((s) => s.documents);
     const chats = useLibrary((s) => s.chats);
 
+<<<<<<< Updated upstream
     // storagePercent went with the Storage Usage card; storageUsedGb still
     // feeds the "Storage Used" stat tile at the top of the page.
+=======
+>>>>>>> Stashed changes
     const { storageUsedGb, favouriteCount, recentDocs, recentChats } = useMemo(() => {
         const usedGb = documents.reduce((total, doc) => total + doc.sizeMb, 0) / 1024;
 
@@ -49,7 +52,7 @@ export default function DashboardPage() {
 
     return (
         <div>
-            <div className="mb-8 animate-tool-in">
+            <div className="mb-6 animate-tool-in">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                     <div>
                         <h1 className="text-2xl font-bold text-fg">Welcome back, {displayName} 👋</h1>
@@ -61,12 +64,38 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {/* Stats: Desktop version (lg:grid-cols-4), Mobile ultra-compact row (grid-cols-4) */}
+            <div className="hidden lg:grid grid-cols-4 gap-4 mb-8">
                 <StatCard label="Total Documents" value={String(documents.length)} icon={FileText} />
                 <StatCard label="Total Chats" value={String(chats.length)} icon={MessageSquare} />
                 <StatCard label="Storage Used" value={`${storageUsedGb.toFixed(2)} GB`} icon={HardDrive} />
                 <StatCard label="Favorites" value={String(favouriteCount)} icon={Star} />
+            </div>
+
+            <div className="grid grid-cols-4 gap-2 mb-4 lg:hidden">
+                <div className="bg-card border border-card rounded-xl p-2 text-center flex flex-col items-center justify-center">
+                    <span className="text-[10px] text-muted truncate w-full">Docs</span>
+                    <span className="text-sm font-bold text-fg">{documents.length}</span>
+                </div>
+                <div className="bg-card border border-card rounded-xl p-2 text-center flex flex-col items-center justify-center">
+                    <span className="text-[10px] text-muted truncate w-full">Chats</span>
+                    <span className="text-sm font-bold text-fg">{chats.length}</span>
+                </div>
+                <div className="bg-card border border-card rounded-xl p-2 text-center flex flex-col items-center justify-center">
+                    <span className="text-[10px] text-muted truncate w-full">Storage</span>
+                    <span className="text-sm font-bold text-fg">{storageUsedGb.toFixed(1)}G</span>
+                </div>
+                <div className="bg-card border border-card rounded-xl p-2 text-center flex flex-col items-center justify-center">
+                    <span className="text-[10px] text-muted truncate w-full">Favs</span>
+                    <span className="text-sm font-bold text-fg">{favouriteCount}</span>
+                </div>
+            </div>
+
+            {/* Mobile-only usage meter single card */}
+            <div className="block lg:hidden mb-6">
+                <div className="bg-card border border-card rounded-2xl p-4 sm:p-6">
+                    <UsageMeter hideHeader hideTitle />
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -113,12 +142,22 @@ export default function DashboardPage() {
                     )}
                 </div>
 
-                {/* Right column */}
+                {/* Right column (Laptop layout) */}
                 <div className="space-y-6">
+<<<<<<< Updated upstream
                     <UsageMeter />
 
                     {/* Quick Actions */}
                     <div className="bg-card border border-card rounded-2xl p-4 sm:p-6">
+=======
+                    {/* Desktop-only UsageMeter single card */}
+                    <div className="hidden lg:block bg-card border border-card rounded-2xl p-4 sm:p-6">
+                        <UsageMeter hideHeader hideTitle />
+                    </div>
+
+                    {/* Quick Actions (Desktop version) */}
+                    <div className="hidden lg:block bg-card border border-card rounded-2xl p-4 sm:p-6">
+>>>>>>> Stashed changes
                         <h2 className="text-lg font-semibold text-fg mb-4">Quick Actions</h2>
                         <div className="space-y-2">
                             {quickActions.map((action) => {
@@ -176,6 +215,26 @@ export default function DashboardPage() {
                         ))}
                     </div>
                 )}
+            </div>
+
+            {/* Quick Actions (Mobile-only version) */}
+            <div className="mt-6 block lg:hidden bg-card border border-card rounded-2xl p-4 sm:p-6">
+                <h2 className="text-lg font-semibold text-fg mb-4">Quick Actions</h2>
+                <div className="grid grid-cols-2 gap-2.5">
+                    {quickActions.map((action) => {
+                        const Icon = action.icon;
+                        return (
+                            <Link
+                                key={action.label}
+                                href={action.href}
+                                className="flex items-center gap-2.5 p-3 rounded-xl border border-card hover:border-[var(--primary)] bg-[var(--background-secondary)]/40 transition-colors"
+                            >
+                                <Icon size={16} className="text-[var(--primary)] shrink-0" />
+                                <span className="text-xs font-medium text-fg truncate">{action.label}</span>
+                            </Link>
+                        );
+                    })}
+                </div>
             </div>
         </div>
     );

@@ -366,7 +366,7 @@ export default function SignPdfPage() {
                     type="text"
                     value={signatureText}
                     onChange={(e) => setSignatureText(e.target.value)}
-                    placeholder="e.g. Wali Muhammad"
+                    placeholder="e.g. Maniha Iman"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-card bg-card text-sm text-fg focus:outline-none focus:border-slate-900 dark:focus:border-slate-100"
                   />
                 </div>
