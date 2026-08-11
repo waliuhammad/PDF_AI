@@ -1,4 +1,5 @@
 import { getAppConfig } from "@/lib/remote-config";
+import { readDevPlanFromRequest } from "@/lib/dev-plan";
 import { getRequestUid } from "@/lib/server-auth";
 import { checkAndCountUsage } from "@/lib/usage";
 import { NextRequest, NextResponse } from "next/server";
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
 
     // Count this operation against today's plan allowance (limits come
     // from the client's Remote Config: free 2/day, pro 20, business 50).
-    const usage = await checkAndCountUsage(uid);
+    const usage = await checkAndCountUsage(uid, readDevPlanFromRequest(req) ?? undefined);
     if (!usage.allowed) {
       return NextResponse.json(
         {
