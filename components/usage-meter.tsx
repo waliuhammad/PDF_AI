@@ -22,7 +22,15 @@ interface UsageInfo {
  * filled in honestly is better absent than wrong. When the allowance is
  * exhausted it points at /pricing, which is the actual remedy.
  */
-export function UsageMeter() {
+export function UsageMeter({
+    /** Drop the card chrome and the header row — the caller supplies its own. */
+    hideHeader = false,
+    /** Drop just the heading, keeping the plan label. */
+    hideTitle = false,
+}: {
+    hideHeader?: boolean;
+    hideTitle?: boolean;
+} = {}) {
     const [usage, setUsage] = useState<UsageInfo | null>(null);
     const testPlan = useTestPlanOptional();
 
@@ -74,14 +82,31 @@ export function UsageMeter() {
     const exhausted = usage.used >= usage.limit;
 
     return (
-        <div className="bg-card border border-card rounded-2xl p-4 sm:p-6">
-            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-                <h2 className="text-lg font-semibold text-fg flex items-center gap-2">
-                    <Cpu size={17} className="text-[var(--primary)]" />
-                    Tools Usage Today
-                </h2>
-                <span className="text-xs text-muted capitalize">{usage.plan} plan</span>
-            </div>
+        // hideHeader means the caller already drew the card, so drawing another
+        // here would nest one panel inside an identical one.
+        <div className={hideHeader ? "" : "bg-card border border-card rounded-2xl p-4 sm:p-6"}>
+            {!hideHeader && (
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                    {!hideTitle && (
+                        <h2 className="text-lg font-semibold text-fg flex items-center gap-2">
+                            <Cpu size={17} className="text-[var(--primary)]" />
+                            Tools Usage Today
+                        </h2>
+                    )}
+                    <span className="text-xs text-muted capitalize">{usage.plan} plan</span>
+                </div>
+            )}
+
+            {/* Without the header row the plan would go unstated, and which plan
+                the numbers belong to is the point of the card. */}
+            {hideHeader && (
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    {!hideTitle && (
+                        <span className="text-sm font-semibold text-fg">Tools Usage Today</span>
+                    )}
+                    <span className="text-xs text-muted capitalize">{usage.plan} plan</span>
+                </div>
+            )}
 
             <div className="w-full h-2 rounded-full bg-[var(--background-secondary)] overflow-hidden mb-2">
                 <div

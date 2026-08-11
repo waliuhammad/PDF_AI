@@ -30,11 +30,8 @@ export default function DashboardPage() {
     const documents = useLibrary((s) => s.documents);
     const chats = useLibrary((s) => s.chats);
 
-<<<<<<< Updated upstream
     // storagePercent went with the Storage Usage card; storageUsedGb still
     // feeds the "Storage Used" stat tile at the top of the page.
-=======
->>>>>>> Stashed changes
     const { storageUsedGb, favouriteCount, recentDocs, recentChats } = useMemo(() => {
         const usedGb = documents.reduce((total, doc) => total + doc.sizeMb, 0) / 1024;
 
@@ -144,12 +141,6 @@ export default function DashboardPage() {
 
                 {/* Right column (Laptop layout) */}
                 <div className="space-y-6">
-<<<<<<< Updated upstream
-                    <UsageMeter />
-
-                    {/* Quick Actions */}
-                    <div className="bg-card border border-card rounded-2xl p-4 sm:p-6">
-=======
                     {/* Desktop-only UsageMeter single card */}
                     <div className="hidden lg:block bg-card border border-card rounded-2xl p-4 sm:p-6">
                         <UsageMeter hideHeader hideTitle />
@@ -157,7 +148,6 @@ export default function DashboardPage() {
 
                     {/* Quick Actions (Desktop version) */}
                     <div className="hidden lg:block bg-card border border-card rounded-2xl p-4 sm:p-6">
->>>>>>> Stashed changes
                         <h2 className="text-lg font-semibold text-fg mb-4">Quick Actions</h2>
                         <div className="space-y-2">
                             {quickActions.map((action) => {
