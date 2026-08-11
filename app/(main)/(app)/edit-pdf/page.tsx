@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { FileText, X, Download, Loader2, Type, Bold, Italic, Pencil, Trash2, ChevronLeft, ChevronRight, Eraser, Move, Sparkles, ShieldCheck } from "lucide-react";
 import { UploadCard } from "@/components/tools/upload-card";
 import type * as PdfjsLib from "pdfjs-dist";
@@ -50,16 +50,20 @@ declare global {
   }
 }
 
+/** Swatches beside the native pickers: the tiny OS colour chip is easy to
+ *  miss and fiddly on phones; one tap on a swatch is unambiguous. */
+const COLOR_SWATCHES = ["#000000", "#dc2626", "#2563eb", "#059669", "#d97706", "#7c3aed"];
+
 export default function EditPdfPage() {
   const [rawFile, setRawFile] = useState<File | null>(null);
   const [fileDetails, setFileDetails] = useState<{ name: string; size: string } | null>(null);
   const [pageCount, setPageCount] = useState<number>(0);
   const [selectedPageIndex, setSelectedPageIndex] = useState<number>(0);
   const [pdfDocProxy, setPdfDocProxy] = useState<PdfjsLib.PDFDocumentProxy | null>(null);
-  
+
   // Active Tool Mode
   const [activeTool, setActiveTool] = useState<"text" | "replace" | "draw">("replace");
-  
+
   // Text Options (Default Text Color set to #000000)
   const [newText, setNewText] = useState("");
   const [fontSize, setFontSize] = useState<number>(14);
@@ -87,9 +91,23 @@ export default function EditPdfPage() {
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [processing, setProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  
+
+  /**
+   * The scale the current page is rendered at. Previously hardcoded to 1.2,
+   * which caused both visible problems: an A4 page became ~714px wide (too
+   * large to fit beside the tools, so the preview scrolled and left no room
+   * to work), and — worse — annotations were saved to the server in these
+   * scaled pixels while the server draws in PDF points, so everything in the
+   * downloaded file sat ~20% away from where the preview showed it. The
+   * page now renders at whatever scale fits the preview box, and executeSave
+   * divides everything by this before sending.
+   */
+  const [renderScale, setRenderScale] = useState(1);
+  const [resizeTick, setResizeTick] = useState(0);
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const overlayContainerRef = useRef<HTMLDivElement | null>(null);
+  const previewBoxRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!window.pdfjsLib) {
@@ -106,6 +124,21 @@ export default function EditPdfPage() {
       window.pdfjsLib.GlobalWorkerOptions.workerSrc =
         "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
     }
+  }, []);
+
+  // Re-fit the page when the window changes size (rotating a phone, resizing
+  // a desktop window). Debounced by rAF-ish timeout; the tick re-runs render.
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const onResize = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => setResizeTick((t) => t + 1), 200);
+    };
+    window.addEventListener("resize", onResize);
+    return () => {
+      window.removeEventListener("resize", onResize);
+      if (timer) clearTimeout(timer);
+    };
   }, []);
 
   const formatSize = (bytes: number) => {
@@ -155,7 +188,14 @@ export default function EditPdfPage() {
         const context = canvas.getContext("2d");
         if (!context) return;
 
-        const viewport = page.getViewport({ scale: 1.2 });
+        // Fit the page to the preview box instead of a fixed 1.2: measured
+        // fresh on every render so page flips and window resizes both refit.
+        const base = page.getViewport({ scale: 1 });
+        const boxWidth = previewBoxRef.current?.clientWidth ?? base.width;
+        const scale = Math.min(Math.max((boxWidth - 8) / base.width, 0.4), 1.5);
+        setRenderScale(scale);
+
+        const viewport = page.getViewport({ scale });
 
         canvas.height = viewport.height;
         canvas.width = viewport.width;
@@ -172,7 +212,12 @@ export default function EditPdfPage() {
     };
 
     renderPage();
-  }, [pdfDocProxy, selectedPageIndex]);
+  }, [pdfDocProxy, selectedPageIndex, resizeTick]);
+
+  const pointFromEvent = useCallback((e: { clientX: number; clientY: number }, el: HTMLElement) => {
+    const rect = el.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }, []);
 
   const handlePageClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (draggingAnnId || hasDragged || activeTool === "draw") {
@@ -180,9 +225,9 @@ export default function EditPdfPage() {
       return;
     }
 
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = Math.round(e.clientX - rect.left);
-    const y = Math.round(e.clientY - rect.top);
+    const { x: rawX, y: rawY } = pointFromEvent(e, e.currentTarget);
+    const x = Math.round(rawX);
+    const y = Math.round(rawY);
 
     const textToAdd = newText.trim() || "Add text here...";
 
@@ -221,25 +266,24 @@ export default function EditPdfPage() {
     }
   };
 
-  const startDragAnnotation = (e: React.MouseEvent, id: string, currentX: number, currentY: number) => {
+  // Pointer events unify mouse and touch, so dragging placed elements and
+  // freehand drawing work on phones — the previous mouse-only handlers meant
+  // the draw tool did nothing at all on a touch screen.
+  const startDragAnnotation = (e: React.PointerEvent, id: string, currentX: number, currentY: number) => {
     e.stopPropagation();
     setSelectedAnnotationId(id);
     setDraggingAnnId(id);
     setHasDragged(false);
 
     if (overlayContainerRef.current) {
-      const rect = overlayContainerRef.current.getBoundingClientRect();
-      const mouseX = e.clientX - rect.left;
-      const mouseY = e.clientY - rect.top;
+      const { x: mouseX, y: mouseY } = pointFromEvent(e, overlayContainerRef.current);
       setDragOffset({ x: mouseX - currentX, y: mouseY - currentY });
     }
   };
 
-  const onMouseMoveContainer = (e: React.MouseEvent<HTMLDivElement>) => {
+  const onPointerMoveContainer = (e: React.PointerEvent<HTMLDivElement>) => {
     if (isDrawing && activeTool === "draw") {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      const { x, y } = pointFromEvent(e, e.currentTarget);
       setCurrentPath((prev) => [...prev, { x, y }]);
       return;
     }
@@ -247,9 +291,7 @@ export default function EditPdfPage() {
     if (!draggingAnnId || !overlayContainerRef.current) return;
 
     setHasDragged(true);
-    const rect = overlayContainerRef.current.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
+    const { x: mouseX, y: mouseY } = pointFromEvent(e, overlayContainerRef.current);
 
     const newX = Math.round(mouseX - dragOffset.x);
     const newY = Math.round(mouseY - dragOffset.y);
@@ -264,7 +306,7 @@ export default function EditPdfPage() {
     );
   };
 
-  const onMouseUpContainer = () => {
+  const onPointerUpContainer = () => {
     if (isDrawing) {
       setIsDrawing(false);
       if (currentPath.length > 1) {
@@ -283,11 +325,9 @@ export default function EditPdfPage() {
     setDraggingAnnId(null);
   };
 
-  const startDrawing = (e: React.MouseEvent<HTMLDivElement>) => {
+  const startDrawing = (e: React.PointerEvent<HTMLDivElement>) => {
     if (activeTool !== "draw") return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const { x, y } = pointFromEvent(e, e.currentTarget);
 
     setIsDrawing(true);
     setCurrentPath([{ x, y }]);
@@ -321,9 +361,35 @@ export default function EditPdfPage() {
     setErrorMessage(null);
 
     try {
+      // The preview works in canvas pixels at renderScale; the server draws
+      // in PDF points. Dividing everything by the scale here is what makes
+      // the downloaded file match the preview — previously the raw scaled
+      // pixels were sent, landing every edit ~20% off.
+      const s = renderScale || 1;
+      const scaled = annotations.map((a) => {
+        if (a.type === "draw") {
+          return {
+            ...a,
+            path: a.path.map((p) => ({ x: p.x / s, y: p.y / s })),
+            strokeWidth: a.strokeWidth / s,
+          };
+        }
+        if (a.type === "replace") {
+          return {
+            ...a,
+            x: a.x / s,
+            y: a.y / s,
+            width: a.width / s,
+            height: a.height / s,
+            fontSize: a.fontSize / s,
+          };
+        }
+        return { ...a, x: a.x / s, y: a.y / s, fontSize: a.fontSize / s };
+      });
+
       const formData = new FormData();
       formData.append("file", rawFile);
-      formData.append("annotations", JSON.stringify(annotations));
+      formData.append("annotations", JSON.stringify(scaled));
 
       const response = await fetch("/api/edit-pdf", {
         method: "POST",
@@ -332,7 +398,7 @@ export default function EditPdfPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        setErrorMessage(errorData.error || "Failed to save edited PDF.");
+        setErrorMessage(errorData.error || errorData.message || "Failed to save edited PDF.");
         setProcessing(false);
         return;
       }
@@ -352,6 +418,22 @@ export default function EditPdfPage() {
       setProcessing(false);
     }
   };
+
+  const swatchRow = (current: string, apply: (hex: string) => void) => (
+    <div className="flex items-center gap-1.5 flex-wrap">
+      {COLOR_SWATCHES.map((hex) => (
+        <button
+          key={hex}
+          type="button"
+          onClick={() => apply(hex)}
+          className={`w-6 h-6 rounded-full border-2 transition-transform ${current.toLowerCase() === hex ? "border-slate-900 dark:border-white scale-110" : "border-transparent"
+            }`}
+          style={{ backgroundColor: hex }}
+          title={hex}
+        />
+      ))}
+    </div>
+  );
 
   return (
     <div className="max-w-6xl mx-auto w-full text-fg">
@@ -400,27 +482,24 @@ export default function EditPdfPage() {
               <button
                 type="button"
                 onClick={() => setActiveTool("replace")}
-                className={`flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
-                  activeTool === "replace" ? "bg-slate-900 text-white dark:bg-slate-800 border border-slate-900 dark:border-slate-700 shadow-md" : "text-muted hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50"
-                }`}
+                className={`flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${activeTool === "replace" ? "bg-slate-900 text-white dark:bg-slate-800 border border-slate-900 dark:border-slate-700 shadow-md" : "text-muted hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50"
+                  }`}
               >
                 <Eraser size={13} /> Edit/Replace
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTool("text")}
-                className={`flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
-                  activeTool === "text" ? "bg-slate-900 text-white dark:bg-slate-800 border border-slate-900 dark:border-slate-700 shadow-md" : "text-muted hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50"
-                }`}
+                className={`flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${activeTool === "text" ? "bg-slate-900 text-white dark:bg-slate-800 border border-slate-900 dark:border-slate-700 shadow-md" : "text-muted hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50"
+                  }`}
               >
                 <Type size={13} /> Add Text
               </button>
               <button
                 type="button"
                 onClick={() => setActiveTool("draw")}
-                className={`flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
-                  activeTool === "draw" ? "bg-slate-900 text-white dark:bg-slate-800 border border-slate-900 dark:border-slate-700 shadow-md" : "text-muted hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50"
-                }`}
+                className={`flex-1 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${activeTool === "draw" ? "bg-slate-900 text-white dark:bg-slate-800 border border-slate-900 dark:border-slate-700 shadow-md" : "text-muted hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/50"
+                  }`}
               >
                 <Pencil size={13} /> Draw
               </button>
@@ -509,11 +588,10 @@ export default function EditPdfPage() {
                       setIsBold(next);
                       updateSelectedAnnotation("isBold", next);
                     }}
-                    className={`p-2 rounded-lg border text-xs font-semibold flex items-center justify-center flex-1 transition-all ${
-                      (selectedTextAnn ? selectedTextAnn.isBold : isBold)
-                        ? "border-slate-900 dark:border-slate-600 bg-slate-900 text-white dark:bg-slate-800"
-                        : "border-card bg-card text-muted hover:border-slate-300 dark:hover:border-slate-700"
-                    }`}
+                    className={`p-2 rounded-lg border text-xs font-semibold flex items-center justify-center flex-1 transition-all ${(selectedTextAnn ? selectedTextAnn.isBold : isBold)
+                      ? "border-slate-900 dark:border-slate-600 bg-slate-900 text-white dark:bg-slate-800"
+                      : "border-card bg-card text-muted hover:border-slate-300 dark:hover:border-slate-700"
+                      }`}
                   >
                     <Bold size={14} />
                   </button>
@@ -524,11 +602,10 @@ export default function EditPdfPage() {
                       setIsItalic(next);
                       updateSelectedAnnotation("isItalic", next);
                     }}
-                    className={`p-2 rounded-lg border text-xs font-semibold flex items-center justify-center flex-1 transition-all ${
-                      (selectedTextAnn ? selectedTextAnn.isItalic : isItalic)
-                        ? "border-slate-900 dark:border-slate-600 bg-slate-900 text-white dark:bg-slate-800"
-                        : "border-card bg-card text-muted hover:border-slate-300 dark:hover:border-slate-700"
-                    }`}
+                    className={`p-2 rounded-lg border text-xs font-semibold flex items-center justify-center flex-1 transition-all ${(selectedTextAnn ? selectedTextAnn.isItalic : isItalic)
+                      ? "border-slate-900 dark:border-slate-600 bg-slate-900 text-white dark:bg-slate-800"
+                      : "border-card bg-card text-muted hover:border-slate-300 dark:hover:border-slate-700"
+                      }`}
                   >
                     <Italic size={14} />
                   </button>
@@ -541,6 +618,14 @@ export default function EditPdfPage() {
                     }}
                     className="h-8 w-12 rounded-lg border border-card cursor-pointer bg-card p-0.5"
                   />
+                </div>
+
+                <div>
+                  <label className="text-xs text-muted block mb-1">Quick Colors</label>
+                  {swatchRow(selectedTextAnn ? selectedTextAnn.color : textColor, (hex) => {
+                    setTextColor(hex);
+                    updateSelectedAnnotation("color", hex);
+                  })}
                 </div>
 
                 <div>
@@ -568,12 +653,15 @@ export default function EditPdfPage() {
                 <p className="text-xs font-semibold text-fg">Drawing Properties</p>
                 <div>
                   <label className="text-xs text-muted block mb-1">Color</label>
-                  <input
-                    type="color"
-                    value={drawColor}
-                    onChange={(e) => setDrawColor(e.target.value)}
-                    className="w-full h-9 rounded-xl border border-card cursor-pointer bg-card p-1"
-                  />
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={drawColor}
+                      onChange={(e) => setDrawColor(e.target.value)}
+                      className="h-9 w-14 rounded-xl border border-card cursor-pointer bg-card p-1 shrink-0"
+                    />
+                    {swatchRow(drawColor, setDrawColor)}
+                  </div>
                 </div>
                 <div>
                   <label className="text-xs text-muted block mb-1">Stroke Width: {strokeWidth}px</label>
@@ -599,11 +687,10 @@ export default function EditPdfPage() {
                     <div
                       key={ann.id}
                       onClick={() => setSelectedAnnotationId(ann.id)}
-                      className={`flex items-center justify-between p-2 rounded-lg text-xs cursor-pointer transition-colors ${
-                        selectedAnnotationId === ann.id 
-                          ? "bg-slate-900 text-white dark:bg-slate-800 border border-slate-900 dark:border-slate-700" 
-                          : "bg-card border border-card text-muted hover:border-slate-300 dark:hover:border-slate-700"
-                      }`}
+                      className={`flex items-center justify-between p-2 rounded-lg text-xs cursor-pointer transition-colors ${selectedAnnotationId === ann.id
+                        ? "bg-slate-900 text-white dark:bg-slate-800 border border-slate-900 dark:border-slate-700"
+                        : "bg-card border border-card text-muted hover:border-slate-300 dark:hover:border-slate-700"
+                        }`}
                     >
                       <span className="truncate pr-2 font-medium">
                         P{ann.pageIndex + 1}: {ann.type === "replace" ? `Replace → "${ann.newText}"` : ann.type === "text" ? `Text: "${ann.text}"` : "Draw Stroke"}
@@ -650,8 +737,8 @@ export default function EditPdfPage() {
             </button>
           </div>
 
-          <div className="lg:col-span-2 flex flex-col items-center bg-card p-4 rounded-2xl border border-card shadow-xl transition-colors">
-            <div className="flex items-center justify-between w-full mb-3 px-2">
+          <div className="lg:col-span-2 flex flex-col items-center bg-card p-3 sm:p-4 rounded-2xl border border-card shadow-xl transition-colors">
+            <div className="flex flex-wrap items-center justify-between gap-2 w-full mb-3 px-2">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -678,16 +765,30 @@ export default function EditPdfPage() {
               </span>
             </div>
 
-            <div className="relative border border-card bg-card rounded-xl overflow-auto max-h-[650px] shadow-inner flex justify-center w-full transition-colors">
+            <div ref={previewBoxRef} className="relative border border-card bg-card rounded-xl overflow-auto max-h-[75vh] shadow-inner flex justify-center w-full transition-colors">
               <div
                 ref={overlayContainerRef}
                 onClick={handlePageClick}
-                onMouseDown={startDrawing}
-                onMouseMove={onMouseMoveContainer}
-                onMouseUp={onMouseUpContainer}
-                className="relative cursor-crosshair inline-block"
+                onPointerDown={startDrawing}
+                onPointerMove={onPointerMoveContainer}
+                onPointerUp={onPointerUpContainer}
+                className={`relative cursor-crosshair inline-block ${activeTool === "draw" ? "touch-none" : ""}`}
               >
                 <canvas ref={canvasRef} className="block" />
+
+                {/* The in-progress stroke, so drawing gives live feedback. */}
+                {isDrawing && currentPath.length > 1 && (
+                  <svg className="absolute inset-0 pointer-events-none w-full h-full">
+                    <polyline
+                      fill="none"
+                      stroke={drawColor}
+                      strokeWidth={strokeWidth}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      points={currentPath.map((p) => `${p.x},${p.y}`).join(" ")}
+                    />
+                  </svg>
+                )}
 
                 {annotations
                   .filter((ann) => ann.pageIndex === selectedPageIndex)
@@ -714,7 +815,7 @@ export default function EditPdfPage() {
                       return (
                         <div
                           key={ann.id}
-                          onMouseDown={(e) => startDragAnnotation(e, ann.id, ann.x, ann.y)}
+                          onPointerDown={(e) => startDragAnnotation(e, ann.id, ann.x, ann.y)}
                           style={{
                             position: "absolute",
                             left: `${ann.x}px`,
@@ -722,9 +823,8 @@ export default function EditPdfPage() {
                             width: `${ann.width}px`,
                             height: `${ann.height}px`,
                           }}
-                          className={`flex items-center bg-white px-1 select-none cursor-move group ${
-                            isSelected ? "ring-2 ring-slate-900 dark:ring-slate-400 shadow-md" : "border border-dashed border-slate-400/60"
-                          }`}
+                          className={`flex items-center bg-white px-1 select-none cursor-move group touch-none ${isSelected ? "ring-2 ring-slate-900 dark:ring-slate-400 shadow-md" : "border border-dashed border-slate-400/60"
+                            }`}
                         >
                           <span
                             style={{
@@ -746,15 +846,14 @@ export default function EditPdfPage() {
                       return (
                         <div
                           key={ann.id}
-                          onMouseDown={(e) => startDragAnnotation(e, ann.id, ann.x, ann.y)}
+                          onPointerDown={(e) => startDragAnnotation(e, ann.id, ann.x, ann.y)}
                           style={{
                             position: "absolute",
                             left: `${ann.x}px`,
                             top: `${ann.y}px`,
                           }}
-                          className={`px-1.5 py-0.5 select-none cursor-move rounded ${
-                            isSelected ? "ring-2 ring-slate-900 dark:ring-slate-400 bg-slate-200/40 dark:bg-slate-800/40 shadow-md" : "hover:bg-slate-200/20 dark:hover:bg-slate-800/20 border border-transparent hover:border-slate-300 dark:hover:border-slate-700"
-                          }`}
+                          className={`px-1.5 py-0.5 select-none cursor-move rounded touch-none ${isSelected ? "ring-2 ring-slate-900 dark:ring-slate-400 bg-slate-200/40 dark:bg-slate-800/40 shadow-md" : "hover:bg-slate-200/20 dark:hover:bg-slate-800/20 border border-transparent hover:border-slate-300 dark:hover:border-slate-700"
+                            }`}
                         >
                           <span
                             style={{

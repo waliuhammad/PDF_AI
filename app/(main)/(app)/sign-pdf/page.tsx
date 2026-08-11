@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { FileText, X, Download, ShieldCheck, Sparkles } from "lucide-react";
+import { FileText, X, Download, ShieldCheck, Sparkles, Loader2, CheckCircle2 } from "lucide-react";
 import { UploadCard } from "@/components/tools/upload-card";
 import type * as PdfjsLib from "pdfjs-dist";
 import { loadPdfjs } from "@/lib/pdf-libs";
@@ -11,17 +11,23 @@ export default function SignPdfPage() {
   const [file, setFile] = useState<{ name: string; size: string; rawFile: File } | null>(null);
   const [mode, setMode] = useState<"type" | "draw">("type");
   const [signatureText, setSignatureText] = useState("");
-  
+
   // PDF Preview and Advanced States
   const [numPages, setNumPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pdfDocProxy, setPdfDocProxy] = useState<PdfjsLib.PDFDocumentProxy | null>(null);
   const [position, setPosition] = useState<"left" | "center" | "right">("right");
   const [signScope, setSignScope] = useState<"specific" | "all">("specific");
-  
+
   // Drawing states
   const [penColor, setPenColor] = useState("#0f172a");
   const [isDrawing, setIsDrawing] = useState(false);
+  /** True once a stroke has been drawn, so an untouched canvas can't be "signed" with. */
+  const [hasDrawn, setHasDrawn] = useState(false);
+
+  const [processing, setProcessing] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -36,8 +42,10 @@ export default function SignPdfPage() {
     if (!fileList || fileList.length === 0) return;
     const f = fileList[0];
     if (f.type !== "application/pdf") return;
-    
+
     setFile({ name: f.name, size: formatSize(f.size), rawFile: f });
+    setErrorMessage(null);
+    setSuccessMessage(false);
 
     try {
       const arrayBuffer = await f.arrayBuffer();
@@ -65,34 +73,32 @@ export default function SignPdfPage() {
         const page = await pdfDocProxy.getPage(currentPage);
         if (isCancelled) return;
 
-        const viewport = page.getViewport({ scale: 0.65 });
+        const viewport = page.getViewport({ scale: 0.8 });
         const canvas = previewCanvasRef.current;
         if (!canvas) return;
         const context = canvas.getContext("2d");
         if (!context) return;
-
         canvas.height = viewport.height;
         canvas.width = viewport.width;
 
         const renderTask = page.render({ canvasContext: context, viewport });
         renderTaskRef.current = renderTask;
-
         await renderTask.promise;
         if (isCancelled) return;
 
         const hasSignature = mode === "type" ? signatureText.trim().length > 0 : canvasRef.current !== null;
+
         if (hasSignature) {
-          context.save();
-          const margin = 35;
+          const margin = 30;
           const sigY = canvas.height - 35;
+          let sigX = margin;
 
           if (mode === "type" && signatureText.trim()) {
-            context.font = "bold 14px Helvetica, Arial, sans-serif";
+            context.font = "italic 18px cursive";
             context.fillStyle = penColor;
             const metrics = context.measureText(signatureText);
             const textWidth = metrics.width;
 
-            let sigX = margin;
             if (position === "center") {
               sigX = (canvas.width - textWidth) / 2;
             } else if (position === "right") {
@@ -102,21 +108,20 @@ export default function SignPdfPage() {
             context.fillText(signatureText, sigX, sigY);
           } else if (mode === "draw" && canvasRef.current) {
             const drawCanvas = canvasRef.current;
-            const imgWidth = 110;
-            const imgHeight = 35;
+            const imgWidth = 120;
+            const imgHeight = 40;
 
-            let sigX = margin;
             if (position === "center") {
               sigX = (canvas.width - imgWidth) / 2;
             } else if (position === "right") {
               sigX = canvas.width - imgWidth - margin;
             }
 
-            context.drawImage(drawCanvas, sigX, sigY - 30, imgWidth, imgHeight);
+            context.drawImage(drawCanvas, sigX, sigY - imgHeight + 10, imgWidth, imgHeight);
           }
-          context.restore();
         }
       } catch (err) {
+        // Render cancellations are routine when flipping pages quickly.
         if (errorName(err) !== "RenderingCancelledException") {
           console.error("Preview render error:", err);
         }
@@ -137,38 +142,42 @@ export default function SignPdfPage() {
       canvas.height = 100;
       const ctx = canvas.getContext("2d");
       if (ctx) {
-        ctx.strokeStyle = penColor;
-        ctx.lineWidth = 2.5;
+        ctx.lineWidth = 2;
         ctx.lineCap = "round";
-        ctx.lineJoin = "round";
+        ctx.strokeStyle = penColor;
       }
+      setHasDrawn(false);
     }
   }, [mode, penColor]);
 
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    setIsDrawing(true);
+  const getPos = (e: React.MouseEvent | React.TouchEvent) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    const point = "touches" in e ? e.touches[0] : e;
+    return { x: point.clientX - rect.left, y: point.clientY - rect.top };
+  };
+
+  const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    const rect = canvas.getBoundingClientRect();
-    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
-    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+    const { x, y } = getPos(e);
     ctx.beginPath();
-    ctx.moveTo(clientX - rect.left, clientY - rect.top);
+    ctx.moveTo(x, y);
+    setIsDrawing(true);
+    setHasDrawn(true);
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const draw = (e: React.MouseEvent | React.TouchEvent) => {
     if (!isDrawing) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    const rect = canvas.getBoundingClientRect();
-    const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
-    const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
-    ctx.strokeStyle = penColor;
-    ctx.lineTo(clientX - rect.left, clientY - rect.top);
+    const { x, y } = getPos(e);
+    ctx.lineTo(x, y);
     ctx.stroke();
   };
 
@@ -178,26 +187,78 @@ export default function SignPdfPage() {
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
     if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setHasDrawn(false);
   };
 
-  const handleDownload = () => {
+  /**
+   * Signs on the server and downloads the result. The previous version
+   * downloaded the untouched uploaded file under a "signed_" name — the
+   * /api/sign-pdf route existed but was never called, so no download was
+   * ever actually signed.
+   */
+  const executeSignAndDownload = async () => {
     if (!file) return;
-    const url = URL.createObjectURL(file.rawFile);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `signed_${file.name}`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+
+    setProcessing(true);
+    setErrorMessage(null);
+    setSuccessMessage(false);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file.rawFile);
+      formData.append("signMode", mode);
+      formData.append("pageNumber", String(currentPage));
+      formData.append("position", position);
+      formData.append("signScope", signScope);
+
+      if (mode === "type") {
+        formData.append("signatureText", signatureText.trim());
+      } else {
+        const canvas = canvasRef.current;
+        if (!canvas || !hasDrawn) {
+          setErrorMessage("Please draw your signature first.");
+          setProcessing(false);
+          return;
+        }
+        formData.append("signatureImage", canvas.toDataURL("image/png"));
+      }
+
+      const response = await fetch("/api/sign-pdf", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        setErrorMessage(errorData.error || errorData.message || "Failed to sign the document.");
+        setProcessing(false);
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${file.name.replace(/\.[^/.]+$/, "")}-signed.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      setSuccessMessage(true);
+    } catch {
+      setErrorMessage("An error occurred while signing the document.");
+    } finally {
+      setProcessing(false);
+    }
   };
 
-  const isFormValid = mode === "type" ? signatureText.trim().length > 0 : true;
+  const isFormValid = mode === "type" ? signatureText.trim().length > 0 : hasDrawn;
 
   return (
     <div className="min-h-screen bg-background text-fg flex items-center justify-center p-4 font-sans transition-colors">
-      <div className="w-full max-w-4xl bg-card border border-card rounded-3xl p-8 shadow-2xl relative overflow-hidden">
-        
+      <div className="w-full max-w-4xl bg-card border border-card rounded-3xl p-5 sm:p-8 shadow-2xl relative overflow-hidden">
+
         {!file ? (
           <>
             {/* Header Badge */}
@@ -229,19 +290,19 @@ export default function SignPdfPage() {
           </>
         ) : (
           <div className="space-y-6">
-            <div className="flex items-center justify-between border-b border-card pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-900/5 dark:bg-slate-800 border border-slate-900/10 dark:border-slate-700 flex items-center justify-center text-fg">
+            <div className="flex items-center justify-between gap-3 border-b border-card pb-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 rounded-xl bg-slate-900/5 dark:bg-slate-800 border border-slate-900/10 dark:border-slate-700 flex items-center justify-center text-fg shrink-0">
                   <FileText size={20} />
                 </div>
-                <div>
-                  <p className="text-sm font-semibold text-fg">{file.name}</p>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-fg truncate">{file.name}</p>
                   <p className="text-muted text-xs">{file.size} • {numPages} {numPages === 1 ? 'Page' : 'Pages'}</p>
                 </div>
               </div>
-              <button 
-                onClick={() => { setFile(null); setPdfDocProxy(null); }} 
-                className="w-8 h-8 rounded-lg bg-[var(--background-secondary)] hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-muted hover:text-slate-900 dark:hover:text-white transition-colors"
+              <button
+                onClick={() => { setFile(null); setPdfDocProxy(null); setErrorMessage(null); setSuccessMessage(false); }}
+                className="w-8 h-8 rounded-lg bg-[var(--background-secondary)] hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-muted hover:text-slate-900 dark:hover:text-white transition-colors shrink-0"
               >
                 <X size={16} />
               </button>
@@ -250,7 +311,7 @@ export default function SignPdfPage() {
             {/* PDF Preview & Pagination Controls */}
             {numPages > 0 && (
               <div className="space-y-3 bg-[var(--background-secondary)] p-4 rounded-2xl border border-card">
-                <div className="flex items-center justify-between text-xs text-muted font-medium">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted font-medium">
                   <span>Page Preview (Page {currentPage} of {numPages})</span>
                   <div className="flex space-x-2">
                     <button
@@ -272,29 +333,27 @@ export default function SignPdfPage() {
                   </div>
                 </div>
                 <div className="flex justify-center bg-slate-200/50 dark:bg-black/40 rounded-xl p-2 overflow-hidden border border-card">
-                  <canvas ref={previewCanvasRef} className="rounded shadow max-h-60 object-contain" />
+                  <canvas ref={previewCanvasRef} className="rounded shadow max-h-60 max-w-full object-contain" />
                 </div>
               </div>
             )}
 
             {/* Config options */}
-            <div className="bg-[var(--background-secondary)] p-5 rounded-2xl border border-card space-y-4">
+            <div className="bg-[var(--background-secondary)] p-4 sm:p-5 rounded-2xl border border-card space-y-4">
               <div className="flex gap-2 bg-slate-200/60 dark:bg-slate-900/60 p-1 rounded-xl border border-card">
                 <button
                   type="button"
                   onClick={() => setMode("type")}
-                  className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-colors ${
-                    mode === "type" ? "bg-slate-900 dark:bg-slate-800 text-white shadow" : "text-muted hover:text-slate-900 dark:hover:text-white"
-                  }`}
+                  className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-colors ${mode === "type" ? "bg-slate-900 dark:bg-slate-800 text-white shadow" : "text-muted hover:text-slate-900 dark:hover:text-white"
+                    }`}
                 >
                   Type Signature
                 </button>
                 <button
                   type="button"
                   onClick={() => setMode("draw")}
-                  className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-colors ${
-                    mode === "draw" ? "bg-slate-900 dark:bg-slate-800 text-white shadow" : "text-muted hover:text-slate-900 dark:hover:text-white"
-                  }`}
+                  className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-colors ${mode === "draw" ? "bg-slate-900 dark:bg-slate-800 text-white shadow" : "text-muted hover:text-slate-900 dark:hover:text-white"
+                    }`}
                 >
                   Draw Signature
                 </button>
@@ -313,7 +372,7 @@ export default function SignPdfPage() {
                 </div>
               ) : (
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
                     <label className="text-xs font-semibold uppercase tracking-wider text-muted">
                       Draw Signature
                     </label>
@@ -344,7 +403,7 @@ export default function SignPdfPage() {
                       onTouchStart={startDrawing}
                       onTouchMove={draw}
                       onTouchEnd={stopDrawing}
-                      className="cursor-crosshair touch-none bg-white rounded-lg"
+                      className="cursor-crosshair touch-none bg-white rounded-lg max-w-full"
                     />
                   </div>
                 </div>
@@ -360,22 +419,20 @@ export default function SignPdfPage() {
                     <button
                       type="button"
                       onClick={() => setSignScope("specific")}
-                      className={`py-2 text-xs font-semibold rounded-xl border transition-all ${
-                        signScope === "specific"
-                          ? "bg-slate-900/5 dark:bg-slate-800 border-slate-900 dark:border-slate-100 text-fg"
-                          : "border-card bg-card text-muted"
-                      }`}
+                      className={`py-2 text-xs font-semibold rounded-xl border transition-all ${signScope === "specific"
+                        ? "bg-slate-900/5 dark:bg-slate-800 border-slate-900 dark:border-slate-100 text-fg"
+                        : "border-card bg-card text-muted"
+                        }`}
                     >
                       Page {currentPage}
                     </button>
                     <button
                       type="button"
                       onClick={() => setSignScope("all")}
-                      className={`py-2 text-xs font-semibold rounded-xl border transition-all ${
-                        signScope === "all"
-                          ? "bg-slate-900/5 dark:bg-slate-800 border-slate-900 dark:border-slate-100 text-fg"
-                          : "border-card bg-card text-muted"
-                      }`}
+                      className={`py-2 text-xs font-semibold rounded-xl border transition-all ${signScope === "all"
+                        ? "bg-slate-900/5 dark:bg-slate-800 border-slate-900 dark:border-slate-100 text-fg"
+                        : "border-card bg-card text-muted"
+                        }`}
                     >
                       All Pages
                     </button>
@@ -392,11 +449,10 @@ export default function SignPdfPage() {
                         key={pos}
                         type="button"
                         onClick={() => setPosition(pos)}
-                        className={`py-2 text-xs font-semibold rounded-xl border uppercase tracking-wider transition-all ${
-                          position === pos
-                            ? "bg-slate-900/5 dark:bg-slate-800 border-slate-900 dark:border-slate-100 text-fg"
-                            : "border-card bg-card text-muted"
-                        }`}
+                        className={`py-2 text-xs font-semibold rounded-xl border uppercase tracking-wider transition-all ${position === pos
+                          ? "bg-slate-900/5 dark:bg-slate-800 border-slate-900 dark:border-slate-100 text-fg"
+                          : "border-card bg-card text-muted"
+                          }`}
                       >
                         {pos}
                       </button>
@@ -406,19 +462,37 @@ export default function SignPdfPage() {
               </div>
             </div>
 
+            {errorMessage && (
+              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 dark:text-red-400 text-xs text-center font-medium">
+                {errorMessage}
+              </div>
+            )}
+
+            {successMessage && (
+              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 text-xs font-semibold flex items-center justify-center gap-2">
+                <CheckCircle2 size={16} /> Document signed & downloaded successfully!
+              </div>
+            )}
+
             <div className="pt-2 text-center">
-              {/* isFormValid was computed for this and never used, so a typed
-                  signature left empty still downloaded — a PDF with nothing
-                  signed on it. */}
               <button
                 type="button"
-                onClick={handleDownload}
-                disabled={!isFormValid}
-                title={isFormValid ? undefined : "Type your signature first"}
+                onClick={executeSignAndDownload}
+                disabled={!isFormValid || processing}
+                title={isFormValid ? undefined : mode === "type" ? "Type your signature first" : "Draw your signature first"}
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full text-white font-medium transition-colors text-sm shadow-lg bg-[#0d1322] border border-slate-700 hover:bg-[#131b2e] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#0d1322]"
               >
-                <Download size={18} />
-                Download Signed PDF
+                {processing ? (
+                  <>
+                    <Loader2 className="animate-spin" size={18} />
+                    Signing Document...
+                  </>
+                ) : (
+                  <>
+                    <Download size={18} />
+                    Download Signed PDF
+                  </>
+                )}
               </button>
             </div>
           </div>

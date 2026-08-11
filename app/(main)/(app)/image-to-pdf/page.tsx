@@ -129,7 +129,42 @@ export default function ImageToPdf(): JSX.Element {
   const [selectedImageId, setSelectedImageId] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  
+
+  /**
+   * Free-typing layer for every numeric field on this page.
+   *
+   * Binding an input's value straight to the model meant an emptied field
+   * refilled itself mid-keystroke: parseFloat("") is NaN, the || fallback
+   * wrote 10 (or 0) back, and typing a custom number meant fighting the
+   * input. While a field is being edited its raw text lives here under a
+   * key unique to the thing being edited ("<id>:width", "<textId>:x"), the
+   * model updates only when the text parses to something usable, and blur
+   * drops the draft so the display snaps back to the real value.
+   */
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+
+  const draftFor = (key: string, modelValue: number | string): number | string =>
+    drafts[key] ?? modelValue;
+
+  const editDraft = (key: string, raw: string, commit: (parsed: number) => void, mustBePositive = false) => {
+    setDrafts((d) => ({ ...d, [key]: raw }));
+
+    const parsed = parseFloat(raw);
+    if (!Number.isFinite(parsed)) return;
+    if (mustBePositive && parsed <= 0) return;
+
+    commit(parsed);
+  };
+
+  const dropDraft = (key: string) => {
+    setDrafts((d) => {
+      if (!(key in d)) return d;
+      const next = { ...d };
+      delete next[key];
+      return next;
+    });
+  };
+
   const addMoreInputRef = useRef<HTMLInputElement>(null);
 
   const handleFilesChange = (e: React.ChangeEvent<HTMLInputElement>, isAppending: boolean = false): void => {
@@ -227,6 +262,7 @@ export default function ImageToPdf(): JSX.Element {
     images.forEach((img) => URL.revokeObjectURL(img.previewUrl));
     setImages([]);
     setSelectedImageId(null);
+    setDrafts({});
     setError(null);
   };
 
@@ -350,7 +386,7 @@ export default function ImageToPdf(): JSX.Element {
   return (
     <div className="min-h-screen bg-background text-fg flex flex-col items-center justify-center p-6 antialiased selection:bg-slate-900 dark:selection:bg-blue-500 selection:text-white">
       <div className="max-w-4xl w-full space-y-8 bg-card border border-card p-8 rounded-3xl shadow-xl dark:shadow-2xl backdrop-blur-xl">
-        
+
         <div className="text-center space-y-2">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-blue-500/10 border border-slate-200 dark:border-blue-500/20 text-slate-700 dark:text-blue-400 text-xs font-semibold tracking-wide uppercase">
             <Sparkles className="w-3.5 h-3.5 text-slate-900 dark:text-blue-400" />
@@ -374,11 +410,11 @@ export default function ImageToPdf(): JSX.Element {
 
         {images.length > 0 && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-muted font-bold uppercase tracking-wider">
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+              <span className="text-xs text-muted font-bold uppercase tracking-wider whitespace-nowrap">
                 Canvas Elements ({images.length})
               </span>
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3 shrink-0">
                 <button
                   onClick={() => addMoreInputRef.current?.click()}
                   className="inline-flex items-center space-x-1 text-xs text-white bg-slate-900 dark:bg-blue-500/10 dark:hover:bg-blue-500/20 dark:text-blue-400 hover:bg-slate-800 px-3 py-1.5 rounded-lg border border-transparent dark:border-blue-500/20 transition cursor-pointer font-medium shadow-sm dark:shadow-none"
@@ -408,11 +444,10 @@ export default function ImageToPdf(): JSX.Element {
                 <button
                   key={item.id}
                   onClick={() => setSelectedImageId(item.id)}
-                  className={`flex items-center space-x-2 p-2 rounded-xl border shrink-0 transition cursor-pointer ${
-                    selectedImageId === item.id
-                      ? "bg-slate-900 border-slate-900 text-white shadow-sm dark:bg-slate-800 dark:border-slate-600"
-                      : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-[var(--background-secondary)] dark:border-slate-700/60 dark:text-slate-400 dark:hover:bg-slate-800"
-                  }`}
+                  className={`flex items-center space-x-2 p-2 rounded-xl border shrink-0 transition cursor-pointer ${selectedImageId === item.id
+                    ? "bg-slate-900 border-slate-900 text-white shadow-sm dark:bg-slate-800 dark:border-slate-600"
+                    : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-[var(--background-secondary)] dark:border-slate-700/60 dark:text-slate-400 dark:hover:bg-slate-800"
+                    }`}
                 >
                   <img src={item.previewUrl} alt="" className="w-8 h-8 object-cover rounded-md border border-slate-200 dark:border-none" />
                   <span className="text-xs font-medium max-w-[100px] truncate">Image #{idx + 1}</span>
@@ -422,7 +457,7 @@ export default function ImageToPdf(): JSX.Element {
 
             {selectedImg && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-[var(--background-secondary)] border border-card rounded-2xl p-6">
-                
+
                 {/* Visual Preview Box showing ALL images together on one page */}
                 <div className="flex flex-col items-center justify-center bg-slate-900/5 dark:bg-black/40 border border-card rounded-xl p-3 sm:p-4 pt-9 sm:pt-10 relative min-h-[240px] sm:min-h-[320px]">
                   <span className="absolute top-3 left-3 text-[11px] text-muted uppercase font-mono tracking-wider">
@@ -471,11 +506,10 @@ export default function ImageToPdf(): JSX.Element {
                             ))}
                         </div>
                         <span
-                          className={`text-[10px] font-mono ${
-                            selectedImg?.page === pageNo
-                              ? "text-slate-900 dark:text-blue-400 font-bold"
-                              : "text-muted"
-                          }`}
+                          className={`text-[10px] font-mono ${selectedImg?.page === pageNo
+                            ? "text-slate-900 dark:text-blue-400 font-bold"
+                            : "text-muted"
+                            }`}
                         >
                           Page {pageIdx + 1}
                         </span>
@@ -486,7 +520,7 @@ export default function ImageToPdf(): JSX.Element {
 
                 {/* Editor Settings Panel */}
                 <div className="space-y-5 max-h-[420px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-700">
-                  
+
                   <div className="space-y-3">
                     <div className="flex items-center space-x-2 text-fg text-sm font-semibold border-b border-card pb-2">
                       <Sliders className="w-4 h-4 text-muted" />
@@ -498,8 +532,11 @@ export default function ImageToPdf(): JSX.Element {
                         <label className="text-[11px] text-muted font-bold uppercase">Width</label>
                         <input
                           type="number"
-                          value={selectedImg.width}
-                          onChange={(e) => handlePropertyChange("width", parseFloat(e.target.value) || 10)}
+                          value={draftFor(`${selectedImg.id}:width`, selectedImg.width)}
+                          onChange={(e) =>
+                            editDraft(`${selectedImg.id}:width`, e.target.value, (n) => handlePropertyChange("width", n), true)
+                          }
+                          onBlur={() => dropDraft(`${selectedImg.id}:width`)}
                           className="w-full bg-card border border-card rounded-xl px-3 py-1.5 text-xs text-fg mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                         />
                       </div>
@@ -507,8 +544,11 @@ export default function ImageToPdf(): JSX.Element {
                         <label className="text-[11px] text-muted font-bold uppercase">Height</label>
                         <input
                           type="number"
-                          value={selectedImg.height}
-                          onChange={(e) => handlePropertyChange("height", parseFloat(e.target.value) || 10)}
+                          value={draftFor(`${selectedImg.id}:height`, selectedImg.height)}
+                          onChange={(e) =>
+                            editDraft(`${selectedImg.id}:height`, e.target.value, (n) => handlePropertyChange("height", n), true)
+                          }
+                          onBlur={() => dropDraft(`${selectedImg.id}:height`)}
                           className="w-full bg-card border border-card rounded-xl px-3 py-1.5 text-xs text-fg mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                         />
                       </div>
@@ -516,8 +556,11 @@ export default function ImageToPdf(): JSX.Element {
                         <label className="text-[11px] text-muted font-bold uppercase">X Offset</label>
                         <input
                           type="number"
-                          value={selectedImg.xPos}
-                          onChange={(e) => handlePropertyChange("xPos", parseFloat(e.target.value) || 0)}
+                          value={draftFor(`${selectedImg.id}:xPos`, selectedImg.xPos)}
+                          onChange={(e) =>
+                            editDraft(`${selectedImg.id}:xPos`, e.target.value, (n) => handlePropertyChange("xPos", n))
+                          }
+                          onBlur={() => dropDraft(`${selectedImg.id}:xPos`)}
                           className="w-full bg-card border border-card rounded-xl px-3 py-1.5 text-xs text-fg mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                         />
                       </div>
@@ -525,8 +568,11 @@ export default function ImageToPdf(): JSX.Element {
                         <label className="text-[11px] text-muted font-bold uppercase">Y Offset</label>
                         <input
                           type="number"
-                          value={selectedImg.yPos}
-                          onChange={(e) => handlePropertyChange("yPos", parseFloat(e.target.value) || 0)}
+                          value={draftFor(`${selectedImg.id}:yPos`, selectedImg.yPos)}
+                          onChange={(e) =>
+                            editDraft(`${selectedImg.id}:yPos`, e.target.value, (n) => handlePropertyChange("yPos", n))
+                          }
+                          onBlur={() => dropDraft(`${selectedImg.id}:yPos`)}
                           className="w-full bg-card border border-card rounded-xl px-3 py-1.5 text-xs text-fg mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                         />
                       </div>
@@ -536,10 +582,13 @@ export default function ImageToPdf(): JSX.Element {
                           type="number"
                           min={1}
                           step={1}
-                          value={selectedImg.page + 1}
+                          value={draftFor(`${selectedImg.id}:page`, selectedImg.page + 1)}
                           onChange={(e) =>
-                            handlePropertyChange("page", Math.max(0, Math.round(parseFloat(e.target.value) || 1) - 1))
+                            editDraft(`${selectedImg.id}:page`, e.target.value, (n) =>
+                              handlePropertyChange("page", Math.max(0, Math.round(n) - 1))
+                              , true)
                           }
+                          onBlur={() => dropDraft(`${selectedImg.id}:page`)}
                           className="w-full bg-card border border-card rounded-xl px-3 py-1.5 text-xs text-fg mt-1 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500"
                         />
                       </div>
@@ -598,8 +647,13 @@ export default function ImageToPdf(): JSX.Element {
                             <label className="text-[10px] text-muted uppercase">Size (pt)</label>
                             <input
                               type="number"
-                              value={t.fontSize}
-                              onChange={(e) => handleUpdateTextAnnotation(t.id, { fontSize: parseFloat(e.target.value) || 10 })}
+                              value={draftFor(`${t.id}:fontSize`, t.fontSize)}
+                              onChange={(e) =>
+                                editDraft(`${t.id}:fontSize`, e.target.value, (n) =>
+                                  handleUpdateTextAnnotation(t.id, { fontSize: n })
+                                  , true)
+                              }
+                              onBlur={() => dropDraft(`${t.id}:fontSize`)}
                               className="w-full bg-[var(--background-secondary)] border border-card rounded-lg px-2 py-1 text-xs text-fg mt-0.5 focus:outline-none"
                             />
                           </div>
@@ -610,8 +664,11 @@ export default function ImageToPdf(): JSX.Element {
                             <label className="text-[10px] text-muted uppercase">X Coord (mm)</label>
                             <input
                               type="number"
-                              value={t.x}
-                              onChange={(e) => handleUpdateTextAnnotation(t.id, { x: parseFloat(e.target.value) || 0 })}
+                              value={draftFor(`${t.id}:x`, t.x)}
+                              onChange={(e) =>
+                                editDraft(`${t.id}:x`, e.target.value, (n) => handleUpdateTextAnnotation(t.id, { x: n }))
+                              }
+                              onBlur={() => dropDraft(`${t.id}:x`)}
                               className="w-full bg-[var(--background-secondary)] border border-card rounded-lg px-2 py-1 text-xs text-fg mt-0.5 focus:outline-none"
                             />
                           </div>
@@ -619,8 +676,11 @@ export default function ImageToPdf(): JSX.Element {
                             <label className="text-[10px] text-muted uppercase">Y Coord (mm)</label>
                             <input
                               type="number"
-                              value={t.y}
-                              onChange={(e) => handleUpdateTextAnnotation(t.id, { y: parseFloat(e.target.value) || 0 })}
+                              value={draftFor(`${t.id}:y`, t.y)}
+                              onChange={(e) =>
+                                editDraft(`${t.id}:y`, e.target.value, (n) => handleUpdateTextAnnotation(t.id, { y: n }))
+                              }
+                              onBlur={() => dropDraft(`${t.id}:y`)}
                               className="w-full bg-[var(--background-secondary)] border border-card rounded-lg px-2 py-1 text-xs text-fg mt-0.5 focus:outline-none"
                             />
                           </div>

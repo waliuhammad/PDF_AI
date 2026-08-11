@@ -128,11 +128,11 @@ export default function WatermarkPdfPage() {
         for (let i = 1; i <= numPages; i++) {
           if (isCancelled) break;
           const page = await pdfDoc.getPage(i);
-          
+
           const baseScale = 0.15;
           const upscaleFactor = 4.0;
           const viewport = page.getViewport({ scale: baseScale * upscaleFactor });
-          
+
           const canvas = document.createElement("canvas");
           const context = canvas.getContext("2d");
           if (!context) continue;
@@ -264,13 +264,35 @@ export default function WatermarkPdfPage() {
     { id: "bottom-right", label: "Bottom Right", icon: ArrowDownRight },
   ];
 
+  /**
+   * The preview overlay used to hardcode items-center justify-center, so
+   * choosing any of the nine positions changed the download but never the
+   * preview. This maps the selected position to flex alignment; tiled mode
+   * stays centered since the tile pattern covers the whole page anyway.
+   */
+  const previewAlignment: Record<Position, string> = {
+    "top-left": "items-start justify-start",
+    "top-center": "items-start justify-center",
+    "top-right": "items-start justify-end",
+    "center-left": "items-center justify-start",
+    "center": "items-center justify-center",
+    "center-right": "items-center justify-end",
+    "bottom-left": "items-end justify-start",
+    "bottom-center": "items-end justify-center",
+    "bottom-right": "items-end justify-end",
+  };
+
+  const overlayAlignment = isTiled && watermarkType === "text"
+    ? "items-center justify-center"
+    : previewAlignment[position];
+
   return (
     <div className="min-h-[85vh] bg-background text-fg flex flex-col items-center justify-start py-8 px-4 font-sans transition-colors duration-200">
       <div className="max-w-5xl mx-auto w-full">
-        
+
         {/* Main Outer Card Wrapper using system dark/light mode classes */}
         <div className="bg-background border border-card rounded-3xl p-8 shadow-xl dark:shadow-2xl dark:shadow-black/60 relative overflow-hidden transition-colors duration-200">
-          
+
           {/* Header Section */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold mb-3 border bg-slate-100 dark:bg-purple-950/60 text-slate-900 dark:text-purple-300 border-slate-200 dark:border-purple-800/60">
@@ -300,7 +322,7 @@ export default function WatermarkPdfPage() {
             />
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              
+
               {/* Controls Column */}
               <div className="lg:col-span-1 space-y-4">
                 <div className="flex items-center gap-3 p-3.5 rounded-2xl border bg-card border-card shadow-sm">
@@ -323,22 +345,20 @@ export default function WatermarkPdfPage() {
                   <button
                     type="button"
                     onClick={() => setWatermarkType("text")}
-                    className={`flex-1 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
-                      watermarkType === "text"
-                        ? "bg-slate-900 dark:bg-[#362758] text-white shadow-sm dark:shadow-md border border-slate-900 dark:border-purple-500/40 font-bold"
-                        : "text-slate-600 dark:text-purple-300/70 hover:text-slate-900 dark:hover:text-white"
-                    }`}
+                    className={`flex-1 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${watermarkType === "text"
+                      ? "bg-slate-900 dark:bg-[#362758] text-white shadow-sm dark:shadow-md border border-slate-900 dark:border-purple-500/40 font-bold"
+                      : "text-slate-600 dark:text-purple-300/70 hover:text-slate-900 dark:hover:text-white"
+                      }`}
                   >
                     <Type size={14} /> Text
                   </button>
                   <button
                     type="button"
                     onClick={() => setWatermarkType("image")}
-                    className={`flex-1 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
-                      watermarkType === "image"
-                        ? "bg-slate-900 dark:bg-[#362758] text-white shadow-sm dark:shadow-md border border-slate-900 dark:border-purple-500/40 font-bold"
-                        : "text-slate-600 dark:text-purple-300/70 hover:text-slate-900 dark:hover:text-white"
-                    }`}
+                    className={`flex-1 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${watermarkType === "image"
+                      ? "bg-slate-900 dark:bg-[#362758] text-white shadow-sm dark:shadow-md border border-slate-900 dark:border-purple-500/40 font-bold"
+                      : "text-slate-600 dark:text-purple-300/70 hover:text-slate-900 dark:hover:text-white"
+                      }`}
                   >
                     <ImageIcon size={14} /> Image
                   </button>
@@ -353,22 +373,20 @@ export default function WatermarkPdfPage() {
                     <button
                       type="button"
                       onClick={() => handleVisibilityChange("transparent")}
-                      className={`py-2 px-3 rounded-xl text-xs font-medium border transition-all ${
-                        visibilityMode === "transparent"
-                          ? "border-slate-900 dark:border-purple-500/60 bg-white dark:bg-[#362758]/50 text-slate-900 dark:text-purple-200 font-bold dark:font-semibold shadow-sm"
-                          : "border-card bg-card text-slate-600 dark:text-purple-300/70 hover:text-slate-900 dark:hover:text-slate-200"
-                      }`}
+                      className={`py-2 px-3 rounded-xl text-xs font-medium border transition-all ${visibilityMode === "transparent"
+                        ? "border-slate-900 dark:border-purple-500/60 bg-white dark:bg-[#362758]/50 text-slate-900 dark:text-purple-200 font-bold dark:font-semibold shadow-sm"
+                        : "border-card bg-card text-slate-600 dark:text-purple-300/70 hover:text-slate-900 dark:hover:text-slate-200"
+                        }`}
                     >
                       Transparent
                     </button>
                     <button
                       type="button"
                       onClick={() => handleVisibilityChange("visible")}
-                      className={`py-2 px-3 rounded-xl text-xs font-medium border transition-all ${
-                        visibilityMode === "visible"
-                          ? "border-slate-900 dark:border-purple-500/60 bg-white dark:bg-[#362758]/50 text-slate-900 dark:text-purple-200 font-bold dark:font-semibold shadow-sm"
-                          : "border-card bg-card text-slate-600 dark:text-purple-300/70 hover:text-slate-900 dark:hover:text-slate-200"
-                      }`}
+                      className={`py-2 px-3 rounded-xl text-xs font-medium border transition-all ${visibilityMode === "visible"
+                        ? "border-slate-900 dark:border-purple-500/60 bg-white dark:bg-[#362758]/50 text-slate-900 dark:text-purple-200 font-bold dark:font-semibold shadow-sm"
+                        : "border-card bg-card text-slate-600 dark:text-purple-300/70 hover:text-slate-900 dark:hover:text-slate-200"
+                        }`}
                     >
                       Fully Visible
                     </button>
@@ -391,11 +409,10 @@ export default function WatermarkPdfPage() {
                             type="button"
                             title={pos.label}
                             onClick={() => setPosition(pos.id)}
-                            className={`h-10 rounded-xl border flex items-center justify-center transition-all ${
-                              isActive
-                                ? "bg-slate-900 dark:bg-[#581c87] text-white border-slate-900 dark:border-purple-500 shadow-md"
-                                : "bg-card border-card text-slate-600 dark:text-purple-300/70 hover:text-slate-900 dark:hover:text-white"
-                            }`}
+                            className={`h-10 rounded-xl border flex items-center justify-center transition-all ${isActive
+                              ? "bg-slate-900 dark:bg-[#581c87] text-white border-slate-900 dark:border-purple-500 shadow-md"
+                              : "bg-card border-card text-slate-600 dark:text-purple-300/70 hover:text-slate-900 dark:hover:text-white"
+                              }`}
                           >
                             <Icon size={16} />
                           </button>
@@ -572,8 +589,12 @@ export default function WatermarkPdfPage() {
                             alt={`Page ${pageNum}`}
                             className="w-full h-auto object-contain block"
                           />
-                          {/* Live Watermark Overlay positioned over rendered pages */}
-                          <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
+                          {/* Live watermark overlay. Alignment follows the
+                              selected position (it used to hardcode center, so
+                              the grid changed the download but not the
+                              preview); p-3 keeps edge positions off the page
+                              border like the server-side margin does. */}
+                          <div className={`absolute inset-0 flex p-3 ${overlayAlignment} pointer-events-none overflow-hidden`}>
                             {watermarkType === "text" ? (
                               <div
                                 className="font-bold select-none text-center"
@@ -582,6 +603,8 @@ export default function WatermarkPdfPage() {
                                   opacity: opacity,
                                   fontSize: `${fontSize * 0.45}px`,
                                   transform: `rotate(${rotation}deg)`,
+                                  backgroundColor: useBgColor ? bgColor : "transparent",
+                                  padding: useBgColor ? "2px 6px" : undefined,
                                 }}
                               >
                                 {text || "WATERMARK"}
