@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import { requireUsageAllowance } from "@/lib/metered";
-import PDFParser from "pdf2json";
-import { errorMessage } from "@/lib/errors";
+import { extractPageCells } from "@/lib/pdf-text";
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,54 +25,23 @@ export async function POST(req: NextRequest) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    const tableRows = await new Promise<string[][]>((resolve, reject) => {
-      const pdfParser = new PDFParser(null, true);
+    // pdf2json fails on every PDF in this install with "Invalid XRef stream
+    // header", so this returned an error for all input. The shared pdf.js
+    // extractor keeps each run separate, which is what the column logic below
+    // needs.
+    const pageCells = await extractPageCells(new Uint8Array(buffer));
 
-      pdfParser.on("pdfParser_dataError", (err) => {
-        // pdf2json types this as { parserError: Error } | Error, so it is one or
-        // the other rather than always the wrapper.
-        reject(err instanceof Error ? err : new Error(String(err.parserError)));
-      });
-
-      pdfParser.on("pdfParser_dataReady", (pdfData) => {
-        try {
+    const tableRows: string[][] = (() => {
           const rowsMap: { [y: number]: { x: number; text: string }[] } = {};
 
-          if (pdfData && pdfData.Pages) {
-            for (const page of pdfData.Pages) {
-              if (page.Texts) {
-                for (const textBlock of page.Texts) {
-                  const x = textBlock.x;
-                  const y = textBlock.y;
-
-                  let blockText = "";
-                  if (textBlock.R) {
-                    for (const run of textBlock.R) {
-                      if (run.T) {
-                        try {
-                          blockText += decodeURIComponent(run.T);
-                        } catch {
-                          blockText += run.T;
-                        }
-                      }
-                    }
-                  }
-
-                  const cleanedText = blockText.trim();
-
-                  if (!cleanedText || cleanedText.startsWith("Sheet:")) {
-                    continue;
-                  }
-
-                  // Use a coarser rounding factor (0.4 units) to force sub-pixel text fragments into the exact same row line
-                  const snappedY = Math.round(y * 2.5) / 2.5;
-
-                  if (!rowsMap[snappedY]) {
-                    rowsMap[snappedY] = [];
-                  }
-                  rowsMap[snappedY].push({ x, text: cleanedText });
-                }
-              }
+          // One flat row list across pages, matching the previous behaviour.
+          let rowKey = 0;
+          for (const page of pageCells) {
+            for (const row of page) {
+              const cells = row.filter(
+                (c) => c.text && !c.text.startsWith("Sheet:")
+              );
+              if (cells.length > 0) rowsMap[rowKey++] = cells;
             }
           }
 
@@ -123,16 +91,8 @@ export async function POST(req: NextRequest) {
             }
           }
 
-          resolve(
-            finalRows.length > 0 ? finalRows : [["No structured rows found"]]
-          );
-        } catch (parseErr) {
-          reject(new Error("Failed to map coordinates: " + errorMessage(parseErr, "unknown error")));
-        }
-      });
-
-      pdfParser.parseBuffer(buffer);
-    });
+          return finalRows.length > 0 ? finalRows : [["No structured rows found"]];
+    })();
 
     return NextResponse.json({
       text: tableRows.map((r) => r.join(" ")).join("\n"),

@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import { requireUsageAllowance } from "@/lib/metered";
-import PDFParser from "pdf2json";
+import { extractPageLines } from "@/lib/pdf-text";
 import pptxgen from "pptxgenjs";
-import { errorMessage } from "@/lib/errors";
 
 // renders every page into a slide,
 // so the platform default is not enough.
@@ -32,100 +31,29 @@ export async function POST(req: NextRequest) {
 
     const buffer = Buffer.from(await file.arrayBuffer());
 
-    // Step 1: Parse PDF layout and apply smart text correction rules
-    const pageWiseTexts = await new Promise<string[][]>((resolve, reject) => {
-      const pdfParser = new PDFParser(null, true);
+    // Step 1: Read the text of every page.
+    //
+    // This used pdf2json, which fails on every PDF in this install with
+    // "Invalid XRef stream header" - including one pdf-lib had just produced -
+    // so the tool errored on all input. The shared pdf.js extractor is the one
+    // pdf-to-word already relies on.
+    const rawPages = await extractPageLines(new Uint8Array(buffer));
 
-      pdfParser.on("pdfParser_dataError", (err) => {
-        // pdf2json types this as { parserError: Error } | Error, so it is one or
-        // the other rather than always the wrapper.
-        reject(err instanceof Error ? err : new Error(String(err.parserError)));
-      });
+    // A line that begins with a replacement character or a bare question mark
+    // is a bullet glyph the font could not map; show it as one.
+    const BULLET_ARTEFACT = /^(?:\?|�|\[\?\])\s*/;
 
-      pdfParser.on("pdfParser_dataReady", (pdfData) => {
-        try {
-          const pagesResult: string[][] = [];
+    const pageWiseTexts: string[][] = rawPages.map((pageLines) => {
+      const fixed = pageLines.map((line) =>
+        BULLET_ARTEFACT.test(line) ? line.replace(BULLET_ARTEFACT, "■ ") : line
+      );
 
-          if (pdfData && pdfData.Pages) {
-            for (let pageIdx = 0; pageIdx < pdfData.Pages.length; pageIdx++) {
-              const page = pdfData.Pages[pageIdx];
-              const rowsMap: { [y: number]: { x: number; text: string }[] } = {};
-
-              if (page.Texts) {
-                for (const textBlock of page.Texts) {
-                  const x = textBlock.x;
-                  const y = textBlock.y;
-
-                  let blockText = "";
-                  if (textBlock.R) {
-                    for (const run of textBlock.R) {
-                      if (run.T) {
-                        try {
-                          blockText += decodeURIComponent(run.T);
-                        } catch {
-                          blockText += run.T;
-                        }
-                      }
-                    }
-                  }
-
-                  const decoded = blockText
-                    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g, "")
-                    .trim();
-
-                  if (!decoded) continue;
-
-                  const snappedY = Math.round(y * 2) / 2;
-
-                  if (!rowsMap[snappedY]) {
-                    rowsMap[snappedY] = [];
-                  }
-                  rowsMap[snappedY].push({ x, text: decoded });
-                }
-              }
-
-              const sortedYKeys = Object.keys(rowsMap)
-                .map(Number)
-                .sort((a, b) => a - b);
-
-              let pageLines: string[] = [];
-              for (const yKey of sortedYKeys) {
-                const lineItems = rowsMap[yKey];
-                lineItems.sort((a, b) => a.x - b.x);
-
-                const lineString = lineItems.map((item) => item.text).join(" ");
-                const cleanedLine = lineString.replace(/\s+/g, " ").trim();
-                if (cleanedLine) {
-                  pageLines.push(cleanedLine);
-                }
-              }
-
-              // Intelligent correction layer: fix fractured PDF spacing/words & convert question-mark glyph artifacts into square bullets '■'
-              pageLines = pageLines.map(line => {
-                let fixed = line
-                  .replace(/P\s+akistan/g, "Pakistan")
-                  .replace(/L\s+imited/g, "Limited")
-                  .replace(/Unilever\s+P\s+akistan\s+L\s+imited/g, "Unilever Pakistan Limited.");
-
-                // Directly detect and replace box question marks / standalone question mark glyphs at line starts with '■ '
-                if (/^(\?\s*|\uFFFD\s*|\[\?\]\s*)/.test(fixed)) {
-                  fixed = fixed.replace(/^(\?\s*|\uFFFD\s*|\[\?\]\s*)+/, "■ ");
-                }
-                return fixed;
-              });
-
-              pagesResult.push(pageLines.length > 0 ? pageLines : ["Empty Page Content"]);
-            }
-          }
-
-          resolve(pagesResult.length > 0 ? pagesResult : [["No content extracted from PDF"]]);
-        } catch (parseErr) {
-          reject(new Error("Failed to process layout: " + errorMessage(parseErr, "unknown error")));
-        }
-      });
-
-      pdfParser.parseBuffer(buffer);
+      return fixed.length > 0 ? fixed : ["Empty Page Content"];
     });
+
+    if (pageWiseTexts.length === 0) {
+      pageWiseTexts.push(["No content extracted from PDF"]);
+    }
 
     // Step 2: Generate PowerPoint presentation with min 2 and max 5 slides per PDF page
     const pptx = new pptxgen();
