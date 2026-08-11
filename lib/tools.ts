@@ -53,7 +53,7 @@ export const tools: Tool[] = [
         href: "/compress-pdf",
         category: "Edit",
     },
-     {
+    {
         name: "Rotate PDF",
         description: "Rotate pages to the correct orientation.",
         icon: RotateCw,
@@ -61,25 +61,18 @@ export const tools: Tool[] = [
         category: "Organize",
     },
     {
-        name: "Word to PDF",
-        description: "Convert Word documents into PDF.",
-        icon: FileText,
-        href: "/word-to-pdf",
-        category: "Convert",
-    },
-    {
         name: "PDF to Word",
         description: "Convert PDF into editable Word files.",
         icon: FileText,
         href: "/pdf-to-word",
         category: "Convert",
-        
+
     },
     {
-        name: "Image to PDF",
-        description: "Convert images into a PDF file.",
-        icon: ImagePlus,
-        href: "/image-to-pdf",
+        name: "Word to PDF",
+        description: "Convert Word documents into PDF.",
+        icon: FileText,
+        href: "/word-to-pdf",
         category: "Convert",
     },
     {
@@ -90,10 +83,10 @@ export const tools: Tool[] = [
         category: "Convert",
     },
     {
-        name: "Excel to PDF",
-        description: "Convert spreadsheets into PDFs.",
-        icon: FileSpreadsheet,
-        href: "/excel-to-pdf",
+        name: "Image to PDF",
+        description: "Convert images into a PDF file.",
+        icon: ImagePlus,
+        href: "/image-to-pdf",
         category: "Convert",
     },
     {
@@ -104,10 +97,10 @@ export const tools: Tool[] = [
         category: "Convert",
     },
     {
-        name: "PPT to PDF",
-        description: "Convert presentations into PDF.",
-        icon: Presentation,
-        href: "/ppt-to-pdf",
+        name: "Excel to PDF",
+        description: "Convert spreadsheets into PDFs.",
+        icon: FileSpreadsheet,
+        href: "/excel-to-pdf",
         category: "Convert",
     },
     {
@@ -117,7 +110,13 @@ export const tools: Tool[] = [
         href: "/pdf-to-ppt",
         category: "Convert",
     },
-   
+    {
+        name: "PPT to PDF",
+        description: "Convert presentations into PDF.",
+        icon: Presentation,
+        href: "/ppt-to-pdf",
+        category: "Convert",
+    },
     {
         name: "Watermark PDF",
         description: "Add text or image watermarks.",
@@ -139,46 +138,6 @@ export const tools: Tool[] = [
         href: "/edit-pdf",
         category: "Edit",
     },
-  {
-    name: "OCR PDF",
-    description: "Extract text from scanned PDFs.",
-    icon: ScanText,
-    href: "/ocr-pdf", // matches your folder name
-    category: "AI Tools",
-    badge: "New",
-},
-    {
-        name: "AI Summary",
-        description: "Generate document summaries instantly.",
-        icon: Sparkles,
-        href: "/summarize-pdf",
-        category: "AI Tools", 
-        badge: "AI",
-    },
-   {
-    name: "Chat with PDF",
-    description: "Ask questions about your documents.",
-    icon: FileSearch,
-    href: "/chat-pdf", // Updated to match your exact folder name
-    category: "AI Tools",
-    badge: "AI",
-},
-     {
-        name: "Translate PDF",
-        description: "Translate your documents.",
-        icon: FileSearch,
-        href: "/translate",
-        category: "AI Tools",
-        badge: "AI",
-    },
-     {
-    name: "Grammar Checker",
-    description: "Check grammar and spelling of your documents.",
-    icon: FileSearch,
-    href: "/grammar", // Updated to just "grammar"
-    category: "AI Tools",
-    badge: "New",
-},
     {
         name: "Protect PDF",
         description: "Encrypt PDF files with passwords.",
@@ -192,5 +151,45 @@ export const tools: Tool[] = [
         icon: Unlock,
         href: "/unlock-pdf",
         category: "Security",
+    },
+    {
+        name: "OCR PDF",
+        description: "Extract text from scanned PDFs.",
+        icon: ScanText,
+        href: "/ocr-pdf", // matches your folder name
+        category: "AI Tools",
+        badge: "New",
+    },
+    {
+        name: "AI Summary",
+        description: "Generate document summaries instantly.",
+        icon: Sparkles,
+        href: "/summarize-pdf",
+        category: "AI Tools",
+        badge: "AI",
+    },
+    {
+        name: "Chat with PDF",
+        description: "Ask questions about your documents.",
+        icon: FileSearch,
+        href: "/chat-pdf", // Updated to match your exact folder name
+        category: "AI Tools",
+        badge: "AI",
+    },
+    {
+        name: "Translate PDF",
+        description: "Translate your documents.",
+        icon: FileSearch,
+        href: "/translate",
+        category: "AI Tools",
+        badge: "AI",
+    },
+    {
+        name: "Grammar Checker",
+        description: "Check grammar and spelling of your documents.",
+        icon: FileSearch,
+        href: "/grammar", // Updated to just "grammar"
+        category: "AI Tools",
+        badge: "New",
     },
 ];
