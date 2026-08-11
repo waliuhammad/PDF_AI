@@ -25,6 +25,7 @@ const TestPlanContext = createContext<TestPlanContextType | undefined>(
 );
 
 const STORAGE_KEY = "pdf-aid-test-plan";
+const COOKIE_NAME = "pdfai_test_plan";
 
 const planLevel: Record<TestPlan, number> = {
     free: 0,
@@ -50,14 +51,19 @@ export function TestPlanProvider({
         if (!isTestMode) return;
 
         const savedPlan = localStorage.getItem(STORAGE_KEY);
+        const cookiePlan = document.cookie
+            .split("; ")
+            .find((entry) => entry.startsWith(`${COOKIE_NAME}=`))
+            ?.split("=")[1];
 
-        if (
-            savedPlan === "free" ||
-            savedPlan === "pro" ||
-            savedPlan === "business"
-        ) {
-            setPlanState(savedPlan);
-        }
+        const nextPlan =
+            savedPlan === "free" || savedPlan === "pro" || savedPlan === "business"
+                ? savedPlan
+                : cookiePlan === "free" || cookiePlan === "pro" || cookiePlan === "business"
+                    ? cookiePlan
+                    : "free";
+
+        setPlanState(nextPlan);
     }, [isTestMode]);
 
     const setPlan = (newPlan: TestPlan) => {
@@ -65,6 +71,7 @@ export function TestPlanProvider({
 
         if (isTestMode) {
             localStorage.setItem(STORAGE_KEY, newPlan);
+            document.cookie = `${COOKIE_NAME}=${newPlan}; path=/; max-age=31536000; SameSite=Lax`;
         }
     };
 

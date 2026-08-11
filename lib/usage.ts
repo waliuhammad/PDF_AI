@@ -30,7 +30,7 @@ function todayKey(): string {
     return new Date().toISOString().slice(0, 10);
 }
 
-export async function checkAndCountUsage(uid: string): Promise<UsageResult> {
+export async function checkAndCountUsage(uid: string, devPlanOverride?: PlanId): Promise<UsageResult> {
     // Limits unenforceable without admin credentials: fail open rather
     // than lock every tool because of a configuration problem.
     if (!isAdminConfigured()) {
@@ -39,10 +39,11 @@ export async function checkAndCountUsage(uid: string): Promise<UsageResult> {
 
     const db = getFirestore(getAdminApp());
 
-    // The user's plan decides which limit applies.
+    // The user's plan decides which limit applies. During local testing,
+    // the dev toggle can override what the server sees for the request.
     const profileSnap = await db.collection("users").doc(uid).get();
     const profile = (profileSnap.data() ?? null) as UserProfile | null;
-    const plan = resolvePlan(profile);
+    const plan = devPlanOverride ?? resolvePlan(profile);
 
     // The client's Remote Config supplies the number; monthly is the
     // reference cycle (their weekly/monthly/yearly values are identical
@@ -71,7 +72,7 @@ export async function checkAndCountUsage(uid: string): Promise<UsageResult> {
 }
 
 /** Read-only variant for showing "X of Y used today" without consuming one. */
-export async function peekUsage(uid: string): Promise<UsageResult> {
+export async function peekUsage(uid: string, devPlanOverride?: PlanId): Promise<UsageResult> {
     if (!isAdminConfigured()) {
         return { allowed: true, used: 0, limit: Infinity, plan: "free" };
     }
@@ -79,7 +80,7 @@ export async function peekUsage(uid: string): Promise<UsageResult> {
     const db = getFirestore(getAdminApp());
 
     const profileSnap = await db.collection("users").doc(uid).get();
-    const plan = resolvePlan((profileSnap.data() ?? null) as UserProfile | null);
+    const plan = devPlanOverride ?? resolvePlan((profileSnap.data() ?? null) as UserProfile | null);
 
     const { limits } = await getAppConfig();
     const limit = limits.monthly[plan];

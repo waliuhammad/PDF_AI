@@ -1,5 +1,6 @@
 import "server-only";
 import { NextRequest, NextResponse } from "next/server";
+import { readDevPlanFromRequest } from "@/lib/dev-plan";
 import { getRequestUid } from "@/lib/server-auth";
 import { checkAndCountUsage } from "@/lib/usage";
 
@@ -27,7 +28,8 @@ export async function requireUsageAllowance(
         );
     }
 
-    const usage = await checkAndCountUsage(uid);
+    const devPlan = readDevPlanFromRequest(req);
+    const usage = await checkAndCountUsage(uid, devPlan ?? undefined);
     if (!usage.allowed) {
         const message = `Daily limit reached (${usage.used}/${usage.limit} operations on the ${usage.plan} plan). Upgrade for a higher daily allowance, or come back tomorrow.`;
         return NextResponse.json(
