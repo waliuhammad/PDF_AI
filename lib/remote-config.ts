@@ -46,9 +46,17 @@ export interface AppConfig {
 let template: ServerTemplate | null = null;
 let loadedAt = 0;
 
-// One fetch per five minutes per server instance keeps console changes
-// near-live without a Firebase call on every request.
-const TTL_MS = 5 * 60 * 1000;
+// Remote Config keeps two separate templates per project and the Console
+// opens on the client one, so a value edited there is invisible to
+// getServerTemplate() and the app silently keeps its built-in default. The
+// client template is read as a fallback for any parameter the server
+// template does not supply, so a limit typed into either place takes effect.
+let clientParams: Record<string, string> | null = null;
+let clientLoadedAt = 0;
+
+// One fetch per minute per server instance. This was five minutes, which is a
+// long time to stare at a stale number after changing it in the Console.
+const TTL_MS = 60 * 1000;
 
 // A missing Server template is an expected state (it just hasn't been
 // created in the Console yet), not a fault worth repeating on every
@@ -64,7 +72,12 @@ async function getTemplate(): Promise<ServerTemplate | null> {
 
     try {
         const rc = getRemoteConfig(getAdminApp());
-        const next = await rc.getServerTemplate({ defaultConfig: DEFAULTS });
+        // No defaultConfig on purpose. Seeding it with DEFAULTS made a missing
+        // parameter evaluate to the default, which is indistinguishable from
+        // the template genuinely holding that number — so the client-template
+        // fallback below could never fire. Missing keys now read as 0/"" and
+        // the fallback chain in getAppConfig decides.
+        const next = await rc.getServerTemplate({ defaultConfig: {} });
         template = next;
         loadedAt = now;
         warnedMissingTemplate = false;
@@ -84,6 +97,42 @@ async function getTemplate(): Promise<ServerTemplate | null> {
         }
     }
     return template;
+}
+
+/**
+ * Parameter values from the *client* template, flattened to strings.
+ * Returns an empty map on any failure — this is a fallback, so a project
+ * without a client template must not break the request.
+ */
+async function getClientParams(): Promise<Record<string, string>> {
+    if (!isAdminConfigured()) return {};
+
+    const now = Date.now();
+    if (clientParams && now - clientLoadedAt < TTL_MS) return clientParams;
+
+    try {
+        const rc = getRemoteConfig(getAdminApp());
+        const t = await rc.getTemplate();
+        const out: Record<string, string> = {};
+
+        for (const [key, param] of Object.entries(t.parameters ?? {})) {
+            const dv = param.defaultValue;
+            // The other shape is { useInAppDefault: true }, which carries no
+            // value and should fall through to our own default.
+            if (dv && "value" in dv && typeof dv.value === "string") {
+                out[key] = dv.value;
+            }
+        }
+
+        clientParams = out;
+        clientLoadedAt = now;
+    } catch {
+        // No client template, or no permission to read it. Keep whatever was
+        // cached (or nothing) and let the built-in defaults apply.
+        clientParams = clientParams ?? {};
+    }
+
+    return clientParams;
 }
 
 function defaultLimits(): AppConfig["limits"] {
@@ -108,27 +157,51 @@ function defaultLimits(): AppConfig["limits"] {
 }
 
 export async function getAppConfig(): Promise<AppConfig> {
-    const t = await getTemplate();
+    const [t, client] = await Promise.all([getTemplate(), getClientParams()]);
+    const d = defaultLimits();
+
+    /** Client-template value for a key, when it parses as a positive number. */
+    const fromClient = (key: string): number | null => {
+        const raw = client[key];
+        if (raw === undefined) return null;
+        const value = Number(raw);
+        return Number.isFinite(value) && value > 0 ? value : null;
+    };
 
     if (!t) {
+        const limits = defaultLimits();
+        for (const cycle of ["weekly", "monthly", "yearly"] as PlanCycle[]) {
+            for (const plan of ["free", "pro", "business"] as PlanId[]) {
+                const v = fromClient(`${cycle}_${plan}_plan_all`);
+                if (v !== null) limits[cycle][plan] = v;
+            }
+        }
         return {
-            maintenanceBanner: DEFAULTS.maintenance_banner,
-            aiToolsEnabled: DEFAULTS.ai_tools_enabled === "true",
-            limits: defaultLimits(),
+            maintenanceBanner: client.maintenance_banner ?? DEFAULTS.maintenance_banner,
+            aiToolsEnabled: (client.ai_tools_enabled ?? DEFAULTS.ai_tools_enabled) === "true",
+            limits,
         };
     }
 
     const config = t.evaluate();
+
+    // Server template first, then the client template, then the built-in
+    // default. Without the middle step a limit edited on the Console's default
+    // (client) tab looked like it had no effect at all.
     const num = (key: string, fallback: number) => {
         const value = config.getNumber(key);
-        return Number.isFinite(value) && value > 0 ? value : fallback;
+        if (Number.isFinite(value) && value > 0) return value;
+        return fromClient(key) ?? fallback;
     };
 
-    const d = defaultLimits();
-
     return {
-        maintenanceBanner: config.getString("maintenance_banner"),
-        aiToolsEnabled: config.getBoolean("ai_tools_enabled"),
+        maintenanceBanner: config.getString("maintenance_banner") || (client.maintenance_banner ?? ""),
+        // Read as a string through the same three-step chain: getBoolean cannot
+        // tell "set to false" from "absent", and absent must mean enabled.
+        aiToolsEnabled:
+            (config.getString("ai_tools_enabled") ||
+                client.ai_tools_enabled ||
+                DEFAULTS.ai_tools_enabled) === "true",
         limits: {
             weekly: {
                 free: num("weekly_free_plan_all", d.weekly.free),
