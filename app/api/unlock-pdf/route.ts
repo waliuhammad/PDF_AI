@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import { requireUsageAllowance } from "@/lib/metered";
 import { decryptPDF } from "@pdfsmaller/pdf-decrypt";
-import { PDFDocument } from "pdf-lib";
+import { PDFDocument, EncryptedPDFError } from "pdf-lib";
 import { errorMessage } from "@/lib/errors";
 
 export async function POST(req: NextRequest) {
@@ -26,21 +26,44 @@ export async function POST(req: NextRequest) {
     const arrayBuffer = await file.arrayBuffer();
     const pdfBytes = new Uint8Array(arrayBuffer);
 
-    let decryptedBytes: Uint8Array;
-
+    /**
+     * Whether the document actually carries a lock.
+     *
+     * PDFDocument.load refuses any file with an /Encrypt dictionary unless
+     * ignoreEncryption is set, so loading cleanly proves there is nothing to
+     * unlock. This route used to catch "not encrypted", re-save the file
+     * through pdf-lib and return it as "<name>-unlocked.pdf", so an ordinary
+     * PDF came back looking like the tool had done something to it.
+     */
+    let encrypted: boolean;
     try {
-      // Try decrypting with the library if it's encrypted
-      decryptedBytes = await decryptPDF(pdfBytes, password || "");
-    } catch (decryptErr) {
-      // If the error says it's not encrypted, verify if pdf-lib can load it directly
-      const decryptMessage = errorMessage(decryptErr, "");
-      if (decryptMessage.includes("not encrypted") || decryptMessage.includes("Encrypt dictionary")) {
-        const pdfDoc = await PDFDocument.load(pdfBytes);
-        decryptedBytes = await pdfDoc.save();
+      await PDFDocument.load(pdfBytes);
+      encrypted = false;
+    } catch (loadErr) {
+      const message = errorMessage(loadErr, "").toLowerCase();
+      // The bundled encryptor's output reports this as a plain Error rather
+      // than pdf-lib's EncryptedPDFError, so the message is what identifies it.
+      if (loadErr instanceof EncryptedPDFError || message.includes("encrypted")) {
+        encrypted = true;
       } else {
-        throw decryptErr;
+        return NextResponse.json(
+          { error: "That file could not be read as a PDF." },
+          { status: 400 }
+        );
       }
     }
+
+    if (!encrypted) {
+      return NextResponse.json(
+        {
+          error:
+            "This PDF is not password-protected, so there is nothing to unlock. Use Protect PDF if you want to add a password.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const decryptedBytes: Uint8Array = await decryptPDF(pdfBytes, password || "");
 
     return new Response(decryptedBytes as unknown as BodyInit, {
       status: 200,
