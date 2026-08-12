@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          message: `Daily limit reached (${usage.used}/${usage.limit} operations on the ${usage.plan} plan). Upgrade for a higher daily allowance, or come back tomorrow.`,
+          message: `Daily limit reached (${Math.min(usage.used, usage.limit)}/${usage.limit} operations on the ${usage.plan} plan). Upgrade for a higher daily allowance, or come back tomorrow.`,
         },
         { status: 429 }
       );

@@ -47,8 +47,15 @@ export function UsageMeter({
         );
     }
 
-    const percent = usage.limit > 0 ? Math.min((usage.used / usage.limit) * 100, 100) : 100;
     const exhausted = usage.used >= usage.limit;
+
+    // The counter is per user per day, not per plan, so it survives a change of
+    // plan while the limit does not. Twelve operations spent on Pro's allowance
+    // and then read against Free's five reported "12 of 5", which describes
+    // nothing the visitor can act on. The spend cannot exceed the allowance it
+    // was checked against, so the figure is shown capped.
+    const shown = Math.min(usage.used, usage.limit);
+    const percent = usage.limit > 0 ? Math.min((usage.used / usage.limit) * 100, 100) : 100;
 
     return (
         // hideHeader means the caller already drew the card, so drawing another
@@ -86,11 +93,11 @@ export function UsageMeter({
 
             {exhausted ? (
                 <p className="text-sm font-medium text-red-500">
-                    Limit reached — {usage.used} of {usage.limit} operations used
+                    Limit reached — {shown} of {usage.limit} operations used
                 </p>
             ) : (
                 <p className="text-sm text-muted">
-                    {usage.used} of {usage.limit} operations used
+                    {shown} of {usage.limit} operations used
                 </p>
             )}
 
