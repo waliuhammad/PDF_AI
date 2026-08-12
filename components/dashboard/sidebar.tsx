@@ -3,6 +3,7 @@
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 import { useState } from "react";
 import {
     LayoutDashboard,
@@ -48,8 +49,20 @@ const navItems = [
 
 export function Sidebar() {
     const pathname = usePathname();
+    const { user, loading } = useAuth();
     const [open, setOpen] = useState(false); // Mobile drawer state
     const [collapsed, setCollapsed] = useState(false); // Desktop sidebar collapse state
+
+    // The PDF tools are open to visitors without an account, and they share
+    // this layout with the signed-in pages — so an anonymous visitor was shown
+    // Dashboard, My Documents, Chats and Settings, every one of which bounces
+    // them to the login page. The whole sidebar belongs to the signed-in area.
+    //
+    // Hidden while auth is still resolving as well: assuming signed-in would
+    // flash the account nav at exactly the visitors who should never see it,
+    // and that is worse than the sidebar arriving a moment late for the people
+    // who are entitled to it.
+    if (loading || !user) return null;
 
     const content = (isMobile = false) => (
         <>
