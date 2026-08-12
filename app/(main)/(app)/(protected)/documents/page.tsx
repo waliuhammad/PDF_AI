@@ -13,7 +13,7 @@ import { DocumentRow } from "@/components/documents/document-row";
 import { UploadModal } from "@/components/documents/upload-modal";
 import { useLibrary } from "@/lib/store";
 import { usePlanUsage } from "@/hooks/usePlanUsage";
-import { formatRelativeTime } from "@/lib/utils";
+import { formatRelativeTime, formatStorageUsed } from "@/lib/utils";
 
 type SortOption = "newest" | "oldest" | "name" | "size";
 type FilterOption = "all" | "favorites";
@@ -94,7 +94,7 @@ export default function DocumentsPage() {
                         {storageLimitGb !== null && (
                             <>
                                 {" · "}
-                                {storageUsedGb.toFixed(2)} of {storageLimitGb} GB used
+                                {formatStorageUsed(storageUsedGb)} of {storageLimitGb} GB used
                             </>
                         )}
                     </p>

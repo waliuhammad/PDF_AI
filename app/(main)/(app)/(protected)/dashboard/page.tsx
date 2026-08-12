@@ -16,7 +16,7 @@ import {
 import { StatCard } from "@/components/dashboard/stat-card";
 import { useAuth } from "@/hooks/useAuth";
 import { useLibrary } from "@/lib/store";
-import { formatRelativeTime } from "@/lib/utils";
+import { formatRelativeTime, formatStorageUsed } from "@/lib/utils";
 
 const quickActions = [
     { label: "Upload", icon: Upload, href: "/documents" },
@@ -79,8 +79,8 @@ export default function DashboardPage() {
                     label="Storage Used"
                     value={
                         storageLimitGb === null
-                            ? `${storageUsedGb.toFixed(2)} GB`
-                            : `${storageUsedGb.toFixed(2)} / ${storageLimitGb} GB`
+                            ? formatStorageUsed(storageUsedGb)
+                            : `${formatStorageUsed(storageUsedGb)} / ${storageLimitGb} GB`
                     }
                     icon={HardDrive}
                 />
@@ -100,8 +100,8 @@ export default function DashboardPage() {
                     <span className="text-[10px] text-muted truncate w-full">Storage</span>
                     <span className="text-sm font-bold text-fg">
                         {storageLimitGb === null
-                            ? `${storageUsedGb.toFixed(1)}G`
-                            : `${storageUsedGb.toFixed(1)}/${storageLimitGb}G`}
+                            ? formatStorageUsed(storageUsedGb)
+                            : `${formatStorageUsed(storageUsedGb)}/${storageLimitGb}G`}
                     </span>
                 </div>
                 <div className="bg-card border border-card rounded-xl p-2 text-center flex flex-col items-center justify-center">
