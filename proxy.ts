@@ -24,7 +24,10 @@ import {
  * render.
  */
 
-const PROTECTED = ["/dashboard", "/documents", "/chats", "/settings"];
+// /admin is here so its shell never renders for a signed-out visitor. The real
+// gate is the admin claim, checked by every route under /api/admin — this only
+// decides what renders, and the admin pages hold no data until those answer.
+const PROTECTED = ["/dashboard", "/documents", "/chats", "/settings", "/admin"];
 
 export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -66,6 +69,14 @@ function redirectToLogin(request: NextRequest) {
     return NextResponse.redirect(url);
 }
 
+// Both lists have to agree: the matcher decides which requests reach the proxy
+// at all, so a path listed only in PROTECTED above is never actually checked.
 export const config = {
-    matcher: ["/dashboard/:path*", "/documents/:path*", "/chats/:path*", "/settings/:path*"],
+    matcher: [
+        "/dashboard/:path*",
+        "/documents/:path*",
+        "/chats/:path*",
+        "/settings/:path*",
+        "/admin/:path*",
+    ],
 };

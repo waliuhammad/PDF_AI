@@ -12,6 +12,9 @@ interface StartedPayment {
     reference: string
     amount: number
     payUrl: string
+    payeeName?: string
+    payeeEmail?: string
+    instructions?: string
 }
 
 export function PayoneerCheckout({ planId, cycle }: Props) {
@@ -19,21 +22,28 @@ export function PayoneerCheckout({ planId, cycle }: Props) {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [copied, setCopied] = useState(false)
+    // Availability is unknown until the first fetch answers. Rendering the pay
+    // button during that gap offers something that may not work, so the button
+    // waits rather than appearing and then retracting.
+    const [available, setAvailable] = useState<boolean | null>(null)
 
-    // The reference lived only in state, so a reload lost the code the
-    // payment has to quote while createPayment kept returning that same
-    // invoice — leaving the customer with an amount owing and no code.
+    // The reference lived only in state, so a reload lost the code the payment
+    // has to quote while createPayment kept returning that same invoice —
+    // leaving the customer with an amount owing and no code.
     useEffect(() => {
         let cancelled = false
 
         fetch("/api/billing/checkout/payoneer")
             .then((res) => (res.ok ? res.json() : null))
             .then((data) => {
-                if (cancelled || !data?.payment?.payUrl) return
-                setStarted(data.payment)
+                if (cancelled) return
+                setAvailable(data?.available ?? false)
+                if (data?.payment?.payUrl) setStarted(data.payment)
             })
             .catch(() => {
-                // Nothing outstanding, or signed out. Neither is an error.
+                // Offline or the route is down. Treat as unavailable rather
+                // than showing a button that cannot work.
+                if (!cancelled) setAvailable(false)
             })
 
         return () => {
@@ -71,6 +81,30 @@ export function PayoneerCheckout({ planId, cycle }: Props) {
     }
 
     if (!started) {
+        if (available === null) {
+            return (
+                <div
+                    className="h-12 w-full animate-pulse rounded-xl bg-[var(--background-secondary)]"
+                    aria-label="Checking whether payments are available"
+                />
+            )
+        }
+
+        // The honest state while no Payoneer account is configured. Saying so
+        // beats a button that takes an invoice and then strands the customer
+        // on a dead link — and it tells them to come back rather than that
+        // something went wrong with them.
+        if (!available) {
+            return (
+                <div className="rounded-xl border border-card bg-card px-4 py-3">
+                    <p className="text-sm text-fg">Card and Payoneer payments are not available yet.</p>
+                    <p className="mt-1 text-sm text-muted">
+                        We are finishing setup. Please check back shortly, or contact us to arrange payment.
+                    </p>
+                </div>
+            )
+        }
+
         return (
             <div className="space-y-3">
                 <button
@@ -81,9 +115,7 @@ export function PayoneerCheckout({ planId, cycle }: Props) {
                     {loading ? "Preparing your invoice..." : "Pay with Payoneer"}
                 </button>
                 {error && <p className="text-sm text-[var(--destructive)]">{error}</p>}
-                <p className="text-sm text-muted">
-                    Activated by our team, usually within one business day.
-                </p>
+                <p className="text-sm text-muted">Activated by our team, usually within one business day.</p>
             </div>
         )
     }
@@ -94,6 +126,8 @@ export function PayoneerCheckout({ planId, cycle }: Props) {
                 <p className="text-sm text-muted">Amount due</p>
                 <p className="text-2xl text-fg">${started.amount.toFixed(2)} USD</p>
             </div>
+
+            {started.instructions && <p className="text-sm text-muted">{started.instructions}</p>}
 
             <div>
                 <p className="text-sm text-muted">
@@ -112,6 +146,14 @@ export function PayoneerCheckout({ planId, cycle }: Props) {
                 </div>
             </div>
 
+            {(started.payeeName || started.payeeEmail) && (
+                <div className="rounded-xl bg-[var(--background-secondary)] px-3 py-2">
+                    <p className="text-sm text-muted">Paying</p>
+                    {started.payeeName && <p className="text-fg">{started.payeeName}</p>}
+                    {started.payeeEmail && <p className="text-sm text-muted">{started.payeeEmail}</p>}
+                </div>
+            )}
+
             <a
                 href={started.payUrl}
                 target="_blank"
@@ -122,7 +164,8 @@ export function PayoneerCheckout({ planId, cycle }: Props) {
             </a>
 
             <p className="text-sm text-muted">
-                Your plan activates once we confirm the payment. This is a one-time payment and does not renew automatically.
+                Your plan activates once we confirm the payment. This is a one-time payment and does not renew
+                automatically.
             </p>
         </div>
     )
