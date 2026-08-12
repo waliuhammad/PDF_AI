@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { FileText, X, Download, Loader2, Type, Bold, Italic, Pencil, Trash2, ChevronLeft, ChevronRight, Eraser, Move, Sparkles, ShieldCheck } from "lucide-react";
-import { UploadCard } from "@/components/tools/upload-card";
+import { Upload, FileText, X, Download, Loader2, Type, Bold, Italic, Pencil, Trash2, ChevronLeft, ChevronRight, Eraser, Move, Sparkles } from "lucide-react";
 import type * as PdfjsLib from "pdfjs-dist";
 
 interface TextAnnotation {
@@ -67,6 +66,7 @@ const COLOR_SWATCHES = [
 export default function EditPdfPage() {
   const [rawFile, setRawFile] = useState<File | null>(null);
   const [fileDetails, setFileDetails] = useState<{ name: string; size: string } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [pageCount, setPageCount] = useState<number>(0);
   const [selectedPageIndex, setSelectedPageIndex] = useState<number>(0);
   const [pdfDocProxy, setPdfDocProxy] = useState<PdfjsLib.PDFDocumentProxy | null>(null);
@@ -118,6 +118,7 @@ export default function EditPdfPage() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const overlayContainerRef = useRef<HTMLDivElement | null>(null);
   const previewBoxRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!window.pdfjsLib) {
@@ -159,7 +160,10 @@ export default function EditPdfPage() {
   const handleFile = async (fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return;
     const f = fileList[0];
-    if (f.type !== "application/pdf") return;
+    if (f.type !== "application/pdf") {
+      setErrorMessage("Please select a valid PDF file.");
+      return;
+    }
 
     try {
       const arrayBuffer = await f.arrayBuffer();
@@ -450,36 +454,70 @@ export default function EditPdfPage() {
   );
 
   return (
-    <div className="max-w-6xl mx-auto w-full text-fg">
+    <div className="max-w-6xl mx-auto w-full text-fg px-4 sm:px-6">
       {!fileDetails ? (
-        <div className="max-w-4xl mx-auto p-8 rounded-3xl bg-card border border-card shadow-2xl transition-colors">
-          {/* Header Section */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-900/10 dark:bg-slate-800 border border-slate-900/20 dark:border-slate-700 text-fg text-xs font-semibold mb-4 shadow-sm">
+        <div className="max-w-4xl mx-auto">
+          {/* Header Section — plain text, no card */}
+          <div className="text-center mb-6 sm:mb-8">
+            <div className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-slate-900/10 dark:bg-slate-800 border border-slate-900/20 dark:border-slate-700 text-fg text-xs font-semibold mb-3 sm:mb-4 shadow-sm">
               <Sparkles size={13} className="text-slate-900 dark:text-slate-400" />
               DOCUMENT CONVERSION SUITE
             </div>
-            <h1 className="text-3xl font-bold text-fg tracking-tight mb-2">Pro Interactive PDF Editor</h1>
-            <p className="text-muted text-sm">Add text, replace content, or draw with precise positioning.</p>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-fg tracking-tight mb-1.5 sm:mb-2">Pro Interactive PDF Editor</h1>
+            <p className="text-muted text-xs sm:text-sm px-2 max-w-lg mx-auto">Add text, replace content, or draw with precise positioning.</p>
           </div>
 
-          {/* Drag & Drop Upload Card */}
-          <UploadCard
-            onFiles={handleFile}
-            title="Click to upload PDF document"
-            hint="Supports text documents and reports"
-            note={
-              <>
-                <ShieldCheck size={14} className="text-[var(--primary)]" />
-                <span>Secure PDF text extraction • No file retention</span>
-              </>
-            }
+          <input
+            ref={inputRef}
+            type="file"
+            accept="application/pdf"
+            hidden
+            onChange={(e) => handleFile(e.target.files)}
           />
+
+          {/* Solid, rounded, centered dropzone — matching compress-pdf exactly */}
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragging(true);
+            }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setIsDragging(false);
+              handleFile(e.dataTransfer.files);
+            }}
+            onClick={() => inputRef.current?.click()}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                inputRef.current?.click();
+              }
+            }}
+            className={`cursor-pointer rounded-2xl sm:rounded-[32px] p-5 sm:p-16 h-auto min-h-[200px] sm:h-[380px] flex flex-col items-center justify-center text-center transition-all bg-[var(--background-secondary)] border border-card shadow-xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${
+              isDragging ? "border-slate-900 dark:border-white scale-[1.01]" : "hover:border-slate-300 dark:hover:border-[#333a4a]"
+            }`}
+          >
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[var(--background-secondary)] mx-auto flex items-center justify-center mb-3 sm:mb-4 text-fg shadow-sm border border-card">
+              <Upload size={22} className="sm:hidden" />
+              <Upload size={26} className="hidden sm:block" />
+            </div>
+            <p className="text-fg font-semibold text-sm sm:text-lg">Click to browse or drag & drop a PDF</p>
+            <p className="text-slate-600 dark:text-[#9ca3af] text-xs sm:text-sm mt-1">Supports text documents and reports</p>
+          </div>
+
+          {errorMessage && (
+            <div className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs text-center">
+              {errorMessage}
+            </div>
+          )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="lg:col-span-1 space-y-4">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-card border border-card shadow-lg transition-colors">
+            <div className="flex items-center gap-3 p-4 sm:p-5 rounded-xl bg-card border border-card shadow-lg transition-colors">
               <div className="w-9 h-9 rounded-lg bg-[var(--background-secondary)] border border-card flex items-center justify-center shrink-0">
                 <FileText size={16} className="text-muted" />
               </div>
@@ -725,7 +763,7 @@ export default function EditPdfPage() {
               )}
             </div>
 
-            {errorMessage && (
+            {errorMessage && fileDetails && (
               <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs">
                 {errorMessage}
               </div>

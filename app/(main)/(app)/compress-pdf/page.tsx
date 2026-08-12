@@ -31,7 +31,7 @@ export default function CompressPdfPage() {
 
   const generateOptions = (fileSizeBytes: number): TargetOption[] => {
     const fileSizeKB = fileSizeBytes / 1024;
-    
+
     const percentages = [
       { label: "Extreme Compression (~75% reduction)", ratio: 0.25 },
       { label: "High Compression (~60% reduction)", ratio: 0.40 },
@@ -123,13 +123,14 @@ export default function CompressPdfPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto w-full px-4">
-      <div className="text-center mb-8">
-        <div className="w-14 h-14 mx-auto rounded-2xl bg-card border border-card flex items-center justify-center mb-3 text-fg">
-          <FileArchive size={28} />
+    <div className="max-w-5xl mx-auto w-full px-4 sm:px-6">
+      <div className="text-center mb-6 sm:mb-8">
+        <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto rounded-2xl bg-card border border-card flex items-center justify-center mb-3 text-fg">
+          <FileArchive size={24} className="sm:hidden" />
+          <FileArchive size={28} className="hidden sm:block" />
         </div>
-        <h1 className="text-2xl lg:text-3xl font-extrabold text-fg tracking-tight">Compress PDF</h1>
-        <p className="text-slate-600 dark:text-[#9ca3af] text-sm mt-1.5 max-w-lg mx-auto">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-fg tracking-tight">Compress PDF</h1>
+        <p className="text-slate-600 dark:text-[#9ca3af] text-xs sm:text-sm mt-1.5 max-w-lg mx-auto px-2">
           Select your target size and compress your PDF while keeping the best possible quality.
         </p>
       </div>
@@ -165,22 +166,24 @@ export default function CompressPdfPage() {
               inputRef.current?.click();
             }
           }}
-          className={`cursor-pointer rounded-3xl sm:rounded-[32px] p-6 sm:p-16 h-auto min-h-[260px] sm:h-[380px] flex flex-col items-center justify-center text-center transition-all bg-[var(--background-secondary)] border border-card shadow-xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${
+          className={`cursor-pointer rounded-2xl sm:rounded-[32px] p-5 sm:p-16 h-auto min-h-[200px] sm:h-[380px] flex flex-col items-center justify-center text-center transition-all bg-[var(--background-secondary)] border border-card shadow-xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${
             isDragging ? "border-slate-900 dark:border-white scale-[1.01]" : "hover:border-slate-300 dark:hover:border-[#333a4a]"
           }`}
         >
-          <div className="w-14 h-14 rounded-2xl bg-[var(--background-secondary)] mx-auto flex items-center justify-center mb-4 text-fg shadow-sm border border-card">
-            <Upload size={26} />
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[var(--background-secondary)] mx-auto flex items-center justify-center mb-3 sm:mb-4 text-fg shadow-sm border border-card">
+            <Upload size={22} className="sm:hidden" />
+            <Upload size={26} className="hidden sm:block" />
           </div>
-          <p className="text-fg font-semibold text-lg">Click to browse or drag & drop PDFs</p>
-          <p className="text-slate-600 dark:text-[#9ca3af] text-sm mt-1">Upload a document to start compression</p>
+          <p className="text-fg font-semibold text-sm sm:text-lg">Click to browse or drag & drop PDFs</p>
+          <p className="text-slate-600 dark:text-[#9ca3af] text-xs sm:text-sm mt-1">Upload a document to start compression</p>
         </div>
       ) : (
-        <div className="space-y-6">
-          <div className="bg-card border border-card rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-card border border-card flex items-center justify-center shrink-0 text-fg">
-                <FileText size={20} />
+        <div className="space-y-4 sm:space-y-6">
+          <div className="bg-card border border-card rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-3 w-full sm:w-auto min-w-0">
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-card border border-card flex items-center justify-center shrink-0 text-fg">
+                <FileText size={18} className="sm:hidden" />
+                <FileText size={20} className="hidden sm:block" />
               </div>
               <div className="min-w-0">
                 <p className="text-fg text-sm font-bold truncate">{fileDetails.name}</p>
@@ -197,17 +200,18 @@ export default function CompressPdfPage() {
                 setDone(false);
                 setErrorMessage(null);
               }}
-              className="py-1.5 px-3.5 rounded-xl bg-red-950/50 hover:bg-red-900/50 text-red-400 font-semibold text-xs flex items-center gap-1.5 transition-colors shrink-0"
+              className="w-full sm:w-auto py-1.5 px-3.5 rounded-xl bg-red-950/50 hover:bg-red-900/50 text-red-400 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors shrink-0"
             >
               <X size={15} /> Remove File
             </button>
           </div>
 
-          <div className="bg-card border border-card rounded-3xl p-6 shadow-md space-y-6">
+          <div className="bg-card border border-card rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-md space-y-5 sm:space-y-6">
             <div className="flex items-center justify-between pb-3 border-b border-card">
               <div className="flex items-center gap-2">
-                <FileArchive size={18} className="text-fg" />
-                <span className="text-sm font-extrabold text-fg">Compression Configuration</span>
+                <FileArchive size={16} className="text-fg sm:hidden" />
+                <FileArchive size={18} className="text-fg hidden sm:block" />
+                <span className="text-xs sm:text-sm font-extrabold text-fg">Compression Configuration</span>
               </div>
             </div>
 
@@ -224,7 +228,7 @@ export default function CompressPdfPage() {
                     setDone(false);
                     setErrorMessage(null);
                   }}
-                  className="w-full bg-card border border-card rounded-xl px-3.5 py-3 text-fg text-sm focus:outline-none focus:border-slate-900 dark:border-white cursor-pointer"
+                  className="w-full max-w-full bg-card border border-card rounded-xl px-3 sm:px-3.5 py-2.5 sm:py-3 text-fg text-xs sm:text-sm focus:outline-none focus:border-slate-900 dark:border-white cursor-pointer"
                 >
                   {options.map((opt) => (
                     <option key={opt.targetKB} value={opt.targetKB} className="bg-card text-fg">
@@ -241,7 +245,7 @@ export default function CompressPdfPage() {
               </div>
             )}
 
-            <div className="pt-2">
+            <div className="pt-1 sm:pt-2">
               {!done ? (
                 <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
                   <button
@@ -252,7 +256,7 @@ export default function CompressPdfPage() {
                       setDone(false);
                       setErrorMessage(null);
                     }}
-                    className="w-full sm:w-auto shrink-0 py-3 px-6 rounded-2xl border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-fg font-bold text-xs transition-colors"
+                    className="w-full sm:w-auto shrink-0 py-2.5 sm:py-3 px-5 sm:px-6 rounded-2xl border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-fg font-bold text-xs transition-colors"
                   >
                     Clear All
                   </button>
@@ -260,7 +264,7 @@ export default function CompressPdfPage() {
                     type="button"
                     onClick={executeCompress}
                     disabled={processing}
-                    className="w-full sm:flex-1 py-3.5 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
+                    className="w-full sm:flex-1 py-3 sm:py-3.5 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-xs sm:text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
                   >
                     {processing ? <Loader2 className="animate-spin" size={18} /> : <FileArchive size={18} />}
                     {processing ? "Compressing PDF..." : "Compress PDF"}
@@ -271,20 +275,20 @@ export default function CompressPdfPage() {
                   {/* emerald-400 had no light variant, so the success line was
                       washed out on a white background. Same pair the other
                       tools use. */}
-                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-extrabold text-sm">
+                  <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-extrabold text-xs sm:text-sm">
                     <CheckCircle2 size={18} />
                     <span>PDF Compressed Successfully!</span>
                   </div>
 
                   {compressedSize && (
-                    <p className="text-sm text-slate-600 dark:text-[#9ca3af]">
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-[#9ca3af]">
                       Size reduced from <strong className="text-fg">{fileDetails.formattedSize}</strong> to{" "}
                       <strong className="text-fg">{formatSize(compressedSize)}</strong>
                       {calculateSavings() > 0 && (
                         // The savings pill was styled for dark only: a near-black
                         // green fill in light mode, where the surrounding card is
                         // white.
-                        <span className="ml-2.5 px-2.5 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800 font-bold inline-block">
+                        <span className="ml-2 sm:ml-2.5 px-2 sm:px-2.5 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800 font-bold inline-block">
                           -{calculateSavings()}%
                         </span>
                       )}
@@ -295,7 +299,7 @@ export default function CompressPdfPage() {
                     <button
                       type="button"
                       onClick={() => setDone(false)}
-                      className="w-full sm:w-auto shrink-0 py-3 px-6 rounded-2xl border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-fg font-bold text-xs transition-colors"
+                      className="w-full sm:w-auto shrink-0 py-2.5 sm:py-3 px-5 sm:px-6 rounded-2xl border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-fg font-bold text-xs transition-colors"
                     >
                       Compress Again
                     </button>
@@ -303,7 +307,7 @@ export default function CompressPdfPage() {
                       type="button"
                       onClick={executeCompress}
                       disabled={processing}
-                      className="w-full sm:flex-1 py-3.5 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
+                      className="w-full sm:flex-1 py-3 sm:py-3.5 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-xs sm:text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
                     >
                       {processing ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
                       {processing ? "Downloading..." : "Download Compressed PDF"}

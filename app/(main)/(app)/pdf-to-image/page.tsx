@@ -258,24 +258,31 @@ export default function PdfToImageConverter() {
   };
 
   return (
-    <main className="min-h-screen bg-card text-fg py-12 px-4 sm:px-6 lg:px-8 transition-colors">
-      <div className="max-w-3xl mx-auto space-y-8">
+    <main className="min-h-screen bg-card text-fg py-6 px-3 sm:py-12 sm:px-6 lg:px-8 transition-colors">
+      <div className="max-w-3xl mx-auto space-y-5 sm:space-y-8">
 
         {/* Header Badge & Title */}
-        <div className="text-center space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-purple-50 dark:bg-slate-800 border border-purple-200 dark:border-slate-700 text-purple-900 dark:text-purple-300 text-xs font-semibold tracking-wide uppercase shadow-sm">
-            <FileCheck className="w-4 h-4" /> Professional PDF Toolkit
+        <div className="text-center space-y-1.5 sm:space-y-3">
+          <div className="flex justify-center mb-1 sm:mb-0">
+            <div className="w-11 h-11 flex items-center justify-center rounded-2xl bg-[var(--background-secondary)] border border-card shadow-sm sm:w-auto sm:h-auto sm:inline-flex sm:gap-1.5 sm:px-3.5 sm:py-1.5 sm:rounded-full sm:shadow-sm sm:bg-purple-50 dark:sm:bg-slate-800 sm:border-purple-200 dark:sm:border-slate-700">
+              <FileCheck className="w-5 h-5 text-fg sm:w-4 sm:h-4 sm:text-purple-900 dark:sm:text-purple-300" />
+              <span className="hidden sm:inline text-purple-900 dark:text-purple-300 text-xs font-semibold tracking-wide uppercase">
+                Professional PDF Toolkit
+              </span>
+            </div>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-fg tracking-tight">
+          <h1 className="text-xl leading-tight sm:text-3xl md:text-4xl font-extrabold text-fg tracking-tight">
             PDF to Image Converter
           </h1>
-          <p className="text-muted text-sm sm:text-base max-w-xl mx-auto">
+          <p className="text-muted text-[13px] leading-[18px] sm:text-sm md:text-base max-w-[300px] sm:max-w-xl mx-auto">
             Convert your whole document or a specific targeted page directly into actual image files securely.
           </p>
         </div>
 
-        {/* Main Card Container */}
-        <div className="bg-card rounded-3xl shadow-2xl border border-card p-6 sm:p-8 space-y-6 transition-colors">
+        {/* Main Card Container — boxed (bg/border/shadow) only from sm: up.
+            On mobile the page (<main>) is already bg-card, so boxing this too
+            stacked a second bordered box directly under the header badge. */}
+        <div className="space-y-5 sm:space-y-6 sm:bg-card sm:rounded-3xl sm:shadow-2xl sm:border sm:border-card sm:p-8 transition-colors">
 
           {error && (
             <div className="flex items-center gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800/80 text-red-700 dark:text-red-300 text-sm">
@@ -299,12 +306,12 @@ export default function PdfToImageConverter() {
               hint="or click to browse from your computer"
             />
           ) : (
-            <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--background-secondary)] border border-card shadow-sm">
-              <div className="flex items-center gap-3 overflow-hidden">
-                <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-slate-800 text-purple-900 dark:text-purple-300 flex items-center justify-center flex-shrink-0 border border-purple-200 dark:border-slate-700">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 rounded-xl bg-[var(--background-secondary)] border border-card shadow-sm">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 shrink-0 rounded-lg bg-purple-100 dark:bg-slate-800 text-purple-900 dark:text-purple-300 flex items-center justify-center border border-purple-200 dark:border-slate-700">
                   <FileText className="w-5 h-5" />
                 </div>
-                <div className="truncate">
+                <div className="min-w-0">
                   <p className="text-sm font-semibold text-fg truncate">{file.name}</p>
                   <p className="text-xs text-muted">
                     {(file.size / (1024 * 1024)).toFixed(2)} MB • {loadingInfo ? "Analyzing..." : `${numPages} Pages Detected`}
@@ -313,7 +320,7 @@ export default function PdfToImageConverter() {
               </div>
               <button
                 onClick={handleRemoveFile}
-                className="p-2 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                className="self-end sm:self-auto shrink-0 p-2 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
                 title="Remove file"
               >
                 <Trash2 className="w-5 h-5" />
@@ -323,15 +330,15 @@ export default function PdfToImageConverter() {
 
           {/* Mode Selector */}
           {file && (
-            <div className="space-y-4 pt-2">
+            <div className="space-y-3 sm:space-y-4 pt-2">
               <label className="block text-xs font-bold uppercase tracking-wider text-muted">
                 Select Conversion Mode
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3">
                 <button
                   type="button"
                   onClick={() => setMode("whole")}
-                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-semibold transition-all ${mode === "whole"
+                  className={`flex items-center justify-center gap-2 py-2.5 px-3 sm:py-3 sm:px-4 rounded-xl border text-xs sm:text-sm font-semibold transition-all ${mode === "whole"
                     ? "border-slate-900 dark:border-slate-700 bg-slate-900 dark:bg-slate-800 text-white shadow-md"
                     : "border-card bg-[var(--background-secondary)] text-muted hover:bg-slate-100 dark:hover:bg-slate-800"
                     }`}
@@ -341,7 +348,7 @@ export default function PdfToImageConverter() {
                 <button
                   type="button"
                   onClick={() => setMode("custom")}
-                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-semibold transition-all ${mode === "custom"
+                  className={`flex items-center justify-center gap-2 py-2.5 px-3 sm:py-3 sm:px-4 rounded-xl border text-xs sm:text-sm font-semibold transition-all ${mode === "custom"
                     ? "border-slate-900 dark:border-slate-700 bg-slate-900 dark:bg-slate-800 text-white shadow-md"
                     : "border-card bg-[var(--background-secondary)] text-muted hover:bg-slate-100 dark:hover:bg-slate-800"
                     }`}
@@ -351,7 +358,7 @@ export default function PdfToImageConverter() {
               </div>
 
               {mode === "custom" && (
-                <div className="p-4 rounded-xl bg-[var(--background-secondary)] border border-card space-y-2">
+                <div className="p-3 sm:p-4 rounded-xl bg-[var(--background-secondary)] border border-card space-y-2">
                   <label className="block text-xs font-semibold text-muted">
                     Target Page Number (1 to {numPages})
                   </label>
@@ -404,7 +411,7 @@ export default function PdfToImageConverter() {
             <button
               onClick={handleConvert}
               disabled={loading || loadingInfo}
-              className="w-full py-4 px-6 rounded-xl bg-slate-900 dark:bg-slate-800 border border-slate-900 dark:border-slate-700 hover:bg-slate-800 dark:hover:bg-slate-700 text-white font-semibold text-sm sm:text-base shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+              className="w-full py-3.5 px-5 sm:py-4 sm:px-6 rounded-xl bg-slate-900 dark:bg-slate-800 border border-slate-900 dark:border-slate-700 hover:bg-slate-800 dark:hover:bg-slate-700 text-white font-semibold text-sm sm:text-base shadow-lg flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
             >
               {loading ? (
                 <>

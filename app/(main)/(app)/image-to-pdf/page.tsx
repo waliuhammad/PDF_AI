@@ -384,34 +384,42 @@ export default function ImageToPdf(): JSX.Element {
   const usedPages = Array.from(new Set(images.map((img) => img.page))).sort((a, b) => a - b);
 
   return (
-    <div className="min-h-screen bg-background text-fg flex flex-col items-center justify-center p-6 antialiased selection:bg-slate-900 dark:selection:bg-blue-500 selection:text-white">
-      <div className="max-w-4xl w-full space-y-8 bg-card border border-card p-8 rounded-3xl shadow-xl dark:shadow-2xl backdrop-blur-xl">
+    <div className="min-h-screen bg-background text-fg antialiased selection:bg-slate-900 dark:selection:bg-blue-500 selection:text-white flex flex-col items-center md:justify-center px-3 py-4 md:p-6">
+      <div className="w-full max-w-4xl space-y-5 md:space-y-8 md:bg-card md:border md:border-card md:p-8 md:rounded-3xl md:shadow-xl dark:md:shadow-2xl md:backdrop-blur-xl">
 
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 dark:bg-blue-500/10 border border-slate-200 dark:border-blue-500/20 text-slate-700 dark:text-blue-400 text-xs font-semibold tracking-wide uppercase">
-            <Sparkles className="w-3.5 h-3.5 text-slate-900 dark:text-blue-400" />
-            <span>Multi-Image Page Composition</span>
+        <div className="text-center space-y-1.5 md:space-y-2">
+          <div className="flex justify-center mb-1 md:mb-0">
+            <div className="w-11 h-11 flex items-center justify-center rounded-2xl bg-card border border-card shadow-sm md:w-auto md:h-auto md:inline-flex md:px-3 md:py-1 md:rounded-full md:gap-1.5 md:shadow-none md:bg-slate-100 dark:md:bg-blue-500/10 md:border-slate-200 dark:md:border-blue-500/20">
+              <Sparkles className="w-5 h-5 md:w-3.5 md:h-3.5 text-fg md:text-slate-900 dark:md:text-blue-400" />
+              <span className="hidden md:inline text-slate-700 dark:text-blue-400 text-xs font-semibold tracking-wide uppercase">
+                Multi-Image Page Composition
+              </span>
+            </div>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-fg">Combine Multiple Images into a PDF</h1>
-          <p className="text-sm text-muted">
+          <h1 className="text-xl leading-tight md:text-3xl font-bold tracking-tight text-fg">
+            Combine Multiple Images into a PDF
+          </h1>
+          <p className="text-[13px] leading-[18px] md:text-sm md:leading-normal text-muted max-w-[300px] md:max-w-xl mx-auto">
             Arrange multiple images and custom text captions on an A4 layout. Images stack down the page and flow onto a new one once it is full.
           </p>
         </div>
 
         {images.length === 0 && (
-          <UploadCard
-            onFiles={(files) => loadFiles(Array.from(files ?? []), false)}
-            accept="image/*"
-            multiple
-            title="Click to upload multiple images"
-            hint="Supports PNG, JPG, WebP, GIF, BMP"
-          />
+          <div className="w-full md:w-auto">
+            <UploadCard
+              onFiles={(files) => loadFiles(Array.from(files ?? []), false)}
+              accept="image/*"
+              multiple
+              title="Click to upload multiple images"
+              hint="Supports PNG, JPG, WebP, GIF, BMP"
+            />
+          </div>
         )}
 
         {images.length > 0 && (
-          <div className="space-y-6">
+          <div className="space-y-4 md:space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-              <span className="text-xs text-muted font-bold uppercase tracking-wider whitespace-nowrap">
+              <span className="text-[11px] md:text-xs text-muted font-bold uppercase tracking-wider whitespace-nowrap">
                 Canvas Elements ({images.length})
               </span>
               <div className="flex items-center space-x-3 shrink-0">
@@ -456,7 +464,7 @@ export default function ImageToPdf(): JSX.Element {
             </div>
 
             {selectedImg && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-[var(--background-secondary)] border border-card rounded-2xl p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 bg-[var(--background-secondary)] border border-card rounded-2xl p-3 md:p-6">
 
                 {/* Visual Preview Box showing ALL images together on one page */}
                 <div className="flex flex-col items-center justify-center bg-slate-900/5 dark:bg-black/40 border border-card rounded-xl p-3 sm:p-4 pt-9 sm:pt-10 relative min-h-[240px] sm:min-h-[320px]">

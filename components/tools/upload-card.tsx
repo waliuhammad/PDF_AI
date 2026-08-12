@@ -59,11 +59,11 @@ export function UploadCard({
                 setDragging(false);
                 if (!disabled) onFiles(e.dataTransfer.files);
             }}
-            className={`w-full rounded-2xl border-2 border-dashed p-6 sm:p-10 text-center transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${disabled
-                    ? "cursor-not-allowed opacity-60 border-card bg-card"
+            className={`w-full rounded-3xl border p-8 sm:p-12 text-center transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${disabled
+                    ? "cursor-not-allowed opacity-60 border-card bg-[var(--background-secondary)]"
                     : dragging
                         ? "cursor-pointer border-[var(--primary)] bg-primary-tint"
-                        : "cursor-pointer border-card bg-card hover:border-[var(--primary)]"
+                        : "cursor-pointer border-card bg-[var(--background-secondary)] hover:border-[var(--primary)]"
                 }`}
         >
             <input
@@ -78,8 +78,12 @@ export function UploadCard({
                     e.target.value = "";
                 }}
             />
-            <Upload className="mx-auto text-muted mb-3" size={28} />
-            <p className="text-fg font-medium text-sm">{title}</p>
+
+            <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-2xl border border-card bg-card shadow-sm">
+                <Upload className="text-fg" size={20} />
+            </div>
+
+            <p className="text-[var(--primary)] font-semibold text-sm">{title}</p>
             <p className="text-muted text-xs mt-1">{hint}</p>
 
             {note && (
