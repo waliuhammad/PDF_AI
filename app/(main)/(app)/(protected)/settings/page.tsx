@@ -6,7 +6,7 @@ import { SettingsTabs, SettingsTab } from "@/components/settings/settings-tabs";
 import { Sun, Moon, Monitor, Check, AlertCircle, Loader2, ChevronDown, Search } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { LOCALE_CHANGED_EVENT, useT } from "@/components/locale-provider";
-import { TRANSLATED_LOCALES } from "@/lib/i18n/messages";
+import { SUPPORTED_LANGUAGES } from "@/lib/i18n/messages";
 import { updateUserProfile } from "@/lib/firebase/users";
 import { changePassword, hasPasswordProvider } from "@/lib/firebase/auth";
 import { BillingTab } from "@/components/settings/billing-tab";
@@ -32,29 +32,9 @@ const DEFAULT_PREFS: Preferences = {
     notifications: { email: true, product: true, marketing: false },
 };
 
-// Comprehensive list of worldwide languages
-const WORLD_LANGUAGES = [
-    { code: "af", name: "Afrikaans" }, { code: "sq", name: "Albanian" }, { code: "ar", name: "Arabic" },
-    { code: "hy", name: "Armenian" }, { code: "bn", name: "Bengali" }, { code: "bs", name: "Bosnian" },
-    { code: "bg", name: "Bulgarian" }, { code: "ca", name: "Catalan" }, { code: "zh", name: "Chinese" },
-    { code: "hr", name: "Croatian" }, { code: "cs", name: "Czech" }, { code: "da", name: "Danish" },
-    { code: "nl", name: "Dutch" }, { code: "en", name: "English" }, { code: "et", name: "Estonian" },
-    { code: "fi", name: "Finnish" }, { code: "fr", name: "French" }, { code: "ka", name: "Georgian" },
-    { code: "de", name: "German" }, { code: "el", name: "Greek" }, { code: "gu", name: "Gujarati" },
-    { code: "he", name: "Hebrew" }, { code: "hi", name: "Hindi" }, { code: "hu", name: "Hungarian" },
-    { code: "is", name: "Icelandic" }, { code: "id", name: "Indonesian" }, { code: "it", name: "Italian" },
-    { code: "ja", name: "Japanese" }, { code: "kn", name: "Kannada" }, { code: "ko", name: "Korean" },
-    { code: "lv", name: "Latvian" }, { code: "lt", name: "Lithuanian" }, { code: "mk", name: "Macedonian" },
-    { code: "ms", name: "Malay" }, { code: "ml", name: "Malayalam" }, { code: "mr", name: "Marathi" },
-    { code: "ne", name: "Nepali" }, { code: "no", name: "Norwegian" }, { code: "fa", name: "Persian" },
-    { code: "pl", name: "Polish" }, { code: "pt", name: "Portuguese" }, { code: "pa", name: "Punjabi" },
-    { code: "ro", name: "Romanian" }, { code: "ru", name: "Russian" }, { code: "sr", name: "Serbian" },
-    { code: "sk", name: "Slovak" }, { code: "sl", name: "Slovenian" }, { code: "es", name: "Spanish" },
-    { code: "sw", name: "Swahili" }, { code: "sv", name: "Swedish" }, { code: "ta", name: "Tamil" },
-    { code: "te", name: "Telugu" }, { code: "th", name: "Thai" }, { code: "tr", name: "Turkish" },
-    { code: "uk", name: "Ukrainian" }, { code: "ur", name: "Urdu" }, { code: "vi", name: "Vietnamese" },
-    { code: "cy", name: "Welsh" }
-];
+// The languages offered are exactly the ones with a catalogue, so every
+// entry in this list actually changes the interface.
+const WORLD_LANGUAGES = SUPPORTED_LANGUAGES;
 
 function loadPreferences(): Preferences {
     if (typeof window === "undefined") return DEFAULT_PREFS;
@@ -472,15 +452,7 @@ export default function SettingsPage() {
                                                             }`}
                                                         >
                                                             <span>{lang.name}</span>
-
-                                                            {/* All 58 are selectable, but only some have interface
-                                                                copy; the rest stay in English. Saying so here is why
-                                                                choosing one of them appears to do nothing. */}
-                                                            {!TRANSLATED_LOCALES.includes(lang.code as (typeof TRANSLATED_LOCALES)[number]) && (
-                                                                <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted">
-                                                                    English UI
-                                                                </span>
-                                                            )}
+                                                            <span className="shrink-0 text-xs text-muted">{lang.nativeName}</span>
                                                         </button>
                                                     </li>
                                                 ))

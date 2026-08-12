@@ -1,6 +1,7 @@
 "use client";
 import { UsageMeter } from "@/components/usage-meter";
 import { usePlanUsage } from "@/hooks/usePlanUsage";
+import { useT } from "@/components/locale-provider";
 import { useMemo } from "react";
 import Link from "next/link";
 import {
@@ -19,15 +20,16 @@ import { useLibrary } from "@/lib/store";
 import { formatRelativeTime, formatStorageUsed } from "@/lib/utils";
 
 const quickActions = [
-    { label: "Upload", icon: Upload, href: "/documents" },
-    { label: "Tools", icon: Wrench, href: "/tools" },
-    { label: "Chat", icon: MessageSquare, href: "/chats" },
-    { label: "AI Tools", icon: Cpu, href: "/tools?category=AI%20Tools" },
-];
+    { key: "dashboard.upload", icon: Upload, href: "/documents" },
+    { key: "nav.tools", icon: Wrench, href: "/tools" },
+    { key: "nav.chats", icon: MessageSquare, href: "/chats" },
+    { key: "dashboard.aiTools", icon: Cpu, href: "/tools?category=AI%20Tools" },
+] as const;
 
 export default function DashboardPage() {
     // Route protection and the loading gate live in the (app) layout.
     const { user, profile } = useAuth();
+    const { t } = useT();
     const documents = useLibrary((s) => s.documents);
     const chats = useLibrary((s) => s.chats);
 
@@ -54,15 +56,15 @@ export default function DashboardPage() {
 
     const displayName =
         profile?.fullName || user?.displayName || user?.email?.split("@")[0] || "there";
-    const planLabel = profile?.plan === "paid" ? "Paid Plan" : "Free Plan";
+    const planLabel = profile?.plan === "paid" ? t("dashboard.paidPlan") : t("dashboard.freePlan");
 
     return (
         <div>
             <div className="mb-6 animate-tool-in">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                     <div>
-                        <h1 className="text-2xl font-bold text-fg">Welcome back, {displayName} 👋</h1>
-                        <p className="text-muted text-sm mt-1">Here&apos;s what&apos;s happening with your documents.</p>
+                        <h1 className="text-2xl font-bold text-fg">{t("dashboard.welcome")}, {displayName} 👋</h1>
+                        <p className="text-muted text-sm mt-1">{t("dashboard.subtitle")}</p>
                     </div>
                     <span className="text-xs font-medium px-3 py-1.5 rounded-full bg-red-50 text-[var(--primary)] shrink-0">
                         {planLabel}
@@ -72,13 +74,13 @@ export default function DashboardPage() {
 
             {/* Stats: Desktop version (lg:grid-cols-4), Mobile ultra-compact row (grid-cols-4) */}
             <div className="hidden lg:grid grid-cols-4 gap-4 mb-8">
-                <StatCard label="Total Documents" value={String(documents.length)} icon={FileText} />
-                <StatCard label="Total Chats" value={String(chats.length)} icon={MessageSquare} />
+                <StatCard label={t("dashboard.totalDocuments")} value={String(documents.length)} icon={FileText} />
+                <StatCard label={t("dashboard.totalChats")} value={String(chats.length)} icon={MessageSquare} />
                 {/* "of Y GB" comes from the plan, so the tile states the
                     allowance rather than a bare number with nothing to judge
                     it against. */}
                 <StatCard
-                    label="Storage Used"
+                    label={t("dashboard.storageUsed")}
                     value={
                         storageLimitGb === null
                             ? formatStorageUsed(storageUsedGb)
@@ -86,20 +88,20 @@ export default function DashboardPage() {
                     }
                     icon={HardDrive}
                 />
-                <StatCard label="Favorites" value={String(favouriteCount)} icon={Star} />
+                <StatCard label={t("dashboard.favorites")} value={String(favouriteCount)} icon={Star} />
             </div>
 
             <div className="grid grid-cols-4 gap-2 mb-4 lg:hidden">
                 <div className="bg-card border border-card rounded-xl p-2 text-center flex flex-col items-center justify-center">
-                    <span className="text-[10px] text-muted truncate w-full">Docs</span>
+                    <span className="text-[10px] text-muted truncate w-full">{t("dashboard.docs")}</span>
                     <span className="text-sm font-bold text-fg">{documents.length}</span>
                 </div>
                 <div className="bg-card border border-card rounded-xl p-2 text-center flex flex-col items-center justify-center">
-                    <span className="text-[10px] text-muted truncate w-full">Chats</span>
+                    <span className="text-[10px] text-muted truncate w-full">{t("dashboard.chats")}</span>
                     <span className="text-sm font-bold text-fg">{chats.length}</span>
                 </div>
                 <div className="bg-card border border-card rounded-xl p-2 text-center flex flex-col items-center justify-center">
-                    <span className="text-[10px] text-muted truncate w-full">Storage</span>
+                    <span className="text-[10px] text-muted truncate w-full">{t("dashboard.storage")}</span>
                     <span className="text-sm font-bold text-fg">
                         {storageLimitGb === null
                             ? formatStorageUsed(storageUsedGb)
@@ -107,7 +109,7 @@ export default function DashboardPage() {
                     </span>
                 </div>
                 <div className="bg-card border border-card rounded-xl p-2 text-center flex flex-col items-center justify-center">
-                    <span className="text-[10px] text-muted truncate w-full">Favs</span>
+                    <span className="text-[10px] text-muted truncate w-full">{t("dashboard.favs")}</span>
                     <span className="text-sm font-bold text-fg">{favouriteCount}</span>
                 </div>
             </div>
@@ -123,14 +125,14 @@ export default function DashboardPage() {
                 {/* Recent PDFs */}
                 <div className="lg:col-span-2 bg-card border border-card rounded-2xl p-4 sm:p-6">
                     <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-lg font-semibold text-fg">Recent Documents</h2>
+                        <h2 className="text-lg font-semibold text-fg">{t("dashboard.recentDocuments")}</h2>
                         <Link href="/documents" className="text-sm text-[var(--primary)] font-medium hover:underline">
-                            View all
+                            {t("dashboard.viewAll")}
                         </Link>
                     </div>
                     {recentDocs.length === 0 ? (
                         <p className="text-sm text-muted py-6 text-center">
-                            No documents yet — upload your first PDF to get started.
+                            {t("dashboard.noDocuments")}
                         </p>
                     ) : (
                         <div className="space-y-2">
@@ -172,19 +174,19 @@ export default function DashboardPage() {
 
                     {/* Quick Actions (Desktop version) */}
                     <div className="hidden lg:block bg-card border border-card rounded-2xl p-4 sm:p-6">
-                        <h2 className="text-lg font-semibold text-fg mb-4">Quick Actions</h2>
+                        <h2 className="text-lg font-semibold text-fg mb-4">{t("dashboard.quickActions")}</h2>
                         <div className="space-y-2">
                             {quickActions.map((action) => {
                                 const Icon = action.icon;
 
                                 return (
                                     <Link
-                                        key={action.label}
+                                        key={t(action.key)}
                                         href={action.href}
                                         className="flex items-center gap-3 p-3 rounded-xl border border-card hover:border-[var(--primary)] transition-colors"
                                     >
                                         <Icon size={16} className="text-[var(--primary)]" />
-                                        <span className="text-sm font-medium text-fg">{action.label}</span>
+                                        <span className="text-sm font-medium text-fg">{t(action.key)}</span>
                                     </Link>
                                 );
                             })}
@@ -196,7 +198,7 @@ export default function DashboardPage() {
             {/* Recent Chats */}
             <div className="mt-6 bg-card border border-card rounded-2xl p-4 sm:p-6">
                 <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-fg">Recent Chats</h2>
+                    <h2 className="text-lg font-semibold text-fg">{t("dashboard.recentChats")}</h2>
                     <Link href="/chats" className="text-sm text-[var(--primary)] font-medium hover:underline">
                         View all
                     </Link>
@@ -233,18 +235,18 @@ export default function DashboardPage() {
 
             {/* Quick Actions (Mobile-only version) */}
             <div className="mt-6 block lg:hidden bg-card border border-card rounded-2xl p-4 sm:p-6">
-                <h2 className="text-lg font-semibold text-fg mb-4">Quick Actions</h2>
+                <h2 className="text-lg font-semibold text-fg mb-4">{t("dashboard.quickActions")}</h2>
                 <div className="grid grid-cols-2 gap-2.5">
                     {quickActions.map((action) => {
                         const Icon = action.icon;
                         return (
                             <Link
-                                key={action.label}
+                                key={t(action.key)}
                                 href={action.href}
                                 className="flex items-center gap-2.5 p-3 rounded-xl border border-card hover:border-[var(--primary)] bg-[var(--background-secondary)]/40 transition-colors"
                             >
                                 <Icon size={16} className="text-[var(--primary)] shrink-0" />
-                                <span className="text-xs font-medium text-fg truncate">{action.label}</span>
+                                <span className="text-xs font-medium text-fg truncate">{t(action.key)}</span>
                             </Link>
                         );
                     })}
