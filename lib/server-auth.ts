@@ -12,6 +12,26 @@ import { getAdminAuth, isAdminConfigured, SESSION_COOKIE } from "@/lib/firebase/
  * decides whether that means "refuse" (AI tools) or "continue" (open
  * tools).
  */
+/**
+ * The same answer as getRequestUid, for server components, which are handed
+ * no request object. Lets a page render the user's real numbers into the HTML
+ * instead of shipping a placeholder and asking for them after mount.
+ */
+export async function getSessionUid(): Promise<string | null> {
+    if (!isAdminConfigured()) return null;
+
+    const { cookies } = await import("next/headers");
+    const session = (await cookies()).get(SESSION_COOKIE)?.value;
+    if (!session) return null;
+
+    try {
+        const decoded = await getAdminAuth().verifySessionCookie(session, true);
+        return decoded.uid;
+    } catch {
+        return null;
+    }
+}
+
 export async function getRequestUid(req: NextRequest): Promise<string | null> {
     if (!isAdminConfigured()) return null;
 

@@ -2,29 +2,28 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useTestPlanOptional } from "@/components/dev/TestPlanProvider";
+import { usePlanUsageContext, type PlanUsage } from "@/components/plan-usage-provider";
 
-export interface PlanUsage {
-    used: number;
-    limit: number;
-    plan: string;
-    storageLimitGb: number;
-}
+export type { PlanUsage };
 
 /**
- * The signed-in user's plan, daily operation count and storage allowance, from
- * /api/usage.
+ * The signed-in user's plan, daily operation count and storage allowance.
  *
- * Shared so the usage meter and the storage tile answer from one request and
- * one plan resolution. The fetch is keyed on the plan tester, because that
- * writes the cookie the endpoint reads — without it a switch left the numbers
- * describing the previous plan until a reload.
+ * Inside the signed-in area a PlanUsageProvider supplies the answer, already
+ * filled in on the server, and every caller shares that one request. The
+ * standalone fetch below is the fallback for anything rendered outside that
+ * provider, so a component using this hook is never left blank because of
+ * where it happens to sit in the tree.
  */
 export function usePlanUsage() {
+    const shared = usePlanUsageContext();
+
     const [usage, setUsage] = useState<PlanUsage | null>(null);
     const [unavailable, setUnavailable] = useState(false);
     const testPlan = useTestPlanOptional();
-
     const activePlan = testPlan?.isTestMode ? testPlan.plan : null;
+
+    const standalone = shared === null;
 
     const load = useCallback(async (signal: AbortSignal) => {
         try {
@@ -46,27 +45,26 @@ export function usePlanUsage() {
                 setUnavailable(true);
             }
         } catch (err) {
-            // An abort is this hook replacing its own request, not a failure.
             if ((err as Error)?.name === "AbortError") return;
             setUnavailable(true);
         }
     }, []);
 
     useEffect(() => {
+        if (!standalone) return;
+
         const controller = new AbortController();
         // eslint-disable-next-line react-hooks/set-state-in-effect
         load(controller.signal);
         return () => controller.abort();
-    }, [load, activePlan]);
+    }, [standalone, load, activePlan]);
 
-    useEffect(() => {
-        const onFocus = () => {
-            const controller = new AbortController();
-            load(controller.signal);
-        };
-        window.addEventListener("focus", onFocus);
-        return () => window.removeEventListener("focus", onFocus);
-    }, [load]);
+    if (shared) return shared;
 
-    return { usage, unavailable, loading: !usage && !unavailable };
+    return {
+        usage,
+        unavailable,
+        loading: !usage && !unavailable,
+        refresh: () => {},
+    };
 }
