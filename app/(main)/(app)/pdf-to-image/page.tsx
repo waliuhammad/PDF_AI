@@ -377,25 +377,29 @@ export default function PdfToImageConverter() {
               <label className="block text-xs font-bold uppercase tracking-wider text-muted">
                 Output Image Format
               </label>
-              {/* formatOptions, not FORMAT_OPTIONS: a browser that cannot encode
-                  a type should not offer it, since picking it silently produced
-                  a PNG under the wrong extension. */}
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                {formatOptions.map((fmt) => (
-                  <button
-                    key={fmt.ext}
-                    type="button"
-                    onClick={() => setSelectedFormat(fmt)}
-                    className={`py-2.5 px-2 rounded-xl border text-xs font-bold uppercase tracking-wide transition-all ${selectedFormat.ext === fmt.ext
-                      ? "border-slate-900 dark:border-slate-700 bg-slate-900 dark:bg-slate-800 text-white shadow-md"
-                      : "border-card bg-[var(--background-secondary)] text-muted hover:bg-slate-100 dark:hover:bg-slate-800"
-                      }`}
-                    title={fmt.label}
-                  >
-                    {fmt.ext.replace(".", "")}
-                  </button>
-                ))}
-              </div>
+              {/* All five formats are listed. The ones this browser cannot
+                  encode are disabled rather than hidden, so the list is always
+                  the same five and the reason one is unavailable is stated —
+                  picking one used to produce a PNG under a .gif or .bmp name. */}
+              <select
+                value={selectedFormat.ext}
+                onChange={(e) => {
+                  const target = FORMAT_OPTIONS.find((f) => f.ext === e.target.value);
+                  if (target) setSelectedFormat(target);
+                }}
+                className="w-full sm:max-w-xs px-3 py-2.5 rounded-xl border border-card bg-card text-fg text-sm font-medium focus:outline-none focus:border-slate-900 dark:focus:border-slate-100 transition-colors"
+              >
+                {FORMAT_OPTIONS.map((fmt) => {
+                  const supported = formatOptions.some((f) => f.ext === fmt.ext);
+
+                  return (
+                    <option key={fmt.ext} value={fmt.ext} disabled={!supported}>
+                      {fmt.label}
+                      {supported ? "" : " — not supported by this browser"}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
           )}
 
