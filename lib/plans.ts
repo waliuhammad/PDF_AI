@@ -18,6 +18,17 @@ export interface Plan {
     name: string;
     monthly: string;
     yearly: string;
+    /**
+     * The same amounts as numbers, for anything that has to charge rather than
+     * display. Billing must not parse "$12.99" back into a number: a display
+     * string that gains a currency symbol, a comma or a locale format silently
+     * becomes NaN, and NaN is an invoice for nothing.
+     *
+     * yearlyPrice is the per-month equivalent, matching the yearly column, so
+     * a one-time yearly invoice is twelve times this.
+     */
+    monthlyPrice: number;
+    yearlyPrice: number;
     description: string;
     popular?: boolean;
     features: string[];
@@ -29,6 +40,8 @@ export const PLANS: Plan[] = [
         name: "Free",
         monthly: "$0",
         yearly: "$0",
+        monthlyPrice: 0,
+        yearlyPrice: 0,
         description: "Perfect for trying basic PDF tools.",
         features: [
             "Basic PDF conversions",
@@ -42,6 +55,8 @@ export const PLANS: Plan[] = [
         name: "Pro",
         monthly: "$12.99",
         yearly: "$9.99",
+        monthlyPrice: 12.99,
+        yearlyPrice: 9.99,
         description: "Advanced tools for professionals.",
         popular: true,
         features: [
@@ -57,6 +72,8 @@ export const PLANS: Plan[] = [
         name: "Business",
         monthly: "$38.99",
         yearly: "$30.99",
+        monthlyPrice: 38.99,
+        yearlyPrice: 30.99,
         description: "Powerful PDF workflow for teams.",
         features: [
             "Everything in Pro",

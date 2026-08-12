@@ -1,85 +1,28 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getAdminAuth, isAdminConfigured, SESSION_COOKIE } from "@/lib/firebase/admin";
-import { billingConfigProblem, createCheckout, variantFor } from "@/lib/billing/lemonsqueezy";
-import type { BillingCycle, PlanId } from "@/lib/plans";
+import { NextResponse } from "next/server";
 
 /**
- * Creates a Lemon Squeezy checkout for the signed-in user.
+ * The Lemon Squeezy checkout, retired.
  *
- * Identity comes from the verified session cookie, never the request body:
- * the uid embedded in the checkout decides whose plan the webhook upgrades,
- * so letting the browser name a uid would let anyone buy upgrades for
- * arbitrary accounts (or worse, claim them without paying).
+ * lib/billing/lemonsqueezy.ts was deleted as part of moving to Payoneer, but
+ * this route still imported it, so the project did not compile at all. The
+ * endpoint is kept rather than removed because components/pricing/checkout-button.tsx
+ * still posts here — deleting it would turn a clear message into a 404 and an
+ * unparseable HTML response in the browser.
+ *
+ * The replacement is /api/billing/checkout/payoneer, driven by
+ * components/billing/payoneer-checkout.tsx. That flow is not a redirect to a
+ * hosted checkout: it issues a reference code, the customer pays, and an admin
+ * confirms. So the button cannot simply be repointed here — it needs the
+ * Payoneer component in its place, which is a product decision rather than a
+ * rename.
  */
-
-const PAID_PLANS: PlanId[] = ["pro", "business"];
-const CYCLES: BillingCycle[] = ["monthly", "yearly"];
-
-export async function POST(req: NextRequest) {
-    try {
-        // Who is buying?
-        const session = req.cookies.get(SESSION_COOKIE)?.value;
-        if (!session || !isAdminConfigured()) {
-            return NextResponse.json(
-                { success: false, message: "Please sign in to upgrade." },
-                { status: 401 }
-            );
-        }
-
-        let uid: string;
-        let email: string | undefined;
-        try {
-            const decoded = await getAdminAuth().verifySessionCookie(session, true);
-            uid = decoded.uid;
-            email = decoded.email;
-        } catch {
-            return NextResponse.json(
-                { success: false, message: "Your session has expired — please sign in again." },
-                { status: 401 }
-            );
-        }
-
-        // What are they buying?
-        const body = await req.json().catch(() => null);
-        const planId = body?.planId as PlanId;
-        const billing = body?.billing as BillingCycle;
-
-        if (!PAID_PLANS.includes(planId) || !CYCLES.includes(billing)) {
-            return NextResponse.json(
-                { success: false, message: "Unknown plan or billing cycle." },
-                { status: 400 }
-            );
-        }
-
-        const configProblem = billingConfigProblem();
-        const variantId = variantFor(planId, billing);
-        if (configProblem || !variantId) {
-            console.error(
-                "Billing not configured:",
-                configProblem ?? `variant for ${planId}-${billing} not set`
-            );
-            return NextResponse.json(
-                { success: false, message: "Checkout isn't available right now. Please try again later." },
-                { status: 503 }
-            );
-        }
-
-        // Where do they land after paying?
-        const origin = req.nextUrl.origin;
-        const url = await createCheckout({
-            variantId,
-            email: email ?? "",
-            userId: uid,
-            planId,
-            redirectUrl: `${origin}/settings?upgraded=1`,
-        });
-
-        return NextResponse.json({ success: true, url });
-    } catch (err) {
-        console.error("Checkout error:", err);
-        return NextResponse.json(
-            { success: false, message: "Could not start checkout. Please try again." },
-            { status: 500 }
-        );
-    }
+export async function POST() {
+    return NextResponse.json(
+        {
+            success: false,
+            message:
+                "This checkout has moved. Please use the Payoneer payment option, or contact support.",
+        },
+        { status: 503 }
+    );
 }
