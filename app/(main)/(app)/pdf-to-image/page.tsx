@@ -20,9 +20,67 @@ const FORMAT_OPTIONS = [
   { label: "PNG Image (.png)", mimeType: "image/png", ext: ".png" },
   { label: "JPEG Image (.jpg)", mimeType: "image/jpeg", ext: ".jpg" },
   { label: "WebP Image (.webp)", mimeType: "image/webp", ext: ".webp" },
-  { label: "GIF Image (.gif)", mimeType: "image/gif", ext: ".gif" },
+  // Not a canvas encoding: the page is re-drawn as vector shapes, so the
+  // result scales without blurring and holds selectable text.
+  { label: "SVG Vector (.svg)", mimeType: "image/svg+xml", ext: ".svg" },
+  // A canvas cannot encode BMP, so it is written here from the raw pixels.
   { label: "BMP Image (.bmp)", mimeType: "image/bmp", ext: ".bmp" },
+  { label: "GIF Image (.gif)", mimeType: "image/gif", ext: ".gif" },
 ];
+
+/** Written by us rather than by canvas.toBlob, so canEncode does not apply. */
+const SELF_ENCODED = new Set(["image/svg+xml", "image/bmp"]);
+
+/**
+ * A 24-bit uncompressed BMP from canvas pixels.
+ *
+ * BMP is one of the types a canvas silently answers with PNG for, and it is
+ * simple enough to write directly: a 14-byte file header, a 40-byte
+ * BITMAPINFOHEADER, then rows bottom-up in BGR with each row padded to a
+ * multiple of four bytes.
+ */
+function canvasToBmp(canvas: HTMLCanvasElement): Blob {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Could not read the rendered page.");
+
+  const { width, height } = canvas;
+  const { data } = ctx.getImageData(0, 0, width, height);
+
+  const rowSize = (width * 3 + 3) & ~3;
+  const pixelBytes = rowSize * height;
+  const buffer = new ArrayBuffer(54 + pixelBytes);
+  const view = new DataView(buffer);
+  const bytes = new Uint8Array(buffer);
+
+  view.setUint8(0, 0x42); // 'B'
+  view.setUint8(1, 0x4d); // 'M'
+  view.setUint32(2, 54 + pixelBytes, true);
+  view.setUint32(10, 54, true);
+
+  view.setUint32(14, 40, true);
+  view.setInt32(18, width, true);
+  view.setInt32(22, height, true);
+  view.setUint16(26, 1, true);
+  view.setUint16(28, 24, true);
+  view.setUint32(34, pixelBytes, true);
+  view.setInt32(38, 2835, true); // ~72 DPI
+  view.setInt32(42, 2835, true);
+
+  for (let y = 0; y < height; y++) {
+    // Bottom-up: the last canvas row is the first row in the file.
+    const src = (height - 1 - y) * width * 4;
+    let dst = 54 + y * rowSize;
+
+    for (let x = 0; x < width; x++) {
+      const i = src + x * 4;
+      bytes[dst++] = data[i + 2];
+      bytes[dst++] = data[i + 1];
+      bytes[dst++] = data[i];
+    }
+  }
+
+  return new Blob([buffer], { type: "image/bmp" });
+}
 
 const EXT_BY_MIME: Record<string, string> = {
   "image/png": ".png",
@@ -47,11 +105,47 @@ function extensionFor(actualMime: string, requestedExt: string): string {
 
 /** Whether this browser can really encode a type, rather than falling back. */
 function canEncode(mimeType: string): boolean {
+  // SVG and BMP never reach canvas.toBlob, so the probe below would report
+  // them unsupported when in fact this file produces them itself.
+  if (SELF_ENCODED.has(mimeType)) return true;
+
   if (typeof document === "undefined") return false;
   const probe = document.createElement("canvas");
   probe.width = 1;
   probe.height = 1;
   return probe.toDataURL(mimeType).startsWith(`data:${mimeType}`);
+}
+
+/** The bits of pdf.js this file uses that its public types do not describe. */
+interface SvgCapablePdfjs {
+  SVGGraphics: new (
+    commonObjs: unknown,
+    objs: unknown
+  ) => { getSVG: (ops: unknown, viewport: unknown) => Promise<SVGElement> };
+}
+
+interface SvgCapablePage {
+  commonObjs: unknown;
+  objs: unknown;
+  getOperatorList: () => Promise<unknown>;
+  getViewport: (options: { scale: number }) => unknown;
+}
+
+/** One page as an SVG document string, drawn as vectors rather than pixels. */
+async function renderPageAsSvg(
+  pdfjsLib: unknown,
+  page: unknown
+): Promise<string> {
+  const lib = pdfjsLib as SvgCapablePdfjs;
+  const target = page as SvgCapablePage;
+
+  const viewport = target.getViewport({ scale: 1.0 });
+  const operatorList = await target.getOperatorList();
+
+  const gfx = new lib.SVGGraphics(target.commonObjs, target.objs);
+  const svg = await gfx.getSVG(operatorList, viewport);
+
+  return new XMLSerializer().serializeToString(svg);
 }
 
 // Helper: Get PDF Page Count from ArrayBuffer
@@ -88,12 +182,30 @@ async function convertPdfToImages(
     }
 
     const page = await pdf.getPage(pageNumber);
+
+    // Vector output skips the canvas entirely — rasterising first would throw
+    // away exactly what makes the format worth choosing.
+    if (mimeType === "image/svg+xml") {
+      const svg = await renderPageAsSvg(pdfjsLib, page);
+      return {
+        blob: new Blob([svg], { type: "image/svg+xml" }),
+        filename: `${baseName}_page_${pageNumber}.svg`,
+      };
+    }
+
     const viewport = page.getViewport({ scale: 2.0 });
 
     canvas.width = viewport.width;
     canvas.height = viewport.height;
 
     await page.render({ canvasContext: ctx, viewport }).promise;
+
+    if (mimeType === "image/bmp") {
+      return {
+        blob: canvasToBmp(canvas),
+        filename: `${baseName}_page_${pageNumber}.bmp`,
+      };
+    }
 
     const blob = await new Promise<Blob>((resolve, reject) => {
       canvas.toBlob((b) => {
@@ -112,12 +224,23 @@ async function convertPdfToImages(
 
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
+
+      if (mimeType === "image/svg+xml") {
+        zip.file(`page_${i}.svg`, await renderPageAsSvg(pdfjsLib, page));
+        continue;
+      }
+
       const viewport = page.getViewport({ scale: 2.0 });
 
       canvas.width = viewport.width;
       canvas.height = viewport.height;
 
       await page.render({ canvasContext: ctx, viewport }).promise;
+
+      if (mimeType === "image/bmp") {
+        zip.file(`page_${i}.bmp`, canvasToBmp(canvas));
+        continue;
+      }
 
       const dataUrl = canvas.toDataURL(mimeType);
       // The prefix reports what was really encoded, which is not always what
