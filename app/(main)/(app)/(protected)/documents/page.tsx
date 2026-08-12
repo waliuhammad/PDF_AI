@@ -13,12 +13,14 @@ import { DocumentRow } from "@/components/documents/document-row";
 import { UploadModal } from "@/components/documents/upload-modal";
 import { useLibrary } from "@/lib/store";
 import { usePlanUsage } from "@/hooks/usePlanUsage";
-import { formatRelativeTime } from "@/lib/utils";
+import { useT } from "@/components/locale-provider";
+import { formatRelativeTime, formatStorageUsed } from "@/lib/utils";
 
 type SortOption = "newest" | "oldest" | "name" | "size";
 type FilterOption = "all" | "favorites";
 
 export default function DocumentsPage() {
+    const { t } = useT();
     const documents = useLibrary((s) => s.documents);
     const addDocuments = useLibrary((s) => s.addDocuments);
     const removeDocument = useLibrary((s) => s.removeDocument);
@@ -88,13 +90,13 @@ export default function DocumentsPage() {
         <div>
             <div className="flex items-center justify-between mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-fg">My Documents</h1>
+                    <h1 className="text-2xl font-bold text-fg">{t("documents.title")}</h1>
                     <p className="text-muted text-sm mt-1">
-                        {filteredDocs.length} {filteredDocs.length === 1 ? "document" : "documents"}
+                        {filteredDocs.length === 1 ? t("documents.countOne") : t("documents.count", { count: filteredDocs.length })}
                         {storageLimitGb !== null && (
                             <>
                                 {" · "}
-                                {storageUsedGb.toFixed(2)} of {storageLimitGb} GB used
+                                {formatStorageUsed(storageUsedGb)} of {storageLimitGb} GB used
                             </>
                         )}
                     </p>
@@ -104,7 +106,7 @@ export default function DocumentsPage() {
                     className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-[var(--primary)] text-white text-sm font-medium hover:bg-[var(--primary-hover)] transition-colors"
                 >
                     <Upload size={16} />
-                    Upload PDF
+                    {t("documents.upload")}
                 </button>
             </div>
 
@@ -122,7 +124,7 @@ export default function DocumentsPage() {
                         type="text"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Search documents..."
+                        placeholder={t("documents.searchPlaceholder")}
                         className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-card text-fg placeholder:text-muted text-sm focus:outline-none focus:border-[var(--primary)] transition-colors bg-card"
                     />
                 </div>
@@ -134,14 +136,14 @@ export default function DocumentsPage() {
                         className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${filter === "all" ? "bg-[var(--primary)] text-white" : "text-muted"
                             }`}
                     >
-                        All
+                        {t("documents.all")}
                     </button>
                     <button
                         onClick={() => setFilter("favorites")}
                         className={`px-3 py-1.5 rounded-lg text-sm transition-colors ${filter === "favorites" ? "bg-[var(--primary)] text-white" : "text-muted"
                             }`}
                     >
-                        Favorites
+                        {t("documents.favorites")}
                     </button>
                 </div>
 

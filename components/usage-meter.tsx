@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Cpu } from "lucide-react";
 import { usePlanUsage } from "@/hooks/usePlanUsage";
+import { useT } from "@/components/locale-provider";
 
 /**
  * "X of Y tool operations used today", read from /api/usage.
@@ -24,6 +25,7 @@ export function UsageMeter({
     hideTitle?: boolean;
 } = {}) {
     const { usage, unavailable } = usePlanUsage();
+    const { t } = useT();
     const shell = hideHeader ? "" : "bg-card border border-card rounded-2xl p-4 sm:p-6";
 
     // Nothing to show only once asking has actually failed — signed out, or the
@@ -47,8 +49,15 @@ export function UsageMeter({
         );
     }
 
-    const percent = usage.limit > 0 ? Math.min((usage.used / usage.limit) * 100, 100) : 100;
     const exhausted = usage.used >= usage.limit;
+
+    // The counter is per user per day, not per plan, so it survives a change of
+    // plan while the limit does not. Twelve operations spent on Pro's allowance
+    // and then read against Free's five reported "12 of 5", which describes
+    // nothing the visitor can act on. The spend cannot exceed the allowance it
+    // was checked against, so the figure is shown capped.
+    const shown = Math.min(usage.used, usage.limit);
+    const percent = usage.limit > 0 ? Math.min((usage.used / usage.limit) * 100, 100) : 100;
 
     return (
         // hideHeader means the caller already drew the card, so drawing another
@@ -59,10 +68,10 @@ export function UsageMeter({
                     {!hideTitle && (
                         <h2 className="text-lg font-semibold text-fg flex items-center gap-2">
                             <Cpu size={17} className="text-[var(--primary)]" />
-                            Tools Usage Today
+                            {t("usage.title")}
                         </h2>
                     )}
-                    <span className="text-xs text-muted capitalize">{usage.plan} plan</span>
+                    <span className="text-xs text-muted capitalize">{t("usage.plan", { plan: usage.plan })}</span>
                 </div>
             )}
 
@@ -71,9 +80,9 @@ export function UsageMeter({
             {hideHeader && (
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                     {!hideTitle && (
-                        <span className="text-sm font-semibold text-fg">Tools Usage Today</span>
+                        <span className="text-sm font-semibold text-fg">{t("usage.title")}</span>
                     )}
-                    <span className="text-xs text-muted capitalize">{usage.plan} plan</span>
+                    <span className="text-xs text-muted capitalize">{t("usage.plan", { plan: usage.plan })}</span>
                 </div>
             )}
 
@@ -86,11 +95,11 @@ export function UsageMeter({
 
             {exhausted ? (
                 <p className="text-sm font-medium text-red-500">
-                    Limit reached — {usage.used} of {usage.limit} operations used
+                    {t("usage.limitReached", { used: shown, limit: usage.limit })}
                 </p>
             ) : (
                 <p className="text-sm text-muted">
-                    {usage.used} of {usage.limit} operations used
+                    {t("usage.used", { used: shown, limit: usage.limit })}
                 </p>
             )}
 
@@ -99,7 +108,7 @@ export function UsageMeter({
                     href="/pricing"
                     className="mt-3 inline-block text-sm font-medium text-[var(--primary)] hover:underline"
                 >
-                    Upgrade for a higher daily allowance →
+                    {t("usage.upgrade")}
                 </Link>
             )}
         </div>

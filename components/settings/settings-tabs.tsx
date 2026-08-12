@@ -1,19 +1,22 @@
 "use client";
 
 import { User, Palette, Bell, Lock, Globe, CreditCard } from "lucide-react";
+import { useT } from "@/components/locale-provider";
 
 export type SettingsTab = "profile" | "theme" | "notifications" | "password" | "language" | "billing";
 
-const tabs: { id: SettingsTab; label: string; icon: typeof User }[] = [
-    { id: "profile", label: "Profile", icon: User },
-    { id: "theme", label: "Theme", icon: Palette },
-    { id: "notifications", label: "Notifications", icon: Bell },
-    { id: "password", label: "Password", icon: Lock },
-    { id: "language", label: "Language", icon: Globe },
-    { id: "billing", label: "Subscription & Billing", icon: CreditCard },
-];
+const tabs = [
+    { id: "profile", key: "settings.profile", icon: User },
+    { id: "theme", key: "settings.theme", icon: Palette },
+    { id: "notifications", key: "settings.notifications", icon: Bell },
+    { id: "password", key: "settings.password", icon: Lock },
+    { id: "language", key: "settings.language", icon: Globe },
+    { id: "billing", key: "settings.billing", icon: CreditCard },
+] as const;
 
 export function SettingsTabs({ active, onChange }: { active: SettingsTab; onChange: (tab: SettingsTab) => void }) {
+    const { t } = useT();
+
     return (
         // Six full-width buttons stacked on a phone pushed the actual settings
         // ~250px down the page. They scroll in one row there — the same pattern
@@ -29,7 +32,7 @@ export function SettingsTabs({ active, onChange }: { active: SettingsTab; onChan
                         }`}
                 >
                     <tab.icon size={17} />
-                    {tab.label}
+                    {t(tab.key)}
                 </button>
             ))}
         </div>

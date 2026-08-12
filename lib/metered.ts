@@ -31,7 +31,11 @@ export async function requireUsageAllowance(
     const devPlan = readDevPlanFromRequest(req);
     const usage = await checkAndCountUsage(uid, devPlan ?? undefined);
     if (!usage.allowed) {
-        const message = `Daily limit reached (${usage.used}/${usage.limit} operations on the ${usage.plan} plan). Upgrade for a higher daily allowance, or come back tomorrow.`;
+        // Capped for the same reason the meter caps it: the day's counter can
+        // outlive a larger allowance, and "12/5" reads as a fault rather than
+        // a limit.
+        const spent = Math.min(usage.used, usage.limit);
+        const message = `Daily limit reached (${spent}/${usage.limit} operations on the ${usage.plan} plan). Upgrade for a higher daily allowance, or come back tomorrow.`;
         return NextResponse.json(
             { success: false, error: message, message },
             { status: 429 }

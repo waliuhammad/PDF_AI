@@ -30,7 +30,40 @@ export async function POST(req: NextRequest) {
     const buffer = Buffer.from(arrayBuffer);
 
     const pdfDoc = await PDFDocument.load(buffer);
-    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+
+    // The typed signature is drawn by us, so the face has to be one of the
+    // fonts every PDF reader already has. Oblique stands in for a handwritten
+    // look without shipping a font file.
+    const FONT_CHOICES: Record<string, (typeof StandardFonts)[keyof typeof StandardFonts]> = {
+      helvetica: StandardFonts.Helvetica,
+      "helvetica-oblique": StandardFonts.HelveticaOblique,
+      "helvetica-bold": StandardFonts.HelveticaBold,
+      times: StandardFonts.TimesRoman,
+      "times-italic": StandardFonts.TimesRomanItalic,
+      "times-bold": StandardFonts.TimesRomanBold,
+      courier: StandardFonts.Courier,
+      "courier-oblique": StandardFonts.CourierOblique,
+    };
+
+    const requestedFont = (formData.get("fontFamily") as string) || "helvetica-oblique";
+    const font = await pdfDoc.embedFont(
+      FONT_CHOICES[requestedFont] ?? StandardFonts.HelveticaOblique
+    );
+
+    /** "#0f172a" to pdf-lib's 0-1 triple; black for anything unparseable. */
+    const hexToRgb = (hex?: string | null) => {
+      if (!hex || !/^#[0-9a-f]{6}$/i.test(hex)) return rgb(0, 0, 0);
+      const clean = hex.slice(1);
+      return rgb(
+        parseInt(clean.slice(0, 2), 16) / 255,
+        parseInt(clean.slice(2, 4), 16) / 255,
+        parseInt(clean.slice(4, 6), 16) / 255
+      );
+    };
+
+    // The colour was hardcoded here, so whichever colour was picked in the UI
+    // was shown in the preview and then thrown away on the way to the PDF.
+    const signatureColor = hexToRgb(formData.get("penColor") as string | null);
 
     const pages = pdfDoc.getPages();
     const signY = 40;
@@ -44,7 +77,14 @@ export async function POST(req: NextRequest) {
     }
 
     const text = signatureText ? signatureText.substring(0, 35) : "Authorized Signature";
-    const fontSize = 14;
+
+    // Clamped: the field is a number input, and a hand-edited value large
+    // enough to run off the page should not reach drawText.
+    const requestedSize = Number(formData.get("fontSize"));
+    const fontSize =
+      Number.isFinite(requestedSize) && requestedSize >= 8 && requestedSize <= 48
+        ? requestedSize
+        : 14;
     const textWidth = font.widthOfTextAtSize(text, fontSize);
     const imgWidth = 150;
     const imgHeight = 50;
@@ -80,7 +120,7 @@ export async function POST(req: NextRequest) {
           y: signY + 15,
           size: fontSize,
           font,
-          color: rgb(0.08, 0.15, 0.3),
+          color: signatureColor,
         });
       }
     }
