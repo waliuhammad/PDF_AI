@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import { getSiteUrl } from "@/lib/site-url";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "../components/theme-provider";
+import { LocaleProvider } from "@/components/locale-provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -53,10 +54,14 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <TestPlanProvider>
-            {children}
-            <DevPlanSwitcher />
-          </TestPlanProvider>
+          {/* Wraps everything, so the language chosen in Settings applies to
+              the marketing pages and the tools as well as the signed-in area. */}
+          <LocaleProvider>
+            <TestPlanProvider>
+              {children}
+              <DevPlanSwitcher />
+            </TestPlanProvider>
+          </LocaleProvider>
         </ThemeProvider>
       </body>
     </html>

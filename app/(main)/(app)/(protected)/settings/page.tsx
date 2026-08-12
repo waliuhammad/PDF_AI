@@ -5,6 +5,7 @@ import { useTheme } from "next-themes";
 import { SettingsTabs, SettingsTab } from "@/components/settings/settings-tabs";
 import { Sun, Moon, Monitor, Check, AlertCircle, Loader2, ChevronDown, Search } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { LOCALE_CHANGED_EVENT } from "@/components/locale-provider";
 import { updateUserProfile } from "@/lib/firebase/users";
 import { changePassword, hasPasswordProvider } from "@/lib/firebase/auth";
 import { BillingTab } from "@/components/settings/billing-tab";
@@ -130,6 +131,10 @@ export default function SettingsPage() {
         setPrefs(next);
         try {
             localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify(next));
+            // Writing to localStorage does not fire "storage" in the tab that
+            // wrote it, so the provider is told directly. Without this the
+            // language only changed after a reload.
+            window.dispatchEvent(new Event(LOCALE_CHANGED_EVENT));
         } catch {
             // Storage unavailable (private mode) — the in-memory value still applies.
         }
