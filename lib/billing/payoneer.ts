@@ -100,6 +100,8 @@ export async function confirmPayment(paymentId: string, adminUid: string): Promi
         // Extend from existing expiry so an early renewal never shortens the plan.
         const start = currentEnd > now ? currentEnd : now
 
+        const periodEnd = start + periodMs
+
         tx.set(
             subRef,
             {
@@ -107,8 +109,22 @@ export async function confirmPayment(paymentId: string, adminUid: string): Promi
                 planId: payment.planId,
                 status: "active",
                 cycle: payment.cycle,
-                currentPeriodEnd: start + periodMs,
+                currentPeriodEnd: periodEnd,
                 autoRenew: false,
+                updatedAt: FieldValue.serverTimestamp(),
+            },
+            { merge: true }
+        )
+
+        // The subscription document is the billing record, but nothing reads
+        // it: every plan check in the app goes through resolvePlan() against
+        // users/{uid}. Without this write a confirmed payment upgraded nobody —
+        // the tools, the limits and the billing tab all still saw "free".
+        tx.set(
+            store.collection("users").doc(payment.uid as string),
+            {
+                plan: payment.planId,
+                planExpiresAt: periodEnd,
                 updatedAt: FieldValue.serverTimestamp(),
             },
             { merge: true }
@@ -133,4 +149,25 @@ export async function rejectPayment(
         confirmedBy: adminUid,
         note,
     })
+}
+/** The caller's outstanding invoice, if they have one. */
+export async function pendingPaymentFor(
+    uid: string
+): Promise<{ id: string; reference: string; amount: number } | null> {
+    const snap = await database()
+        .collection("payments")
+        .where("uid", "==", uid)
+        .where("status", "==", "pending")
+        .limit(1)
+        .get()
+
+    if (snap.empty) return null
+
+    const doc = snap.docs[0]
+    const data = doc.data()
+    return {
+        id: doc.id,
+        reference: data.reference as string,
+        amount: data.amount as number,
+    }
 }

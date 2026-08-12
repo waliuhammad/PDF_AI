@@ -12,6 +12,14 @@ export interface UserProfile {
      * ones store the plan id itself.
      */
     plan: PlanId | "paid";
+    /**
+     * When the paid period ends, in epoch milliseconds. Written when a payment
+     * is confirmed. Payoneer payments do not renew on their own, so without an
+     * expiry a single payment would grant the plan permanently.
+     *
+     * Absent on profiles that predate paid plans, which are free anyway.
+     */
+    planExpiresAt?: number;
 }
 
 /**
@@ -25,6 +33,18 @@ export interface UserProfile {
  * wrongly granting paid features to everyone is not.
  */
 export function resolvePlan(profile: UserProfile | null | undefined): PlanId {
+    // A lapsed period is the free plan. Checked here rather than by a scheduled
+    // job so it holds everywhere the plan is read — the tools, the daily limits
+    // and the billing tab — the moment the period ends, with no job to miss.
+    // Profiles with no expiry are left alone: they predate paid plans.
+    if (
+        profile?.planExpiresAt !== undefined &&
+        Number.isFinite(profile.planExpiresAt) &&
+        profile.planExpiresAt <= Date.now()
+    ) {
+        return "free";
+    }
+
     switch (profile?.plan) {
         case "pro":
         case "business":

@@ -30,10 +30,10 @@ export default function SplitPdfPage() {
   const [downloadChoice, setDownloadChoice] = useState<"split" | "remaining" | "both">("split");
   const [selectingFrom, setSelectingFrom] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  
+
   const inputRef = useRef<HTMLInputElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  
+
   // Custom scrollbar thumb dragging states
   const [isDraggingThumb, setIsDraggingThumb] = useState(false);
   const [thumbTop, setThumbTop] = useState(0);
@@ -113,6 +113,14 @@ export default function SplitPdfPage() {
     }
   };
 
+  const resetAll = () => {
+    setFileDetails(null);
+    setRawFile(null);
+    setDone(false);
+    setErrorMessage(null);
+    setThumbnails([]);
+  };
+
   // Synchronize custom scrollbar thumb dimensions and position
   const updateScrollbar = () => {
     const container = scrollContainerRef.current;
@@ -149,15 +157,17 @@ export default function SplitPdfPage() {
     };
   }, [thumbnails]);
 
-  // Handle dragging the custom scrollbar thumb
+  // Handle dragging the custom scrollbar thumb.
+  // Pointer events rather than mouse events, so the thumb also responds to
+  // touch and stylus: on a phone the mouse-only version was inert.
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handlePointerMove = (e: PointerEvent) => {
       if (!isDraggingThumb || !scrollContainerRef.current || !trackRef.current) return;
-      
+
       const container = scrollContainerRef.current;
       const track = trackRef.current;
       const trackRect = track.getBoundingClientRect();
-      
+
       const deltaY = e.clientY - dragStartY.current;
       const maxThumbTop = trackRect.height - thumbHeight;
       if (maxThumbTop <= 0) return;
@@ -167,22 +177,24 @@ export default function SplitPdfPage() {
       container.scrollTop = scrollRatio * (container.scrollHeight - container.clientHeight);
     };
 
-    const handleMouseUp = () => {
+    const handlePointerUp = () => {
       setIsDraggingThumb(false);
     };
 
     if (isDraggingThumb) {
-      window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", handleMouseUp);
+      window.addEventListener("pointermove", handlePointerMove);
+      window.addEventListener("pointerup", handlePointerUp);
+      window.addEventListener("pointercancel", handlePointerUp);
     }
 
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("pointercancel", handlePointerUp);
     };
   }, [isDraggingThumb, thumbHeight]);
 
-  const handleThumbMouseDown = (e: React.MouseEvent) => {
+  const handleThumbPointerDown = (e: React.PointerEvent) => {
     e.preventDefault();
     setIsDraggingThumb(true);
     dragStartY.current = e.clientY;
@@ -190,7 +202,8 @@ export default function SplitPdfPage() {
     if (!container || !trackRef.current) return;
     const maxThumbTop = trackRef.current.clientHeight - thumbHeight;
     if (maxThumbTop <= 0) return;
-    startScrollTop.current = (container.scrollTop / (container.scrollHeight - container.clientHeight)) * maxThumbTop;
+    startScrollTop.current =
+      (container.scrollTop / (container.scrollHeight - container.clientHeight)) * maxThumbTop;
   };
 
   const handleTrackClick = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -284,13 +297,15 @@ export default function SplitPdfPage() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto w-full px-4">
-      <div className="text-center mb-8">
-        <div className="w-14 h-14 mx-auto rounded-2xl bg-card border border-card flex items-center justify-center mb-3 text-fg shadow-sm">
-          <Scissors size={28} />
+    <div className="max-w-6xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-10">
+      <div className="text-center mb-6 sm:mb-8">
+        <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto rounded-2xl bg-card border border-card flex items-center justify-center mb-3 text-fg shadow-sm">
+          <Scissors className="w-6 h-6 sm:w-7 sm:h-7" />
         </div>
-        <h1 className="text-2xl lg:text-3xl font-extrabold text-fg tracking-tight">Split PDF Pages</h1>
-        <p className="text-slate-600 dark:text-[#9ca3af] text-sm mt-1.5 max-w-lg mx-auto">
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-fg tracking-tight px-2">
+          Split PDF Pages
+        </h1>
+        <p className="text-slate-600 dark:text-[#9ca3af] text-[13px] sm:text-sm mt-1.5 max-w-xs sm:max-w-lg mx-auto leading-relaxed">
           Separate one PDF into multiple files, extract page ranges, or split documents easily.
         </p>
       </div>
@@ -331,58 +346,59 @@ export default function SplitPdfPage() {
               inputRef.current?.click();
             }
           }}
-          className={`cursor-pointer rounded-[32px] p-16 h-[380px] flex flex-col items-center justify-center text-center transition-all bg-[var(--background-secondary)] border border-card shadow-xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${
-            isDragging ? "border-slate-400 dark:border-white scale-[1.01]" : "hover:border-slate-300 dark:hover:border-[#333a4a]"
-          }`}
+          className={`cursor-pointer rounded-3xl sm:rounded-[32px] px-6 py-10 sm:p-16 h-[240px] sm:h-[380px] flex flex-col items-center justify-center text-center transition-all bg-[var(--background-secondary)] border border-card shadow-lg sm:shadow-xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${isDragging ? "border-slate-400 dark:border-white scale-[1.01]" : "hover:border-slate-300 dark:hover:border-[#333a4a]"
+            }`}
         >
-          <div className="w-14 h-14 rounded-2xl bg-[var(--background-secondary)] mx-auto flex items-center justify-center mb-4 text-fg shadow-sm border border-card">
-            <Upload size={26} />
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[var(--background-secondary)] mx-auto flex items-center justify-center mb-3 sm:mb-4 text-fg shadow-sm border border-card">
+            <Upload className="w-6 h-6 sm:w-[26px] sm:h-[26px]" />
           </div>
-          <p className="text-fg font-semibold text-lg">Click to browse or drag & drop PDFs</p>
-          <p className="text-slate-600 dark:text-[#9ca3af] text-sm mt-1">Upload a document to start splitting pages</p>
+          <p className="text-fg font-semibold text-[15px] sm:text-lg">Click to browse or drag &amp; drop PDFs</p>
+          <p className="text-slate-600 dark:text-[#9ca3af] text-[13px] sm:text-sm mt-1">
+            Upload a document to start splitting pages
+          </p>
         </div>
       ) : (
-        <div className="space-y-6">
-          <div className="bg-card border border-card rounded-2xl p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
+        <div className="space-y-4 sm:space-y-6">
+          {/* File summary */}
+          <div className="bg-card border border-card rounded-2xl p-4 sm:p-5 shadow-sm flex items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-3 min-w-0">
               <div className="w-10 h-10 rounded-xl bg-card border border-card flex items-center justify-center shrink-0 text-fg">
-                <FileText size={20} />
+                <FileText className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <p className="text-fg text-sm font-bold truncate">{fileDetails.name}</p>
-                <p className="text-xs text-slate-600 dark:text-[#9ca3af] mt-0.5">
-                  Size: <strong className="text-fg">{fileDetails.size}</strong> • Pages: <strong className="text-fg">{pageCount}</strong>
+                <p className="text-fg text-[13px] sm:text-sm font-bold truncate">{fileDetails.name}</p>
+                <p className="text-[11px] sm:text-xs text-slate-600 dark:text-[#9ca3af] mt-0.5 truncate">
+                  Size: <strong className="text-fg">{fileDetails.size}</strong> • Pages:{" "}
+                  <strong className="text-fg">{pageCount}</strong>
                 </p>
               </div>
             </div>
             <button
               type="button"
-              onClick={() => {
-                setFileDetails(null);
-                setRawFile(null);
-                setDone(false);
-                setErrorMessage(null);
-                setThumbnails([]);
-              }}
-              className="py-1.5 px-3.5 rounded-xl bg-red-100 dark:bg-red-950/50 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 font-semibold text-xs flex items-center gap-1.5 transition-colors shrink-0"
+              onClick={resetAll}
+              className="py-2 px-3 sm:px-3.5 rounded-xl bg-red-100 dark:bg-red-950/50 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 font-semibold text-xs flex items-center gap-1.5 transition-colors shrink-0"
             >
-              <X size={15} /> Remove File
+              <X size={15} /> <span className="hidden xs:inline sm:inline">Remove</span>
             </button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-            {/* Left Side: Page Preview (Reduced width: col-span-5, removed left/right padding: px-0) */}
-            <div className="lg:col-span-5 bg-card border border-card rounded-3xl py-3 px-0 shadow-md flex flex-col justify-between">
-              <div className="flex items-center justify-between pb-2 px-4 border-b border-card">
-                <span className="text-xs font-extrabold text-fg uppercase tracking-wider">Page Preview</span>
-                <span className="text-xs text-slate-500 dark:text-[#9ca3af]">Scroll down • Click to select</span>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-stretch">
+            {/* Left: page preview */}
+            <div className="lg:col-span-5 bg-card border border-card rounded-2xl sm:rounded-3xl py-3 px-0 shadow-md flex flex-col justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1 pb-2 px-4 border-b border-card">
+                <span className="text-[11px] sm:text-xs font-extrabold text-fg uppercase tracking-wider">
+                  Page Preview
+                </span>
+                <span className="text-[10px] sm:text-xs text-slate-500 dark:text-[#9ca3af]">
+                  Scroll • Tap to select
+                </span>
               </div>
 
               {thumbnails.length > 0 ? (
                 <div className="relative flex items-stretch gap-2 my-2 px-2">
                   <div
                     ref={scrollContainerRef}
-                    className="flex-1 flex flex-col items-center gap-3 h-[360px] overflow-y-auto pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+                    className="flex-1 flex flex-col items-center gap-3 h-[300px] sm:h-[360px] overflow-y-auto pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
                   >
                     {Array.from({ length: pageCount }, (_, i) => i + 1).map((page) => {
                       const idx = page - 1;
@@ -400,26 +416,34 @@ export default function SplitPdfPage() {
                         <div
                           key={page}
                           onClick={() => !done && handlePageClick(page)}
-                          className={`cursor-pointer w-full max-w-[340px] h-auto min-h-[240px] sm:h-[300px] rounded-2xl border p-0.5 flex flex-col items-center justify-between transition-all select-none shrink-0 ${
-                            isEdge
-                              ? "border-slate-900 dark:border-white bg-card shadow-md"
-                              : inRange
+                          className={`cursor-pointer w-full max-w-[260px] sm:max-w-[340px] h-[240px] sm:h-[300px] rounded-2xl border p-0.5 flex flex-col items-center justify-between transition-all select-none shrink-0 ${isEdge
+                            ? "border-slate-900 dark:border-white bg-card shadow-md"
+                            : inRange
                               ? "border-slate-400 dark:border-[#4a5568] bg-card/30"
                               : "border-card bg-card hover:border-slate-300 dark:hover:border-[#333a4a]"
-                          }`}
+                            }`}
                         >
-                          <div className="w-full flex items-center justify-between px-2 pt-1 mb-0.5 shrink-0">
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${isEdge ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900" : "bg-card text-slate-700 dark:text-[#d1d5db]"}`}>
+                          <div className="w-full flex items-center justify-between gap-1 px-2 pt-1 mb-0.5 shrink-0">
+                            <span
+                              className={`text-[10px] font-bold px-1.5 sm:px-2 py-0.5 rounded-md truncate ${isEdge
+                                ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900"
+                                : "bg-card text-slate-700 dark:text-[#d1d5db]"
+                                }`}
+                            >
                               Page {page} of {pageCount}
                             </span>
-                            <span className="text-[10px] font-medium text-slate-500 dark:text-[#9ca3af]">
-                              {isEdge ? "Edge" : inRange ? "Selected" : "Click"}
+                            <span className="text-[10px] font-medium text-slate-500 dark:text-[#9ca3af] shrink-0">
+                              {isEdge ? "Edge" : inRange ? "Selected" : "Tap"}
                             </span>
                           </div>
 
                           <div className="flex-1 w-full flex items-center justify-center bg-slate-100 dark:bg-[var(--background)] rounded-xl overflow-hidden border border-card p-0 m-0">
                             {thumbnails[idx] ? (
-                              <img src={thumbnails[idx]} alt={`Page ${page}`} className="object-cover h-full w-full rounded m-0 p-0 block" />
+                              <img
+                                src={thumbnails[idx]}
+                                alt={`Page ${page}`}
+                                className="object-cover h-full w-full rounded m-0 p-0 block"
+                              />
                             ) : (
                               <Loader2 className="animate-spin text-slate-400 dark:text-[#9ca3af]" size={20} />
                             )}
@@ -432,66 +456,64 @@ export default function SplitPdfPage() {
                   <div
                     ref={trackRef}
                     onClick={handleTrackClick}
-                    className="relative w-2 bg-slate-200 dark:bg-[var(--card)] rounded-full cursor-pointer my-1 shrink-0"
+                    className="relative w-1.5 sm:w-2 bg-slate-200 dark:bg-[var(--card)] rounded-full cursor-pointer my-1 shrink-0"
                   >
                     <div
-                      onMouseDown={handleThumbMouseDown}
+                      onPointerDown={handleThumbPointerDown}
                       style={{
                         height: `${thumbHeight}px`,
                         transform: `translateY(${thumbTop}px)`,
+                        touchAction: "none",
                       }}
-                      className={`absolute top-0 left-0 w-full rounded-full cursor-grab active:cursor-grabbing transition-colors ${
-                        isDraggingThumb
-                          ? "bg-slate-900 dark:bg-white"
-                          : "bg-slate-400 dark:bg-[#4a5568] hover:bg-slate-500 dark:hover:bg-[#718096]"
-                      }`}
+                      className={`absolute top-0 left-0 w-full rounded-full cursor-grab active:cursor-grabbing transition-colors ${isDraggingThumb
+                        ? "bg-slate-900 dark:bg-white"
+                        : "bg-slate-400 dark:bg-[#4a5568] hover:bg-slate-500 dark:hover:bg-[#718096]"
+                        }`}
                     />
                   </div>
                 </div>
               ) : (
-                <div className="h-[360px] flex items-center justify-center text-slate-500 dark:text-[#9ca3af] my-2">
+                <div className="h-[300px] sm:h-[360px] flex items-center justify-center text-slate-500 dark:text-[#9ca3af] my-2">
                   <Loader2 className="animate-spin" size={24} />
                 </div>
               )}
 
-              <div className="pt-2 px-4 border-t border-card flex items-center justify-between text-xs text-slate-500 dark:text-[#9ca3af]">
+              <div className="pt-2 px-4 border-t border-card flex items-center justify-between text-[11px] sm:text-xs text-slate-500 dark:text-[#9ca3af]">
                 <span>Total pages: {pageCount}</span>
                 <span>Ready to split</span>
               </div>
             </div>
 
-            {/* Right Side: Split Configuration (Increased width: col-span-7) */}
+            {/* Right: split configuration */}
             <div className="lg:col-span-7 flex">
-              <div className="bg-card border border-card rounded-3xl p-3 shadow-md flex flex-col justify-between w-full">
+              <div className="bg-card border border-card rounded-2xl sm:rounded-3xl p-3 shadow-md flex flex-col justify-between w-full">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between pb-2 px-2 border-b border-card">
+                  <div className="flex items-center justify-between pb-2 px-1 sm:px-2 border-b border-card">
                     <div className="flex items-center gap-2">
-                      <Scissors size={18} className="text-fg" />
-                      <span className="text-sm font-extrabold text-fg">Split Configuration</span>
+                      <Scissors size={18} className="text-fg shrink-0" />
+                      <span className="text-[13px] sm:text-sm font-extrabold text-fg">Split Configuration</span>
                     </div>
                   </div>
 
-                  <div className="space-y-3 px-2">
-                    <div className="flex flex-col sm:flex-row gap-2">
+                  <div className="space-y-3 px-1 sm:px-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <button
                         type="button"
                         onClick={() => handleModeChange("range")}
-                        className={`flex-1 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                          splitMode === "range"
-                            ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
-                            : "bg-card border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
-                        }`}
+                        className={`w-full px-4 py-3 sm:py-2.5 rounded-xl text-xs font-bold transition-all ${splitMode === "range"
+                          ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
+                          : "bg-card border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
+                          }`}
                       >
                         Extract Page Range
                       </button>
                       <button
                         type="button"
                         onClick={() => handleModeChange("every")}
-                        className={`flex-1 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
-                          splitMode === "every"
-                            ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
-                            : "bg-card border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
-                        }`}
+                        className={`w-full px-4 py-3 sm:py-2.5 rounded-xl text-xs font-bold transition-all ${splitMode === "every"
+                          ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
+                          : "bg-card border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
+                          }`}
                       >
                         Split Every N Pages
                       </button>
@@ -500,9 +522,12 @@ export default function SplitPdfPage() {
                     {splitMode === "range" ? (
                       <div className="grid grid-cols-2 gap-3 pt-1">
                         <div>
-                          <label className="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-[#9ca3af] block mb-1">From Page</label>
+                          <label className="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-[#9ca3af] block mb-1">
+                            From Page
+                          </label>
                           <input
                             type="number"
+                            inputMode="numeric"
                             min="1"
                             max={pageCount}
                             value={fromPage}
@@ -512,13 +537,16 @@ export default function SplitPdfPage() {
                               setDone(false);
                               setErrorMessage(null);
                             }}
-                            className="w-full bg-card border border-card rounded-xl px-3 py-2 text-fg text-sm focus:outline-none focus:border-slate-900 dark:focus:border-white"
+                            className="w-full bg-card border border-card rounded-xl px-3 py-2.5 sm:py-2 text-fg text-base sm:text-sm focus:outline-none focus:border-slate-900 dark:focus:border-white"
                           />
                         </div>
                         <div>
-                          <label className="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-[#9ca3af] block mb-1">To Page</label>
+                          <label className="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-[#9ca3af] block mb-1">
+                            To Page
+                          </label>
                           <input
                             type="number"
+                            inputMode="numeric"
                             min="1"
                             max={pageCount}
                             value={toPage}
@@ -528,15 +556,18 @@ export default function SplitPdfPage() {
                               setDone(false);
                               setErrorMessage(null);
                             }}
-                            className="w-full bg-card border border-card rounded-xl px-3 py-2 text-fg text-sm focus:outline-none focus:border-slate-900 dark:focus:border-white"
+                            className="w-full bg-card border border-card rounded-xl px-3 py-2.5 sm:py-2 text-fg text-base sm:text-sm focus:outline-none focus:border-slate-900 dark:focus:border-white"
                           />
                         </div>
                       </div>
                     ) : (
                       <div className="pt-1">
-                        <label className="text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-[#9ca3af] block mb-1">Pages per File</label>
+                        <label className="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-slate-500 dark:text-[#9ca3af] block mb-1">
+                          Pages per File
+                        </label>
                         <input
                           type="number"
+                          inputMode="numeric"
                           min="1"
                           max={pageCount}
                           value={everyN}
@@ -545,32 +576,26 @@ export default function SplitPdfPage() {
                             setDone(false);
                             setErrorMessage(null);
                           }}
-                          className="w-full bg-card border border-card rounded-xl px-3 py-2 text-fg text-sm focus:outline-none focus:border-slate-900 dark:focus:border-white"
+                          className="w-full bg-card border border-card rounded-xl px-3 py-2.5 sm:py-2 text-fg text-base sm:text-sm focus:outline-none focus:border-slate-900 dark:focus:border-white"
                         />
                       </div>
                     )}
                   </div>
 
                   {errorMessage && (
-                    <div className="mx-2 p-2.5 rounded-xl bg-red-100 dark:bg-red-950/50 border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 text-xs font-semibold text-center">
+                    <div className="mx-1 sm:mx-2 p-2.5 rounded-xl bg-red-100 dark:bg-red-950/50 border border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 text-xs font-semibold text-center">
                       {errorMessage}
                     </div>
                   )}
                 </div>
 
-                <div className="pt-3 px-2 mt-auto border-t border-card">
+                <div className="pt-3 px-1 sm:px-2 mt-auto border-t border-card">
                   {!done ? (
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-col-reverse sm:flex-row sm:items-center gap-2.5 sm:gap-3">
                       <button
                         type="button"
-                        onClick={() => {
-                          setFileDetails(null);
-                          setRawFile(null);
-                          setDone(false);
-                          setErrorMessage(null);
-                          setThumbnails([]);
-                        }}
-                        className="py-3 px-4 rounded-2xl border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white font-bold text-xs transition-colors"
+                        onClick={resetAll}
+                        className="w-full sm:w-auto py-3 px-4 rounded-2xl border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white font-bold text-xs transition-colors"
                       >
                         Clear All
                       </button>
@@ -578,7 +603,7 @@ export default function SplitPdfPage() {
                         type="button"
                         onClick={handleInitialSplit}
                         disabled={processing}
-                        className="w-full sm:flex-1 py-3 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
+                        className="w-full sm:flex-1 py-3.5 sm:py-3 px-4 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-[13px] sm:text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
                       >
                         {processing ? <Loader2 className="animate-spin" size={18} /> : <Scissors size={18} />}
                         {processing ? "Processing..." : "Proceed to Split Options"}
@@ -587,52 +612,53 @@ export default function SplitPdfPage() {
                   ) : (
                     <div className="space-y-3">
                       <div className="pb-1">
-                        <span className="text-xs font-extrabold text-fg uppercase tracking-wider">Download Options</span>
+                        <span className="text-[11px] sm:text-xs font-extrabold text-fg uppercase tracking-wider">
+                          Download Options
+                        </span>
                       </div>
 
                       <div className="flex flex-col gap-2">
                         <button
                           type="button"
                           onClick={() => setDownloadChoice("split")}
-                          className={`w-full px-4 py-2.5 rounded-xl text-xs font-bold transition-all text-left flex items-center justify-between ${
-                            downloadChoice === "split"
-                              ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
-                              : "bg-card border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
-                          }`}
+                          className={`w-full px-4 py-3 sm:py-2.5 rounded-xl text-xs font-bold transition-all text-left flex items-center justify-between gap-2 ${downloadChoice === "split"
+                            ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
+                            : "bg-card border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
+                            }`}
                         >
                           <span>Split Part</span>
-                          <span className="opacity-80 font-normal">({splitMode === "range" ? `${fromPage}–${toPage}` : `Every ${everyN}`})</span>
+                          <span className="opacity-80 font-normal shrink-0">
+                            ({splitMode === "range" ? `${fromPage}–${toPage}` : `Every ${everyN}`})
+                          </span>
                         </button>
                         <button
                           type="button"
                           onClick={() => setDownloadChoice("remaining")}
-                          className={`w-full px-4 py-2.5 rounded-xl text-xs font-bold transition-all text-left flex items-center justify-between ${
-                            downloadChoice === "remaining"
-                              ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
-                              : "bg-card border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
-                          }`}
+                          className={`w-full px-4 py-3 sm:py-2.5 rounded-xl text-xs font-bold transition-all text-left flex items-center justify-between gap-2 ${downloadChoice === "remaining"
+                            ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
+                            : "bg-card border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
+                            }`}
                         >
                           <span>Remaining Part</span>
                         </button>
                         <button
                           type="button"
                           onClick={() => setDownloadChoice("both")}
-                          className={`w-full px-4 py-2.5 rounded-xl text-xs font-bold transition-all text-left flex items-center justify-between ${
-                            downloadChoice === "both"
-                              ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
-                              : "bg-card border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
-                          }`}
+                          className={`w-full px-4 py-3 sm:py-2.5 rounded-xl text-xs font-bold transition-all text-left flex items-center justify-between gap-2 ${downloadChoice === "both"
+                            ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
+                            : "bg-card border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white"
+                            }`}
                         >
-                          <span>Both (Split & Remaining)</span>
-                          <span className="opacity-80 font-normal">(2 files)</span>
+                          <span>Both (Split &amp; Remaining)</span>
+                          <span className="opacity-80 font-normal shrink-0">(2 files)</span>
                         </button>
                       </div>
 
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-col-reverse sm:flex-row sm:items-center gap-2.5 sm:gap-3">
                         <button
                           type="button"
                           onClick={() => setDone(false)}
-                          className="py-3 px-4 rounded-2xl border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white font-bold text-xs transition-colors"
+                          className="w-full sm:w-auto py-3 px-4 rounded-2xl border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-white font-bold text-xs transition-colors"
                         >
                           Back
                         </button>
@@ -640,18 +666,17 @@ export default function SplitPdfPage() {
                           type="button"
                           onClick={() => executeDownload(downloadChoice)}
                           disabled={processing}
-                          className="w-full sm:flex-1 py-3 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
+                          className="w-full sm:flex-1 py-3.5 sm:py-3 px-4 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-[13px] sm:text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
                         >
                           {processing ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
                           {processing
                             ? "Downloading..."
-                            : `Download ${
-                                downloadChoice === "split"
-                                  ? "Split PDF"
-                                  : downloadChoice === "remaining"
-                                  ? "Remaining"
-                                  : "Both Files"
-                              }`}
+                            : `Download ${downloadChoice === "split"
+                              ? "Split PDF"
+                              : downloadChoice === "remaining"
+                                ? "Remaining"
+                                : "Both Files"
+                            }`}
                         </button>
                       </div>
                     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { FileText, X, Loader2 } from "lucide-react";
+import { FileText, Trash2, Loader2, Download } from "lucide-react";
 import { UploadCard } from "@/components/tools/upload-card";
 
 export default function WordToPdfPage() {
@@ -28,6 +28,11 @@ export default function WordToPdfPage() {
     } else {
       setError("Please upload a valid Word document (.docx or .doc).");
     }
+  };
+
+  const clearFile = () => {
+    setFile(null);
+    setError(null);
   };
 
   const handleConvert = async () => {
@@ -77,60 +82,92 @@ export default function WordToPdfPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-fg flex flex-col items-center justify-center p-6 transition-colors">
-      <div className="max-w-3xl mx-auto w-full bg-card border border-card rounded-3xl p-8 sm:p-12 shadow-2xl transition-colors">
-        <div className="text-center mb-8 lg:mb-10">
-          <div className="w-12 h-12 lg:w-14 lg:h-14 mx-auto rounded-2xl bg-purple-50 dark:bg-cyan-950/60 border border-purple-200 dark:border-cyan-800/40 flex items-center justify-center mb-4">
-            <FileText className="text-purple-900 dark:text-cyan-400" size={24} />
-          </div>
-          <h1 className="text-xl lg:text-2xl font-bold text-fg tracking-tight">Convert Word to PDF</h1>
-          <p className="text-muted text-sm mt-1">Transform your Word documents into professional, secure PDF files instantly.</p>
+    <div className="max-w-3xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-10">
+      {/* Header — same pattern as the other tool pages */}
+      <div className="text-center mb-6 sm:mb-8">
+        <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto rounded-2xl bg-purple-50 dark:bg-cyan-950/60 border border-purple-200 dark:border-cyan-800/40 flex items-center justify-center mb-3">
+          <FileText className="text-purple-900 dark:text-cyan-400 w-6 h-6 sm:w-7 sm:h-7" />
         </div>
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-fg tracking-tight px-2">
+          Convert Word to PDF
+        </h1>
+        <p className="text-muted text-[13px] sm:text-sm mt-1.5 max-w-xs sm:max-w-lg mx-auto leading-relaxed">
+          Transform your Word documents into professional, secure PDF files instantly.
+        </p>
+      </div>
 
-        {!file ? (
+      {!file ? (
+        <div className="space-y-4">
           <UploadCard
             onFiles={handleFileChange}
             accept=".doc,.docx"
-            title="Click to upload or drag & drop"
+            title="Click to browse or drag & drop a Word file"
             hint="DOCX and DOC documents"
           />
-        ) : (
-          <div className="space-y-6">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-background border border-card">
-              <div className="w-9 h-9 rounded-lg bg-purple-100 dark:bg-cyan-500/10 border border-purple-200 dark:border-cyan-500/20 flex items-center justify-center shrink-0">
-                <FileText size={16} className="text-purple-900 dark:text-cyan-400" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-fg text-sm truncate">{file.name}</p>
-                <p className="text-muted text-xs">{formatSize(file.size)}</p>
-              </div>
-              <button
-                onClick={() => { setFile(null); setError(null); }}
-                className="text-slate-400 hover:text-slate-900 dark:hover:text-white shrink-0 p-1"
-              >
-                <X size={16} />
-              </button>
-            </div>
 
-            {error && (
-              <div className="p-3.5 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800/80 text-red-700 dark:text-red-300 text-xs text-center font-medium">
-                {error}
-              </div>
-            )}
-
-            <div className="text-center pt-2">
-              <button
-                onClick={handleConvert}
-                disabled={loading}
-                className="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-slate-900 dark:bg-[var(--card)] border border-slate-900 dark:border-slate-700/80 hover:bg-slate-800 dark:hover:bg-[var(--card)] text-white font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-2 mx-auto text-sm shadow-lg"
-              >
-                {loading && <Loader2 className="animate-spin" size={18} />}
-                {loading ? "Converting..." : "Convert to PDF (.pdf)"}
-              </button>
+          {/* An invalid-file message before upload had nowhere to render before */}
+          {error && (
+            <div className="p-3.5 sm:p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-[13px] sm:text-sm font-semibold text-center">
+              {error}
             </div>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-4 sm:space-y-6">
+          {/* File summary */}
+          <div className="bg-card border border-card rounded-2xl p-4 sm:p-5 shadow-sm flex items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-purple-100 dark:bg-cyan-500/10 border border-purple-200 dark:border-cyan-500/20 flex items-center justify-center shrink-0">
+                <FileText className="text-purple-900 dark:text-cyan-400 w-5 h-5 sm:w-6 sm:h-6" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-fg text-[13px] sm:text-sm font-bold truncate">{file.name}</p>
+                <p className="text-[11px] sm:text-xs text-muted mt-0.5 truncate">
+                  Size: <strong className="text-fg">{formatSize(file.size)}</strong>
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={clearFile}
+              className="p-2 sm:p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors shrink-0"
+              title="Remove file"
+            >
+              <Trash2 className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+            </button>
           </div>
-        )}
-      </div>
+
+          {error && (
+            <div className="p-3.5 sm:p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-[13px] sm:text-sm font-semibold text-center">
+              {error}
+            </div>
+          )}
+
+          {/* Actions */}
+          <div className="flex flex-col-reverse sm:flex-row sm:items-center gap-3 sm:gap-4 pt-1 sm:pt-2">
+            <button
+              type="button"
+              onClick={clearFile}
+              className="w-full sm:w-auto py-3.5 sm:py-4 px-6 sm:px-8 rounded-2xl border border-card text-muted hover:text-slate-900 dark:hover:text-white font-bold text-sm transition-colors"
+            >
+              Select Different File
+            </button>
+            <button
+              type="button"
+              onClick={handleConvert}
+              disabled={loading}
+              className="w-full sm:flex-1 py-3.5 sm:py-4 px-4 rounded-2xl bg-slate-900 dark:bg-[var(--card)] border border-slate-900 dark:border-slate-700/80 hover:bg-slate-800 dark:hover:bg-[var(--card)] text-white font-bold text-sm sm:text-base shadow-lg disabled:opacity-60 flex items-center justify-center gap-2 sm:gap-2.5 transition-all"
+            >
+              {loading ? (
+                <Loader2 className="animate-spin w-[18px] h-[18px] sm:w-5 sm:h-5" />
+              ) : (
+                <Download className="w-[18px] h-[18px] sm:w-5 sm:h-5" />
+              )}
+              {loading ? "Converting..." : "Convert to PDF (.pdf)"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

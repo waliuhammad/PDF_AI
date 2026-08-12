@@ -253,7 +253,9 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                                     </ul>
 
                                     <div className="mt-auto">
-                                        <CheckoutButton plan={plan} billing={billing} />
+                                        {/* CheckoutButton takes the plan id and the
+                                            cycle, not the plan object. */}
+                                        <CheckoutButton planId={plan.id} cycle={billing} />
                                     </div>
 
                                 </div>

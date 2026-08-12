@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { cookies } from "next/headers"
 import { getAdminAuth, isAdminConfigured, SESSION_COOKIE } from "@/lib/firebase/admin"
-import { createPayment } from "@/lib/billing/payoneer"
+import { createPayment, pendingPaymentFor } from "@/lib/billing/payoneer"
 import type { PlanId, BillingCycle } from "@/lib/plans"
 
 // firebase-admin needs Node, not Edge — same reason proxy.ts runs on Node.
@@ -65,5 +65,33 @@ export async function POST(req: Request) {
     } catch (err) {
         console.error("[payoneer] create failed", err)
         return NextResponse.json({ error: "Could not start this payment. Try again." }, { status: 500 })
+    }
+}
+
+/**
+ * The caller's outstanding invoice.
+ *
+ * The reference code lived only in component state, so a reload lost it and
+ * the customer had no way back to the code their payment has to quote — while
+ * createPayment kept returning the same invoice, leaving them stuck.
+ */
+export async function GET() {
+    if (!isAdminConfigured()) {
+        return NextResponse.json({ payment: null })
+    }
+
+    const cookieStore = await cookies()
+    const session = cookieStore.get(SESSION_COOKIE)?.value
+    if (!session) return NextResponse.json({ payment: null })
+
+    try {
+        const decoded = await getAdminAuth().verifySessionCookie(session, true)
+        const payment = await pendingPaymentFor(decoded.uid)
+        return NextResponse.json({
+            payment: payment && { ...payment, payUrl: process.env.PAYONEER_PAYMENT_URL ?? null },
+        })
+    } catch {
+        // Signed out or expired: nothing to restore, which is not an error.
+        return NextResponse.json({ payment: null })
     }
 }

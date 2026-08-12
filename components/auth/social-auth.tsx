@@ -38,19 +38,21 @@ export function SocialAuth({
                 <div className="flex-1 h-px bg-[var(--card-border)]" />
             </div>
 
-            <div className="space-y-2.5">
+            {/* Bare brand marks in a row at every width — five stacked
+                full-width buttons push the rest of the form off the fold.
+                The provider name lives in the tooltip and the accessible name. */}
+            <div className="flex justify-center gap-2.5 sm:gap-3">
                 {providers.map((provider) => (
                     <button
                         key={provider.id}
                         type="button"
                         onClick={() => onSelect(provider.id)}
                         disabled={disabled}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl border border-card text-sm font-medium text-fg hover:bg-[var(--background-secondary)] hover:border-[var(--primary)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                        aria-label={`${action} with ${provider.label}`}
+                        title={`${action} with ${provider.label}`}
+                        className="h-12 w-12 flex items-center justify-center rounded-xl border border-card text-fg hover:bg-[var(--background-secondary)] hover:border-[var(--primary)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                     >
                         <span className="w-5 flex items-center justify-center shrink-0">{provider.icon}</span>
-                        <span>
-                            {action} with {provider.label}
-                        </span>
                     </button>
                 ))}
             </div>

@@ -1,117 +1,36 @@
-"use client";
+"use client"
 
-import { useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { AlertCircle, Loader2 } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import type { BillingCycle, Plan } from "@/lib/plans";
+import { useState } from "react"
+import type { PlanId, BillingCycle } from "@/lib/plans"
+import { PayoneerCheckout } from "@/components/billing/payoneer-checkout"
 
-/**
- * The buy button on a pricing card.
- *
- * Free plan: a plain link — nothing to purchase.
- * Paid plan, signed out: to /login, then straight back here to finish.
- * Paid plan, signed in: asks the server for a checkout URL and follows it.
- *
- * The endpoint does not exist yet. Rather than pretend, a failed call shows
- * exactly that — the same honesty as the contact form — so the button can
- * ship now and simply start working once the backend lands.
- */
-export function CheckoutButton({
-    plan,
-    billing,
-}: {
-    plan: Plan;
-    billing: BillingCycle;
-}) {
-    const router = useRouter();
-    const { user, loading } = useAuth();
-    const [submitting, setSubmitting] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+interface Props {
+    planId: PlanId
+    cycle: BillingCycle
+    label?: string
+}
 
-    const buttonClass = `
-        mt-auto
-        block
-        w-full
-        py-3
-        rounded-xl
-        text-xs
-        md:text-sm
-        font-medium
-        text-center
-        transition-all
-        disabled:opacity-60
+export function CheckoutButton({ planId, cycle, label = "Get started" }: Props) {
+    const [open, setOpen] = useState(false)
 
-        ${plan.popular
-            ? "bg-primary text-white shadow-lg shadow-primary/25 hover:opacity-95"
-            : "border border-border hover:border-primary"
-        }
-    `;
-
-    if (plan.id === "free") {
+    if (planId === "free") {
         return (
-            <Link href="/register" className={buttonClass}>
-                Start Free
-            </Link>
-        );
+            // /signup does not exist; the sign-up route is /register, so this
+            // sent everyone choosing the free plan to the 404 page.
+            <a href="/register" className="block w-full rounded-xl border border-card px-4 py-3 text-center text-fg">
+                {label}
+            </a>
+        )
     }
 
-    const handleCheckout = async () => {
-        if (!user) {
-            router.push("/login?next=/pricing");
-            return;
-        }
-
-        setSubmitting(true);
-        setError(null);
-
-        try {
-            const res = await fetch("/api/billing/checkout", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ planId: plan.id, billing }),
-            });
-
-            const data = await res.json().catch(() => null);
-
-            if (res.ok && data?.url) {
-                // The provider's hosted checkout page takes it from here.
-                window.location.assign(data.url);
-                return;
-            }
-
-            setError(
-                data?.message ??
-                "Checkout isn't connected yet. This button is ready for the backend."
-            );
-        } catch {
-            setError("Could not reach the server. Please try again.");
-        }
-
-        setSubmitting(false);
-    };
+    if (open) return <PayoneerCheckout planId={planId} cycle={cycle} />
 
     return (
-        <div className="mt-auto w-full">
-            {error && (
-                <p className="mb-3 flex items-start gap-1.5 text-xs text-red-600">
-                    <AlertCircle size={14} className="shrink-0 mt-0.5" />
-                    {error}
-                </p>
-            )}
-
-            <button
-                onClick={handleCheckout}
-                disabled={submitting || loading}
-                className={buttonClass}
-            >
-                {submitting ? (
-                    <Loader2 size={16} className="inline animate-spin" />
-                ) : (
-                    "Upgrade Now"
-                )}
-            </button>
-        </div>
-    );
+        <button
+            onClick={() => setOpen(true)}
+            className="w-full rounded-xl bg-[var(--primary)] px-4 py-3 text-white transition hover:opacity-90 focus-visible:outline focus-visible:outline-2"
+        >
+            {label}
+        </button>
+    )
 }

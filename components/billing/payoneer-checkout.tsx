@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import type { PlanId, BillingCycle } from "@/lib/plans"
 
 interface Props {
@@ -19,6 +19,27 @@ export function PayoneerCheckout({ planId, cycle }: Props) {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [copied, setCopied] = useState(false)
+
+    // The reference lived only in state, so a reload lost the code the
+    // payment has to quote while createPayment kept returning that same
+    // invoice — leaving the customer with an amount owing and no code.
+    useEffect(() => {
+        let cancelled = false
+
+        fetch("/api/billing/checkout/payoneer")
+            .then((res) => (res.ok ? res.json() : null))
+            .then((data) => {
+                if (cancelled || !data?.payment?.payUrl) return
+                setStarted(data.payment)
+            })
+            .catch(() => {
+                // Nothing outstanding, or signed out. Neither is an error.
+            })
+
+        return () => {
+            cancelled = true
+        }
+    }, [])
 
     async function start() {
         setLoading(true)

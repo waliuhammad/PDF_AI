@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { FileText, X, Download, ShieldCheck, Sparkles, Loader2, CheckCircle2 } from "lucide-react";
+import { FileText, Trash2, Download, ShieldCheck, PenLine, Loader2, CheckCircle2 } from "lucide-react";
 import { UploadCard } from "@/components/tools/upload-card";
 import type * as PdfjsLib from "pdfjs-dist";
 import { loadPdfjs } from "@/lib/pdf-libs";
@@ -13,26 +13,26 @@ import { errorName } from "@/lib/errors";
  * canvas preview; the id is what the route maps back to a StandardFont.
  */
 const FONT_OPTIONS = [
-    { id: "helvetica-oblique", label: "Signature (italic)", css: "italic 1em Helvetica, Arial, sans-serif" },
-    { id: "helvetica", label: "Sans", css: "1em Helvetica, Arial, sans-serif" },
-    { id: "helvetica-bold", label: "Sans bold", css: "bold 1em Helvetica, Arial, sans-serif" },
-    { id: "times-italic", label: "Serif italic", css: "italic 1em 'Times New Roman', Times, serif" },
-    { id: "times", label: "Serif", css: "1em 'Times New Roman', Times, serif" },
-    { id: "times-bold", label: "Serif bold", css: "bold 1em 'Times New Roman', Times, serif" },
-    { id: "courier-oblique", label: "Mono italic", css: "italic 1em 'Courier New', Courier, monospace" },
-    { id: "courier", label: "Mono", css: "1em 'Courier New', Courier, monospace" },
+  { id: "helvetica-oblique", label: "Signature (italic)", css: "italic 1em Helvetica, Arial, sans-serif" },
+  { id: "helvetica", label: "Sans", css: "1em Helvetica, Arial, sans-serif" },
+  { id: "helvetica-bold", label: "Sans bold", css: "bold 1em Helvetica, Arial, sans-serif" },
+  { id: "times-italic", label: "Serif italic", css: "italic 1em 'Times New Roman', Times, serif" },
+  { id: "times", label: "Serif", css: "1em 'Times New Roman', Times, serif" },
+  { id: "times-bold", label: "Serif bold", css: "bold 1em 'Times New Roman', Times, serif" },
+  { id: "courier-oblique", label: "Mono italic", css: "italic 1em 'Courier New', Courier, monospace" },
+  { id: "courier", label: "Mono", css: "1em 'Courier New', Courier, monospace" },
 ] as const;
 
 type FontChoice = (typeof FONT_OPTIONS)[number]["id"];
 
 /** Ink colours, matching the palette the watermark tool offers. */
 const SIGNATURE_COLORS = [
-    "#0f172a",
-    "#1d4ed8",
-    "#dc2626",
-    "#059669",
-    "#7c3aed",
-    "#d97706",
+  "#0f172a",
+  "#1d4ed8",
+  "#dc2626",
+  "#059669",
+  "#7c3aed",
+  "#d97706",
 ];
 
 export default function SignPdfPage() {
@@ -74,7 +74,10 @@ export default function SignPdfPage() {
   const handleFile = async (fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return;
     const f = fileList[0];
-    if (f.type !== "application/pdf") return;
+    if (f.type !== "application/pdf") {
+      setErrorMessage("Please select a valid PDF document.");
+      return;
+    }
 
     setFile({ name: f.name, size: formatSize(f.size), rawFile: f });
     setErrorMessage(null);
@@ -90,7 +93,16 @@ export default function SignPdfPage() {
       setCurrentPage(1);
     } catch (err) {
       console.error("Error loading PDF preview:", err);
+      setErrorMessage("Failed to load the PDF preview.");
     }
+  };
+
+  const clearFile = () => {
+    setFile(null);
+    setPdfDocProxy(null);
+    setNumPages(0);
+    setErrorMessage(null);
+    setSuccessMessage(false);
   };
 
   useEffect(() => {
@@ -193,7 +205,13 @@ export default function SignPdfPage() {
     if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
     const point = "touches" in e ? e.touches[0] : e;
-    return { x: point.clientX - rect.left, y: point.clientY - rect.top };
+    // The canvas is 340px internally but shrinks to fit narrow screens, so a
+    // raw clientX offset landed the stroke away from the fingertip. Scaling
+    // by the ratio between the bitmap and its rendered box keeps ink under
+    // the pointer at any width.
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return { x: (point.clientX - rect.left) * scaleX, y: (point.clientY - rect.top) * scaleY };
   };
 
   const startDrawing = (e: React.MouseEvent | React.TouchEvent) => {
@@ -296,310 +314,338 @@ export default function SignPdfPage() {
   const isFormValid = mode === "type" ? signatureText.trim().length > 0 : hasDrawn;
 
   return (
-    <div className="min-h-screen bg-background text-fg flex items-center justify-center p-4 font-sans transition-colors">
-      <div className="w-full max-w-4xl bg-card border border-card rounded-3xl p-5 sm:p-8 shadow-2xl relative overflow-hidden">
+    <div className="max-w-4xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-10">
+      {/* Header — same pattern as the other tool pages, and outside the file
+          branch so it stays visible once a document is chosen. */}
+      <div className="text-center mb-6 sm:mb-8">
+        <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto rounded-2xl bg-card border border-card flex items-center justify-center mb-3 text-fg shadow-sm">
+          <PenLine className="w-6 h-6 sm:w-7 sm:h-7" />
+        </div>
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-fg tracking-tight px-2">Sign PDF Tool</h1>
+        <p className="text-muted text-[13px] sm:text-sm mt-1.5 max-w-xs sm:max-w-lg mx-auto leading-relaxed">
+          Add text or drawn signatures with precise positioning.
+        </p>
+      </div>
 
-        {!file ? (
-          <>
-            {/* Header Badge */}
-            <div className="flex justify-center mb-6">
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-900/5 dark:bg-slate-900/60 border border-slate-900/10 dark:border-slate-800 text-fg text-xs font-semibold tracking-wide">
-                <Sparkles size={13} className="text-fg" />
-                DOCUMENT CONVERSION SUITE
+      {!file ? (
+        <div className="space-y-4">
+          <UploadCard
+            onFiles={handleFile}
+            title="Click to browse or drag & drop a PDF"
+            hint="Supports text documents and reports"
+            note={
+              <>
+                <ShieldCheck size={14} className="text-[var(--primary)]" />
+                <span>Secure PDF processing • No file retention</span>
+              </>
+            }
+          />
+
+          {/* An invalid-file message had nowhere to render before */}
+          {errorMessage && (
+            <div className="p-3.5 sm:p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-[13px] sm:text-sm font-semibold text-center">
+              {errorMessage}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-4 sm:space-y-6">
+          {/* File summary */}
+          <div className="bg-card border border-card rounded-2xl p-4 sm:p-5 shadow-sm flex items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-slate-900/5 dark:bg-slate-800 border border-slate-900/10 dark:border-slate-700 flex items-center justify-center text-fg shrink-0">
+                <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[13px] sm:text-sm font-bold text-fg truncate">{file.name}</p>
+                <p className="text-muted text-[11px] sm:text-xs mt-0.5 truncate">
+                  Size: <strong className="text-fg">{file.size}</strong> • {numPages}{" "}
+                  {numPages === 1 ? "Page" : "Pages"}
+                </p>
               </div>
             </div>
+            <button
+              type="button"
+              onClick={clearFile}
+              className="p-2 sm:p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors shrink-0"
+              title="Remove file"
+            >
+              <Trash2 className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+            </button>
+          </div>
 
-            {/* Title & Subtitle */}
-            <div className="text-center mb-10">
-              <h1 className="text-3xl font-bold tracking-tight text-fg mb-2">Sign PDF Tool</h1>
-              <p className="text-muted text-sm">Add text or drawn signatures with precise positioning.</p>
-            </div>
-
-            {/* Upload Box */}
-            <UploadCard
-              onFiles={handleFile}
-              title="Click to upload PDF document"
-              hint="Supports text documents and reports"
-              note={
-                <>
-                  <ShieldCheck size={14} className="text-[var(--primary)]" />
-                  <span>Secure PDF text extraction • No file retention</span>
-                </>
-              }
-            />
-          </>
-        ) : (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between gap-3 border-b border-card pb-4">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-xl bg-slate-900/5 dark:bg-slate-800 border border-slate-900/10 dark:border-slate-700 flex items-center justify-center text-fg shrink-0">
-                  <FileText size={20} />
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-fg truncate">{file.name}</p>
-                  <p className="text-muted text-xs">{file.size} • {numPages} {numPages === 1 ? 'Page' : 'Pages'}</p>
-                </div>
-              </div>
-              <button
-                onClick={() => { setFile(null); setPdfDocProxy(null); setErrorMessage(null); setSuccessMessage(false); }}
-                className="w-8 h-8 rounded-lg bg-[var(--background-secondary)] hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-muted hover:text-slate-900 dark:hover:text-white transition-colors shrink-0"
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            {/* PDF Preview & Pagination Controls */}
-            {numPages > 0 && (
-              <div className="space-y-3 bg-[var(--background-secondary)] p-4 rounded-2xl border border-card">
-                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted font-medium">
-                  <span>Page Preview (Page {currentPage} of {numPages})</span>
-                  <div className="flex space-x-2">
-                    <button
-                      type="button"
-                      disabled={currentPage <= 1}
-                      onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                      className="px-2.5 py-1 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-40 rounded text-xs text-fg"
-                    >
-                      ← Prev
-                    </button>
-                    <button
-                      type="button"
-                      disabled={currentPage >= numPages}
-                      onClick={() => setCurrentPage((p) => Math.min(numPages, p + 1))}
-                      className="px-2.5 py-1 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-40 rounded text-xs text-fg"
-                    >
-                      Next →
-                    </button>
-                  </div>
-                </div>
-                <div className="flex justify-center bg-slate-200/50 dark:bg-black/40 rounded-xl p-2 overflow-hidden border border-card">
-                  <canvas ref={previewCanvasRef} className="rounded shadow max-h-60 max-w-full object-contain" />
+          {/* Preview & pagination */}
+          {numPages > 0 && (
+            <div className="space-y-3 bg-[var(--background-secondary)] p-3 sm:p-4 rounded-2xl border border-card">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] sm:text-xs text-muted font-medium">
+                <span>
+                  Page {currentPage} of {numPages}
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    disabled={currentPage <= 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    className="px-3 py-1.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs font-semibold text-fg"
+                  >
+                    ← Prev
+                  </button>
+                  <button
+                    type="button"
+                    disabled={currentPage >= numPages}
+                    onClick={() => setCurrentPage((p) => Math.min(numPages, p + 1))}
+                    className="px-3 py-1.5 bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 disabled:opacity-40 rounded-lg text-xs font-semibold text-fg"
+                  >
+                    Next →
+                  </button>
                 </div>
               </div>
-            )}
-
-            {/* Config options */}
-            <div className="bg-[var(--background-secondary)] p-4 sm:p-5 rounded-2xl border border-card space-y-4">
-              <div className="flex gap-2 bg-slate-200/60 dark:bg-slate-900/60 p-1 rounded-xl border border-card">
-                <button
-                  type="button"
-                  onClick={() => setMode("type")}
-                  className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-colors ${mode === "type" ? "bg-slate-900 dark:bg-slate-800 text-white shadow" : "text-muted hover:text-slate-900 dark:hover:text-white"
-                    }`}
-                >
-                  Type Signature
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMode("draw")}
-                  className={`flex-1 py-2 rounded-lg text-xs font-semibold transition-colors ${mode === "draw" ? "bg-slate-900 dark:bg-slate-800 text-white shadow" : "text-muted hover:text-slate-900 dark:hover:text-white"
-                    }`}
-                >
-                  Draw Signature
-                </button>
-              </div>
-
-              {mode === "type" ? (
-                <div>
-                  <label className="text-xs text-muted block mb-1 font-medium">Your Name / Signature Text</label>
-                  <input
-                    type="text"
-                    value={signatureText}
-                    onChange={(e) => setSignatureText(e.target.value)}
-                    placeholder="e.g. Maniha Iman"
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-card bg-card text-sm text-fg focus:outline-none focus:border-slate-900 dark:focus:border-slate-100"
-                  />
-
-                  {/* Typography and ink for the typed signature. Draw mode has
-                      had a colour row all along; typing had neither, so the
-                      signature was always the same face, size and colour. */}
-                  <div className="mt-4 space-y-3">
-                    <div>
-                      <label className="text-xs text-muted block mb-1 font-medium">Font</label>
-                      <select
-                        value={fontFamily}
-                        onChange={(e) => setFontFamily(e.target.value as FontChoice)}
-                        className="w-full px-3 py-2 rounded-xl border border-card bg-card text-sm text-fg focus:outline-none focus:border-slate-900 dark:focus:border-slate-100"
-                      >
-                        {FONT_OPTIONS.map((f) => (
-                          <option key={f.id} value={f.id}>
-                            {f.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="text-xs text-muted block mb-1 font-medium">
-                        Size: {fontSize}px
-                      </label>
-                      <input
-                        type="range"
-                        min={8}
-                        max={48}
-                        value={fontSize}
-                        onChange={(e) => setFontSize(Number(e.target.value))}
-                        className="w-full accent-slate-900 dark:accent-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-xs text-muted block mb-1.5 font-medium">Ink Colour</label>
-                      <div className="flex flex-wrap items-center gap-2">
-                        {SIGNATURE_COLORS.map((col) => (
-                          <button
-                            key={col}
-                            type="button"
-                            onClick={() => setPenColor(col)}
-                            title={col}
-                            className={`w-6 h-6 rounded-full border-2 transition-transform ${penColor.toLowerCase() === col.toLowerCase()
-                              ? "border-slate-900 dark:border-white scale-110"
-                              : "border-transparent"
-                              }`}
-                            style={{ backgroundColor: col }}
-                          />
-                        ))}
-                        <input
-                          type="color"
-                          value={penColor}
-                          onChange={(e) => setPenColor(e.target.value)}
-                          aria-label="Custom ink colour"
-                          className="h-7 w-10 rounded-lg border border-card bg-card cursor-pointer p-0.5"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <label className="text-xs font-semibold uppercase tracking-wider text-muted">
-                      Draw Signature
-                    </label>
-                    <div className="flex items-center space-x-3">
-                      <div className="flex space-x-1.5">
-                        {/* The same palette the typed mode offers, so switching
-                            between them does not change the available inks. */}
-                        {SIGNATURE_COLORS.map((col) => (
-                          <button
-                            key={col}
-                            type="button"
-                            onClick={() => setPenColor(col)}
-                            className={`w-4 h-4 rounded-full border ${penColor === col ? "border-slate-900 dark:border-white scale-110" : "border-transparent"}`}
-                            style={{ backgroundColor: col }}
-                          />
-                        ))}
-                      </div>
-                      <button type="button" onClick={clearCanvas} className="text-xs text-muted hover:text-slate-900 dark:hover:text-white underline">
-                        Clear
-                      </button>
-                    </div>
-                  </div>
-                  <div className="bg-white rounded-xl overflow-hidden border border-card flex justify-center p-2">
-                    <canvas
-                      ref={canvasRef}
-                      onMouseDown={startDrawing}
-                      onMouseMove={draw}
-                      onMouseUp={stopDrawing}
-                      onMouseLeave={stopDrawing}
-                      onTouchStart={startDrawing}
-                      onTouchMove={draw}
-                      onTouchEnd={stopDrawing}
-                      className="cursor-crosshair touch-none bg-white rounded-lg max-w-full"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Scope & Alignment */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-2">
-                    Signing Scope
-                  </label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setSignScope("specific")}
-                      className={`py-2 text-xs font-semibold rounded-xl border transition-all ${signScope === "specific"
-                        ? "bg-slate-900/5 dark:bg-slate-800 border-slate-900 dark:border-slate-100 text-fg"
-                        : "border-card bg-card text-muted"
-                        }`}
-                    >
-                      Page {currentPage}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSignScope("all")}
-                      className={`py-2 text-xs font-semibold rounded-xl border transition-all ${signScope === "all"
-                        ? "bg-slate-900/5 dark:bg-slate-800 border-slate-900 dark:border-slate-100 text-fg"
-                        : "border-card bg-card text-muted"
-                        }`}
-                    >
-                      All Pages
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-muted mb-2">
-                    Alignment
-                  </label>
-                  <div className="grid grid-cols-3 gap-2">
-                    {(["left", "center", "right"] as const).map((pos) => (
-                      <button
-                        key={pos}
-                        type="button"
-                        onClick={() => setPosition(pos)}
-                        className={`py-2 text-xs font-semibold rounded-xl border uppercase tracking-wider transition-all ${position === pos
-                          ? "bg-slate-900/5 dark:bg-slate-800 border-slate-900 dark:border-slate-100 text-fg"
-                          : "border-card bg-card text-muted"
-                          }`}
-                      >
-                        {pos}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+              <div className="flex justify-center bg-slate-200/50 dark:bg-black/40 rounded-xl p-2 overflow-hidden border border-card">
+                <canvas
+                  ref={previewCanvasRef}
+                  className="rounded shadow max-h-52 sm:max-h-72 max-w-full object-contain"
+                />
               </div>
             </div>
+          )}
 
-            {errorMessage && (
-              <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 dark:text-red-400 text-xs text-center font-medium">
-                {errorMessage}
-              </div>
-            )}
-
-            {successMessage && (
-              <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 text-xs font-semibold flex items-center justify-center gap-2">
-                <CheckCircle2 size={16} /> Document signed & downloaded successfully!
-              </div>
-            )}
-
-            <div className="pt-2 text-center">
+          {/* Signature configuration */}
+          <div className="bg-[var(--background-secondary)] p-3.5 sm:p-5 rounded-2xl border border-card space-y-4">
+            <div className="flex gap-2 bg-slate-200/60 dark:bg-slate-900/60 p-1 rounded-xl border border-card">
               <button
                 type="button"
-                onClick={executeSignAndDownload}
-                disabled={!isFormValid || processing}
-                title={isFormValid ? undefined : mode === "type" ? "Type your signature first" : "Draw your signature first"}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3 rounded-full text-white font-medium transition-colors text-sm shadow-lg bg-[#0d1322] border border-slate-700 hover:bg-[#131b2e] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#0d1322]"
+                onClick={() => setMode("type")}
+                className={`flex-1 py-2.5 sm:py-2 rounded-lg text-xs font-semibold transition-colors ${mode === "type"
+                  ? "bg-slate-900 dark:bg-slate-800 text-white shadow"
+                  : "text-muted hover:text-slate-900 dark:hover:text-white"
+                  }`}
               >
-                {processing ? (
-                  <>
-                    <Loader2 className="animate-spin" size={18} />
-                    Signing Document...
-                  </>
-                ) : (
-                  <>
-                    <Download size={18} />
-                    Download Signed PDF
-                  </>
-                )}
+                Type Signature
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("draw")}
+                className={`flex-1 py-2.5 sm:py-2 rounded-lg text-xs font-semibold transition-colors ${mode === "draw"
+                  ? "bg-slate-900 dark:bg-slate-800 text-white shadow"
+                  : "text-muted hover:text-slate-900 dark:hover:text-white"
+                  }`}
+              >
+                Draw Signature
               </button>
             </div>
+
+            {mode === "type" ? (
+              <div>
+                <label className="text-xs text-muted block mb-1 font-medium">Your Name / Signature Text</label>
+                <input
+                  type="text"
+                  value={signatureText}
+                  onChange={(e) => setSignatureText(e.target.value)}
+                  placeholder="e.g. Maniha Iman"
+                  className="w-full px-3.5 py-3 sm:py-2.5 rounded-xl border border-card bg-card text-base sm:text-sm text-fg focus:outline-none focus:border-slate-900 dark:focus:border-slate-100"
+                />
+
+                {/* Typography and ink for the typed signature. Draw mode has
+                    had a colour row all along; typing had neither, so the
+                    signature was always the same face, size and colour. */}
+                <div className="mt-4 space-y-3">
+                  <div>
+                    <label className="text-xs text-muted block mb-1 font-medium">Font</label>
+                    <select
+                      value={fontFamily}
+                      onChange={(e) => setFontFamily(e.target.value as FontChoice)}
+                      className="w-full px-3 py-3 sm:py-2 rounded-xl border border-card bg-card text-base sm:text-sm text-fg focus:outline-none focus:border-slate-900 dark:focus:border-slate-100"
+                    >
+                      {FONT_OPTIONS.map((f) => (
+                        <option key={f.id} value={f.id}>
+                          {f.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-muted block mb-1 font-medium">Size: {fontSize}px</label>
+                    <input
+                      type="range"
+                      min={8}
+                      max={48}
+                      value={fontSize}
+                      onChange={(e) => setFontSize(Number(e.target.value))}
+                      className="w-full h-6 accent-slate-900 dark:accent-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-xs text-muted block mb-1.5 font-medium">Ink Colour</label>
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      {SIGNATURE_COLORS.map((col) => (
+                        <button
+                          key={col}
+                          type="button"
+                          onClick={() => setPenColor(col)}
+                          title={col}
+                          aria-label={`Ink colour ${col}`}
+                          className={`w-7 h-7 sm:w-6 sm:h-6 rounded-full border-2 transition-transform shrink-0 ${penColor.toLowerCase() === col.toLowerCase()
+                            ? "border-slate-900 dark:border-white scale-110"
+                            : "border-transparent"
+                            }`}
+                          style={{ backgroundColor: col }}
+                        />
+                      ))}
+                      <input
+                        type="color"
+                        value={penColor}
+                        onChange={(e) => setPenColor(e.target.value)}
+                        aria-label="Custom ink colour"
+                        className="h-8 w-11 sm:h-7 sm:w-10 rounded-lg border border-card bg-card cursor-pointer p-0.5 shrink-0"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <label className="text-xs font-semibold uppercase tracking-wider text-muted">Draw Signature</label>
+                  <div className="flex items-center gap-3">
+                    <div className="flex gap-2">
+                      {/* The same palette the typed mode offers, so switching
+                          between them does not change the available inks. */}
+                      {SIGNATURE_COLORS.map((col) => (
+                        <button
+                          key={col}
+                          type="button"
+                          onClick={() => setPenColor(col)}
+                          aria-label={`Ink colour ${col}`}
+                          className={`w-5 h-5 sm:w-4 sm:h-4 rounded-full border shrink-0 ${penColor === col ? "border-slate-900 dark:border-white scale-110" : "border-transparent"
+                            }`}
+                          style={{ backgroundColor: col }}
+                        />
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={clearCanvas}
+                      className="text-xs text-muted hover:text-slate-900 dark:hover:text-white underline shrink-0"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+                <div className="bg-white rounded-xl overflow-hidden border border-card flex justify-center p-2">
+                  <canvas
+                    ref={canvasRef}
+                    onMouseDown={startDrawing}
+                    onMouseMove={draw}
+                    onMouseUp={stopDrawing}
+                    onMouseLeave={stopDrawing}
+                    onTouchStart={startDrawing}
+                    onTouchMove={draw}
+                    onTouchEnd={stopDrawing}
+                    className="cursor-crosshair touch-none bg-white rounded-lg w-full max-w-[340px] h-auto"
+                  />
+                </div>
+                <p className="text-[11px] text-muted text-center">Sign with your finger or mouse inside the box.</p>
+              </div>
+            )}
+
+            {/* Scope & alignment */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div>
+                <label className="block text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-muted mb-2">
+                  Signing Scope
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setSignScope("specific")}
+                    className={`py-2.5 sm:py-2 px-2 text-xs font-semibold rounded-xl border transition-all ${signScope === "specific"
+                      ? "bg-slate-900/5 dark:bg-slate-800 border-slate-900 dark:border-slate-100 text-fg"
+                      : "border-card bg-card text-muted"
+                      }`}
+                  >
+                    Page {currentPage}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSignScope("all")}
+                    className={`py-2.5 sm:py-2 px-2 text-xs font-semibold rounded-xl border transition-all ${signScope === "all"
+                      ? "bg-slate-900/5 dark:bg-slate-800 border-slate-900 dark:border-slate-100 text-fg"
+                      : "border-card bg-card text-muted"
+                      }`}
+                  >
+                    All Pages
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-muted mb-2">
+                  Alignment
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["left", "center", "right"] as const).map((pos) => (
+                    <button
+                      key={pos}
+                      type="button"
+                      onClick={() => setPosition(pos)}
+                      className={`py-2.5 sm:py-2 px-1 text-[11px] sm:text-xs font-semibold rounded-xl border uppercase tracking-wider transition-all ${position === pos
+                        ? "bg-slate-900/5 dark:bg-slate-800 border-slate-900 dark:border-slate-100 text-fg"
+                        : "border-card bg-card text-muted"
+                        }`}
+                    >
+                      {pos}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
           </div>
-        )}
-      </div>
+
+          {errorMessage && (
+            <div className="p-3.5 sm:p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 dark:text-red-400 text-[13px] sm:text-sm text-center font-semibold">
+              {errorMessage}
+            </div>
+          )}
+
+          {successMessage && (
+            <div className="p-3.5 sm:p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 text-[13px] sm:text-sm font-semibold flex items-start sm:items-center justify-center gap-2">
+              <CheckCircle2 size={16} className="shrink-0 mt-0.5 sm:mt-0" />
+              <span>Document signed and downloaded.</span>
+            </div>
+          )}
+
+          <div className="flex flex-col-reverse sm:flex-row sm:items-center gap-3 sm:gap-4 pt-1 sm:pt-2">
+            <button
+              type="button"
+              onClick={clearFile}
+              className="w-full sm:w-auto py-3.5 sm:py-4 px-6 sm:px-8 rounded-2xl border border-card text-muted hover:text-slate-900 dark:hover:text-white font-bold text-sm transition-colors"
+            >
+              Select Different File
+            </button>
+            <button
+              type="button"
+              onClick={executeSignAndDownload}
+              disabled={!isFormValid || processing}
+              title={isFormValid ? undefined : mode === "type" ? "Type your signature first" : "Draw your signature first"}
+              className="w-full sm:flex-1 py-3.5 sm:py-4 px-4 rounded-2xl inline-flex items-center justify-center gap-2 text-white font-bold text-sm sm:text-base transition-colors shadow-lg bg-[#0d1322] border border-slate-700 hover:bg-[#131b2e] cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-[#0d1322]"
+            >
+              {processing ? (
+                <>
+                  <Loader2 className="animate-spin shrink-0" size={18} />
+                  Signing Document...
+                </>
+              ) : (
+                <>
+                  <Download className="shrink-0" size={18} />
+                  Download Signed PDF
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

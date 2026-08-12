@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, JSX } from "react";
 import { UploadCard } from "@/components/tools/upload-card";
-import { FileText, Trash2, RotateCw, Download, Layers, ShieldCheck, Sparkles, Loader2 } from "lucide-react";
+import { FileText, Trash2, RotateCw, Download, Layers, ShieldCheck, Loader2 } from "lucide-react";
 import { errorName } from "@/lib/errors";
 // Type-only, so it adds nothing to the bundle — the library itself still
 // arrives through the dynamic import below.
@@ -63,15 +63,15 @@ export default function RotatePdfPage(): JSX.Element {
 
         try {
           const arrayBuffer = await selectedFile.arrayBuffer();
-          const loadingTask = pdfjsLib.getDocument({ 
+          const loadingTask = pdfjsLib.getDocument({
             data: arrayBuffer,
             useWorkerFetch: false,
             isEvalSupported: false,
-            disableFontFace: true
+            disableFontFace: true,
           });
-          
+
           const loadedPdf = await loadingTask.promise;
-          
+
           if (!loadedPdf || loadedPdf.numPages === 0) {
             throw new Error("No pages found in this PDF.");
           }
@@ -80,13 +80,13 @@ export default function RotatePdfPage(): JSX.Element {
           setNumPages(loadedPdf.numPages);
         } catch (err) {
           console.error("PDF parse error:", err);
-          
+
           if (errorName(err) === "PasswordException") {
             setError("This PDF is password-protected. Please provide an unprotected file.");
           } else {
             setError("Could not read PDF structure. Ensure the file is a valid, uncorrupted PDF.");
           }
-          
+
           setPdfDoc(null);
           setNumPages(0);
         }
@@ -182,7 +182,7 @@ export default function RotatePdfPage(): JSX.Element {
         try {
           const errorData = await res.json();
           errorMessage = errorData.error || errorMessage;
-        } catch {}
+        } catch { }
         throw new Error(errorMessage);
       }
 
@@ -206,176 +206,214 @@ export default function RotatePdfPage(): JSX.Element {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-card text-fg flex flex-col items-center justify-center p-6 antialiased selection:bg-slate-900 selection:text-white dark:selection:bg-slate-100 dark:selection:text-slate-900">
-      <div className="max-w-2xl w-full space-y-8 bg-card border border-card p-8 rounded-3xl shadow-2xl backdrop-blur-xl">
-        
-        <div className="text-center space-y-2">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/5 dark:bg-slate-100/10 border border-slate-900/10 dark:border-slate-100/20 text-fg text-xs font-semibold tracking-wide uppercase">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Professional PDF Toolkit</span>
-          </div>
-          <h1 className="text-3xl font-bold tracking-tight text-fg">Rotate PDF Pages</h1>
-          <p className="text-sm text-muted">
-            Rotate your entire document or target a single specific page cleanly.
-          </p>
-        </div>
+  // A quarter turn swaps the page's width and height, but the canvas box is
+  // measured before the transform, so a sideways page needs clamping on the
+  // opposite axis or it spills out of its frame.
+  const isQuarterTurn = (deg: number) => deg % 180 !== 0;
 
-        {libLoading ? (
-          <div className="border-2 border-dashed border-card rounded-2xl p-6 sm:p-12 flex flex-col items-center justify-center bg-[var(--background-secondary)] space-y-3">
-            <Loader2 className="w-8 h-8 text-fg animate-spin" />
-            <span className="text-sm text-muted font-medium">Initializing PDF Engine...</span>
-          </div>
-        ) : !file ? (
-          <UploadCard
-            onFiles={handleFileChange}
-            title="Click to upload or drag & drop"
-            hint="PDF documents"
-          />
-        ) : (
-          <div className="space-y-6">
-            <div className="bg-[var(--background-secondary)] border border-card rounded-2xl p-4 flex items-center justify-between shadow-inner">
-              <div className="flex items-center space-x-3.5 overflow-hidden">
-                <div className="w-10 h-10 rounded-xl bg-slate-900/10 dark:bg-slate-100/10 flex items-center justify-center text-fg shrink-0">
-                  <FileText className="w-5 h-5" />
-                </div>
-                <div className="text-left truncate">
-                  <p className="font-medium text-sm text-slate-800 dark:text-slate-200 truncate">{file.name}</p>
-                  <p className="text-xs text-muted">{(file.size / (1024 * 1024)).toFixed(2)} MB • {numPages} Pages Detected</p>
-                </div>
+  return (
+    <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-10">
+      {/* Header — same pattern as the other tool pages */}
+      <div className="text-center mb-6 sm:mb-8">
+        <div className="w-12 h-12 sm:w-14 sm:h-14 mx-auto rounded-2xl bg-card border border-card flex items-center justify-center mb-3 text-fg shadow-sm">
+          <RotateCw className="w-6 h-6 sm:w-7 sm:h-7" />
+        </div>
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold text-fg tracking-tight px-2">
+          Rotate PDF Pages
+        </h1>
+        <p className="text-muted text-[13px] sm:text-sm mt-1.5 max-w-xs sm:max-w-lg mx-auto leading-relaxed">
+          Rotate your entire document or target a single specific page cleanly.
+        </p>
+      </div>
+
+      {libLoading ? (
+        <div className="border-2 border-dashed border-card rounded-2xl p-8 sm:p-12 flex flex-col items-center justify-center bg-[var(--background-secondary)] gap-3">
+          <Loader2 className="w-7 h-7 sm:w-8 sm:h-8 text-fg animate-spin" />
+          <span className="text-[13px] sm:text-sm text-muted font-medium">Initializing PDF engine...</span>
+        </div>
+      ) : !file ? (
+        <UploadCard onFiles={handleFileChange} title="Click to browse or drag & drop a PDF" hint="PDF documents" />
+      ) : (
+        <div className="space-y-4 sm:space-y-6">
+          {/* File summary */}
+          <div className="bg-card border border-card rounded-2xl p-4 sm:p-5 shadow-sm flex items-center justify-between gap-3 sm:gap-4">
+            <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-card border border-card flex items-center justify-center text-fg shrink-0">
+                <FileText className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <button
-                onClick={handleClearFile}
-                className="p-2 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition cursor-pointer"
-                title="Remove file"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
+              <div className="min-w-0">
+                <p className="text-fg text-[13px] sm:text-sm font-bold truncate">{file.name}</p>
+                <p className="text-[11px] sm:text-xs text-muted mt-0.5 truncate">
+                  Size: <strong className="text-fg">{(file.size / (1024 * 1024)).toFixed(2)} MB</strong> •{" "}
+                  {numPages} {numPages === 1 ? "Page" : "Pages"}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleClearFile}
+              className="p-2 sm:p-2.5 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors shrink-0"
+              title="Remove file"
+            >
+              <Trash2 className="w-4 h-4 sm:w-[18px] sm:h-[18px]" />
+            </button>
+          </div>
+
+          {/* Rotation settings */}
+          <div className="bg-card border border-card rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-card">
+              <RotateCw className="w-4 h-4 text-fg shrink-0" />
+              <span className="text-[13px] sm:text-sm font-extrabold text-fg">Rotation Settings</span>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 bg-[var(--background-secondary)] p-1.5 rounded-2xl border border-card">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <button
+                type="button"
                 onClick={() => setMode("all")}
-                className={`py-2.5 px-3 rounded-xl text-xs font-semibold tracking-wide transition flex items-center justify-center space-x-2 cursor-pointer ${
-                  mode === "all"
-                    ? "bg-slate-900 dark:bg-slate-800 text-white shadow-lg shadow-slate-900/20"
-                    : "text-muted hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-800/50"
-                }`}
+                className={`w-full px-4 py-3 sm:py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${mode === "all"
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
+                  : "bg-card border border-card text-muted hover:text-slate-900 dark:hover:text-white"
+                  }`}
               >
-                <Layers className="w-4 h-4" />
+                <Layers className="w-4 h-4 shrink-0" />
                 <span>Whole Document</span>
               </button>
               <button
+                type="button"
                 onClick={() => setMode("custom")}
-                className={`py-2.5 px-3 rounded-xl text-xs font-semibold tracking-wide transition flex items-center justify-center space-x-2 cursor-pointer ${
-                  mode === "custom"
-                    ? "bg-slate-900 dark:bg-slate-800 text-white shadow-lg shadow-slate-900/20"
-                    : "text-muted hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-200/50 dark:hover:bg-slate-800/50"
-                }`}
+                className={`w-full px-4 py-3 sm:py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${mode === "custom"
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
+                  : "bg-card border border-card text-muted hover:text-slate-900 dark:hover:text-white"
+                  }`}
               >
-                <FileText className="w-4 h-4" />
+                <FileText className="w-4 h-4 shrink-0" />
                 <span>Specific Page</span>
               </button>
             </div>
 
             {mode === "custom" && (
-              <div className="bg-[var(--background-secondary)] border border-card rounded-2xl p-4 text-left space-y-2">
-                <label className="text-xs text-muted font-bold uppercase tracking-wider">
-                  Target Page Number (1 - {numPages || 1})
+              <div className="pt-1">
+                <label className="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-muted block mb-1">
+                  Target Page (1 – {numPages || 1})
                 </label>
                 <input
                   type="number"
+                  inputMode="numeric"
                   min="1"
                   max={numPages || 1}
                   placeholder="e.g. 1"
                   value={pageNumber}
                   onChange={(e) => setPageNumber(e.target.value)}
-                  className="w-full bg-white dark:bg-slate-950 border border-card rounded-xl px-4 py-2.5 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:border-slate-900 dark:focus:border-slate-500 transition"
+                  className="w-full bg-card border border-card rounded-xl px-3 py-3 sm:py-2.5 text-base sm:text-sm text-fg placeholder-slate-400 focus:outline-none focus:border-slate-900 dark:focus:border-white transition"
                 />
-                <p className="text-[11px] text-muted">Enter the exact page number you wish to rotate.</p>
+                <p className="text-[11px] text-muted mt-1.5">Enter the exact page number you wish to rotate.</p>
               </div>
             )}
 
-            {numPages > 0 && (
-              <div className="bg-[var(--background-secondary)] border border-card rounded-2xl p-4 flex flex-col items-center">
-                <div className="w-full flex items-center justify-between mb-3">
-                  <span className="text-xs text-muted font-bold uppercase tracking-wider">All Pages Preview ({numPages} Total)</span>
-                  <span className="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-slate-900/10 dark:bg-slate-100/10 text-fg border border-slate-900/10 dark:border-slate-100/20">
-                    Selected Rotation: {rotation}°
-                  </span>
-                </div>
-                
-                <div className="w-full max-h-[420px] overflow-y-auto space-y-4 pr-1 scrollbar-thin scrollbar-thumb-slate-700">
-                  {Array.from({ length: numPages }, (_, i) => i + 1).map((pageNum) => {
-                    const isTargetRotated = mode === "all" || (mode === "custom" && pageNumber === String(pageNum));
-                    const currentDegrees = isTargetRotated ? rotation : 0;
-
-                    return (
-                      <div key={pageNum} className="bg-white dark:bg-black/40 border border-card rounded-xl p-3 flex flex-col items-center relative shadow-inner">
-                        <div className="w-full flex justify-between items-center mb-2 text-[11px] text-muted px-1">
-                          <span className="font-semibold text-muted">Page {pageNum} of {numPages}</span>
-                          <span className="bg-[var(--background-secondary)] px-2 py-0.5 rounded text-fg font-mono">
-                            {currentDegrees}°
-                          </span>
-                        </div>
-                        <div className="w-full h-80 flex items-center justify-center overflow-hidden bg-slate-100 dark:bg-black/60 rounded-lg p-2">
-                          <canvas
-                            ref={(el) => { canvasRefs.current[pageNum] = el; }}
-                            className="max-h-full max-w-full object-contain origin-center shadow-md"
-                            style={{ 
-                              transform: `rotate(${currentDegrees}deg)`, 
-                              transition: 'transform 0.3s ease-in-out' 
-                            }}
-                          />
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                <p className="text-[11px] text-muted mt-3 text-center">Scroll up and down to inspect every page of your document.</p>
-              </div>
-            )}
-
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3 pt-1">
               <button
+                type="button"
                 onClick={handleRotatePreview}
-                className="flex-1 flex items-center justify-center space-x-2 py-3 px-4 bg-[var(--background-secondary)] hover:bg-slate-100 dark:hover:bg-slate-800 border border-card rounded-xl text-sm font-medium text-slate-800 dark:text-slate-200 transition shadow-sm cursor-pointer"
+                className="w-full sm:flex-1 flex items-center justify-center gap-2 py-3.5 sm:py-3 px-4 rounded-xl bg-[var(--background-secondary)] hover:bg-slate-100 dark:hover:bg-slate-800 border border-card text-[13px] sm:text-sm font-bold text-fg transition shadow-sm"
               >
-                <RotateCw className="w-4 h-4 text-fg" />
-                <span>Rotate ({rotation}°) • Next Step</span>
+                <RotateCw className="w-4 h-4 shrink-0" />
+                <span>Rotate ({rotation}°)</span>
               </button>
               <button
+                type="button"
                 onClick={() => setRotation(90)}
-                className="py-3 px-4 bg-[var(--background-secondary)] hover:bg-slate-100 dark:hover:bg-slate-800 border border-card rounded-xl text-xs font-medium text-muted hover:text-slate-800 dark:hover:text-slate-200 transition cursor-pointer"
+                className="w-full sm:w-auto py-3 px-4 rounded-xl border border-card text-muted hover:text-slate-900 dark:hover:text-white font-bold text-xs transition-colors"
               >
                 Reset
               </button>
             </div>
           </div>
-        )}
 
-        {error && (
-          <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-600 dark:text-rose-400 text-xs font-medium text-center">
-            {error}
-          </div>
-        )}
+          {/* Page preview */}
+          {numPages > 0 && (
+            <div className="bg-card border border-card rounded-2xl p-3 sm:p-5 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 pb-2 mb-3 border-b border-card">
+                <span className="text-[10px] sm:text-xs font-extrabold text-fg uppercase tracking-wider">
+                  Page Preview ({numPages} Total)
+                </span>
+                <span className="text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-0.5 rounded-md bg-card border border-card text-fg shrink-0">
+                  Rotation: {rotation}°
+                </span>
+              </div>
 
-        {file && !libLoading && (
+              <div className="w-full max-h-[340px] sm:max-h-[420px] overflow-y-auto space-y-3 sm:space-y-4 pr-1">
+                {Array.from({ length: numPages }, (_, i) => i + 1).map((pageNum) => {
+                  const isTargetRotated = mode === "all" || (mode === "custom" && pageNumber === String(pageNum));
+                  const currentDegrees = isTargetRotated ? rotation : 0;
+
+                  return (
+                    <div
+                      key={pageNum}
+                      className="bg-[var(--background-secondary)] border border-card rounded-xl p-2.5 sm:p-3 flex flex-col items-center"
+                    >
+                      <div className="w-full flex justify-between items-center gap-2 mb-2 text-[11px] text-muted px-1">
+                        <span className="font-semibold truncate">
+                          Page {pageNum} of {numPages}
+                        </span>
+                        <span className="bg-card border border-card px-2 py-0.5 rounded text-fg font-mono shrink-0">
+                          {currentDegrees}°
+                        </span>
+                      </div>
+                      <div className="w-full h-56 sm:h-80 flex items-center justify-center overflow-hidden bg-slate-100 dark:bg-black/60 rounded-lg p-2">
+                        <canvas
+                          ref={(el) => {
+                            canvasRefs.current[pageNum] = el;
+                          }}
+                          className={`object-contain origin-center shadow-md ${isQuarterTurn(currentDegrees)
+                            ? "max-h-full max-w-[13rem] sm:max-w-[19rem]"
+                            : "max-h-full max-w-full"
+                            }`}
+                          style={{
+                            transform: `rotate(${currentDegrees}deg)`,
+                            transition: "transform 0.3s ease-in-out",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-[11px] text-muted mt-3 text-center">Scroll to inspect every page.</p>
+            </div>
+          )}
+
+          {error && (
+            <div className="p-3.5 sm:p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-[13px] sm:text-sm font-semibold text-center">
+              {error}
+            </div>
+          )}
+
           <button
+            type="button"
             onClick={handleRotateAndDownload}
             disabled={loading}
-            className="w-full bg-slate-900 hover:bg-slate-800 active:bg-slate-950 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-semibold py-3.5 rounded-xl transition-all duration-200 flex items-center justify-center space-x-2 disabled:opacity-50 shadow-lg shadow-slate-900/20 cursor-pointer"
+            className="w-full py-3.5 sm:py-4 px-4 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-[13px] sm:text-base shadow-lg disabled:opacity-60 flex items-center justify-center gap-2 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
           >
-            <Download className="w-5 h-5" />
-            <span>{loading ? "Processing Document..." : "Save & Download PDF"}</span>
+            {loading ? (
+              <Loader2 className="w-5 h-5 animate-spin shrink-0" />
+            ) : (
+              <Download className="w-5 h-5 shrink-0" />
+            )}
+            <span>{loading ? "Processing document..." : "Save & Download PDF"}</span>
           </button>
-        )}
-
-        <div className="pt-2 flex items-center justify-center space-x-1.5 text-muted text-xs">
-          <ShieldCheck className="w-4 h-4 text-muted" />
-          <span>Secure processing • Files processed privately</span>
         </div>
+      )}
 
+      {/* Errors before a file is chosen still need somewhere to show */}
+      {error && !file && (
+        <div className="mt-4 p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-[13px] font-semibold text-center">
+          {error}
+        </div>
+      )}
+
+      <div className="pt-5 sm:pt-6 flex items-center justify-center gap-1.5 text-muted text-[11px] sm:text-xs">
+        <ShieldCheck className="w-4 h-4 shrink-0" />
+        <span>Secure processing • Files processed privately</span>
       </div>
     </div>
   );
