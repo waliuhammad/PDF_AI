@@ -59,6 +59,7 @@ export default function MergePdfPage() {
 
     const newSourceFiles = [...sourceFiles];
     const newPagesList = [...pagesList];
+    const rejected: string[] = [];
 
     for (let i = 0; i < fileList.length; i++) {
       const file = fileList[i];
@@ -68,6 +69,17 @@ export default function MergePdfPage() {
         const buffer = await file.arrayBuffer();
         const textDecoder = new TextDecoder();
         const text = textDecoder.decode(buffer);
+
+        // A locked PDF handed to the preview makes the browser's own viewer
+        // draw a password prompt, and that prompt is wider than this panel, so
+        // it appeared cut in half with a scrollbar under it. It could not be
+        // merged either — the encrypted file is refused when the pages are
+        // copied — so it is turned away here with a reason instead.
+        if (/\/Encrypt[\s]*\d+\s+\d+\s+R|\/Encrypt[\s]*<</.test(text)) {
+          rejected.push(file.name);
+          continue;
+        }
+
         const matches = text.match(/\/Type\s*\/Page\b/g);
         const pageCount = matches ? matches.length : 1;
 
@@ -96,14 +108,21 @@ export default function MergePdfPage() {
       }
     }
 
+    const lockedNotice =
+      rejected.length > 0
+        ? `${rejected.join(", ")} ${rejected.length === 1 ? "is" : "are"} password protected and cannot be merged. Remove the password with the Unlock PDF tool first.`
+        : null;
+
     if (newSourceFiles.length === 0) {
-      setErrorMessage("Please select valid PDF files.");
+      setErrorMessage(lockedNotice ?? "Please select valid PDF files.");
       return;
     }
 
     setSourceFiles(newSourceFiles);
     setPagesList(newPagesList);
-    setErrorMessage(null);
+    // Keeps the reason on screen when some files were added and others were
+    // turned away, rather than silently dropping them.
+    setErrorMessage(lockedNotice);
     setActivePreviewIndex(0);
   };
 

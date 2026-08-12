@@ -1,14 +1,26 @@
 "use client";
 
-import { useState} from "react";
+import { useMemo, useState } from "react";
 import { UploadCard } from "@/components/tools/upload-card";
 import { CheckCheck, Sparkles, Copy, Loader2, FileText, X, ArrowRight } from "lucide-react";
 import { errorMessage } from "@/lib/errors";
+import { diffWords, countEdits } from "@/lib/text-diff";
 
 export default function GrammarCheckerPage() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [fileMeta, setFileMeta] = useState<{ name: string; size: string } | null>(null);
     const [correctedText, setCorrectedText] = useState<string | null>(null);
+    const [originalText, setOriginalText] = useState<string | null>(null);
+    const [showChanges, setShowChanges] = useState(false);
+
+    // The corrections themselves, worked out here rather than asked of the
+    // model: the tool used to show only the result, so there was no way to see
+    // what it had altered without reading both versions side by side.
+    const diff = useMemo(
+        () => (originalText && correctedText ? diffWords(originalText, correctedText) : null),
+        [originalText, correctedText]
+    );
+    const editCount = useMemo(() => (diff ? countEdits(diff) : 0), [diff]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
@@ -57,6 +69,9 @@ if (!res.ok) {
 
             const result = data.correctedText || data.reply || data.response || data.message || JSON.stringify(data);
             setCorrectedText(result);
+            // Only present once the AI service returns it. Without it the diff
+            // view is hidden rather than shown empty.
+            setOriginalText(typeof data.originalText === "string" ? data.originalText : null);
         } catch (err) {
             setError(errorMessage(err, "Something went wrong connecting to the server."));
         } finally {
@@ -163,8 +178,57 @@ if (!res.ok) {
                             </button>
                         )}
                     </div>
+                    {/* Only offered once the original is available to compare
+                        against; older AI-service builds do not return it. */}
+                    {diff && (
+                        <div className="flex items-center gap-1 p-1 mb-2 rounded-xl border border-card bg-card w-fit">
+                            <button
+                                type="button"
+                                onClick={() => setShowChanges(false)}
+                                className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${!showChanges ? "bg-[var(--primary)] text-white" : "text-muted hover:text-fg"}`}
+                            >
+                                Corrected
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowChanges(true)}
+                                className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${showChanges ? "bg-[var(--primary)] text-white" : "text-muted hover:text-fg"}`}
+                            >
+                                Changes ({editCount})
+                            </button>
+                        </div>
+                    )}
+
                     <div className="w-full flex-1 rounded-lg bg-black/20 p-4 border border-white/5 overflow-y-auto max-h-[220px]">
-                        {correctedText ? (
+                        {showChanges && diff ? (
+                            editCount === 0 ? (
+                                <p className="text-sm text-muted">
+                                    No grammar or spelling changes were needed.
+                                </p>
+                            ) : (
+                                <p className="text-sm text-fg whitespace-pre-wrap leading-relaxed">
+                                    {diff.map((part, i) =>
+                                        part.kind === "removed" ? (
+                                            <span
+                                                key={i}
+                                                className="line-through bg-red-500/15 text-red-600 dark:text-red-400 rounded px-0.5"
+                                            >
+                                                {part.text}
+                                            </span>
+                                        ) : part.kind === "added" ? (
+                                            <span
+                                                key={i}
+                                                className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-medium rounded px-0.5"
+                                            >
+                                                {part.text}
+                                            </span>
+                                        ) : (
+                                            <span key={i}>{part.text}</span>
+                                        )
+                                    )}
+                                </p>
+                            )
+                        ) : correctedText ? (
                             <p className="text-sm text-fg whitespace-pre-wrap leading-relaxed">
                                 {correctedText}
                             </p>

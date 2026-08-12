@@ -45,7 +45,9 @@ export default function DashboardPage() {
         return {
             storageUsedGb: usedGb,
             favouriteCount: documents.filter((d) => d.favorite).length,
-            recentDocs: [...documents].sort((a, b) => b.timestamp - a.timestamp).slice(0, 3),
+            // Five, so the panel is filled when there are enough documents to
+            // fill it. The rest are on /documents behind "View all".
+            recentDocs: [...documents].sort((a, b) => b.timestamp - a.timestamp).slice(0, 5),
             recentChats: [...chats].sort((a, b) => b.timestamp - a.timestamp).slice(0, 2),
         };
     }, [documents, chats]);

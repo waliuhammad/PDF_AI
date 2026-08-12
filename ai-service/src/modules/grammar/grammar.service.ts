@@ -33,6 +33,7 @@ Rules:
  return {
  correctionsMade: 0,
   correctedText: generator.answer,
+  originalText: documentText,
   downloadable: true,
 };
 }
