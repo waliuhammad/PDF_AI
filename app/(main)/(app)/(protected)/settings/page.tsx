@@ -5,7 +5,8 @@ import { useTheme } from "next-themes";
 import { SettingsTabs, SettingsTab } from "@/components/settings/settings-tabs";
 import { Sun, Moon, Monitor, Check, AlertCircle, Loader2, ChevronDown, Search } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { LOCALE_CHANGED_EVENT } from "@/components/locale-provider";
+import { LOCALE_CHANGED_EVENT, useT } from "@/components/locale-provider";
+import { TRANSLATED_LOCALES } from "@/lib/i18n/messages";
 import { updateUserProfile } from "@/lib/firebase/users";
 import { changePassword, hasPasswordProvider } from "@/lib/firebase/auth";
 import { BillingTab } from "@/components/settings/billing-tab";
@@ -94,6 +95,7 @@ function StatusMessage({ status, savedLabel }: { status: Status; savedLabel: str
 export default function SettingsPage() {
     const { user, profile } = useAuth();
     const { theme, setTheme } = useTheme();
+    const { t } = useT();
     const [tab, setTab] = useState<SettingsTab>("profile");
 
     // Profile. The draft stays null until the field is edited, so a late-arriving
@@ -422,9 +424,9 @@ export default function SettingsPage() {
 
                     {tab === "language" && (
                         <div className="max-w-md">
-                            <h2 className="text-lg font-semibold text-fg mb-4">Language</h2>
+                            <h2 className="text-lg font-semibold text-fg mb-4">{t("settings.language")}</h2>
                             <label className="block text-sm font-medium text-fg mb-1.5">
-                                Interface language
+                                {t("settings.interfaceLanguage")}
                             </label>
 
                             {/* Custom Searchable Dropdown */}
@@ -446,7 +448,7 @@ export default function SettingsPage() {
                                             <Search size={16} className="text-muted ml-2 shrink-0" />
                                             <input
                                                 type="text"
-                                                placeholder="Search languages..."
+                                                placeholder={t("settings.searchLanguages")}
                                                 value={langSearch}
                                                 onChange={(e) => setLangSearch(e.target.value)}
                                                 className="w-full bg-transparent border-none focus:outline-none text-sm text-fg py-1.5"
@@ -465,11 +467,20 @@ export default function SettingsPage() {
                                                                 setIsLangDropdownOpen(false);
                                                                 setLangSearch("");
                                                             }}
-                                                            className={`w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-[var(--primary)]/10 transition-colors ${
+                                                            className={`w-full flex items-center justify-between gap-2 text-left px-3 py-2 text-sm rounded-lg hover:bg-[var(--primary)]/10 transition-colors ${
                                                                 prefs.language === lang.code ? "bg-[var(--primary)]/10 text-[var(--primary)] font-medium" : "text-fg"
                                                             }`}
                                                         >
-                                                            {lang.name}
+                                                            <span>{lang.name}</span>
+
+                                                            {/* All 58 are selectable, but only some have interface
+                                                                copy; the rest stay in English. Saying so here is why
+                                                                choosing one of them appears to do nothing. */}
+                                                            {!TRANSLATED_LOCALES.includes(lang.code as (typeof TRANSLATED_LOCALES)[number]) && (
+                                                                <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted">
+                                                                    English UI
+                                                                </span>
+                                                            )}
                                                         </button>
                                                     </li>
                                                 ))
