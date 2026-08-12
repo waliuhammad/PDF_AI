@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { UploadCard } from "@/components/tools/upload-card";
+import { FormatSelect } from "@/components/tools/format-select";
 import { loadPdfjs, loadJsZip } from "@/lib/pdf-libs";
 import { errorMessage } from "@/lib/errors";
 import {
@@ -25,7 +26,6 @@ const FORMAT_OPTIONS = [
   { label: "SVG Vector (.svg)", mimeType: "image/svg+xml", ext: ".svg" },
   // A canvas cannot encode BMP, so it is written here from the raw pixels.
   { label: "BMP Image (.bmp)", mimeType: "image/bmp", ext: ".bmp" },
-  { label: "GIF Image (.gif)", mimeType: "image/gif", ext: ".gif" },
 ];
 
 /** Written by us rather than by canvas.toBlob, so canEncode does not apply. */
@@ -500,29 +500,19 @@ export default function PdfToImageConverter() {
               <label className="block text-xs font-bold uppercase tracking-wider text-muted">
                 Output Image Format
               </label>
-              {/* All five formats are listed. The ones this browser cannot
-                  encode are disabled rather than hidden, so the list is always
-                  the same five and the reason one is unavailable is stated —
-                  picking one used to produce a PNG under a .gif or .bmp name. */}
-              <select
+              {/* A native select keeps the operating system's own list styling,
+                  which ignored this app's colours and its light/dark switch.
+                  formatOptions, not FORMAT_OPTIONS: a format this browser
+                  cannot produce is left out rather than offered and refused. */}
+              <FormatSelect
+                label="Output image format"
+                options={formatOptions.map((f) => ({ value: f.ext, label: f.label }))}
                 value={selectedFormat.ext}
-                onChange={(e) => {
-                  const target = FORMAT_OPTIONS.find((f) => f.ext === e.target.value);
+                onChange={(ext) => {
+                  const target = FORMAT_OPTIONS.find((f) => f.ext === ext);
                   if (target) setSelectedFormat(target);
                 }}
-                className="w-full sm:max-w-xs px-3 py-2.5 rounded-xl border border-card bg-card text-fg text-sm font-medium focus:outline-none focus:border-slate-900 dark:focus:border-slate-100 transition-colors"
-              >
-                {FORMAT_OPTIONS.map((fmt) => {
-                  const supported = formatOptions.some((f) => f.ext === fmt.ext);
-
-                  return (
-                    <option key={fmt.ext} value={fmt.ext} disabled={!supported}>
-                      {fmt.label}
-                      {supported ? "" : " — not supported by this browser"}
-                    </option>
-                  );
-                })}
-              </select>
+              />
             </div>
           )}
 
