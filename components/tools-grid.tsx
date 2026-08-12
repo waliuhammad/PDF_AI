@@ -8,8 +8,10 @@ import SearchTool from "./tools/search-tools";
 import CategoryFilter from "./tools/category-filter";
 
 import { tools } from "@/lib/tools";
+import { useT } from "@/components/locale-provider";
 
 export function ToolsGrid() {
+    const { t } = useT();
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("All Tools");
 
@@ -36,15 +38,15 @@ export function ToolsGrid() {
                 <Reveal>
 <div className="mb-8 sm:mb-12 text-center">
                     <span className="inline-flex rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-indigo-600 hover:text-indigo-600">
-                        PDF Toolkit
+                        {t("tools.badge")}
                     </span>
 
                     <h2 className="mt-3 sm:mt-4 text-2xl sm:text-4xl font-bold">
-                        All PDF Tools
+                        {t("tools.heading")}
                     </h2>
 
                     <p className="mt-3 text-muted max-w-2xl mx-auto">
-                        Convert, edit, compress, organise and secure your PDF files in one place.
+                        {t("tools.subtitle")}
                     </p>
                 </div>
 </Reveal>

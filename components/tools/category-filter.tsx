@@ -2,6 +2,8 @@
 
 
 
+import { useToolText } from "@/hooks/useToolText";
+
 interface CategoryFilterProps {
     activeCategory: string;
     setActiveCategory: (category: string) => void;
@@ -23,6 +25,7 @@ export default function CategoryFilter({
     activeCategory,
     setActiveCategory,
 }: CategoryFilterProps) {
+    const { categoryLabel } = useToolText();
 
 
     return (
@@ -100,7 +103,7 @@ export default function CategoryFilter({
                     `}
                 >
 
-                    {category}
+                    {categoryLabel(category)}
 
 
                     {/* Was a layoutId span that slid between pills. Toggling opacity keeps

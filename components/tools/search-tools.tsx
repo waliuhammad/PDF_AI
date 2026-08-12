@@ -1,6 +1,7 @@
 "use client";
 
 import { Search } from "lucide-react";
+import { useT } from "@/components/locale-provider";
 
 interface SearchToolProps {
     searchQuery: string;
@@ -11,6 +12,7 @@ export default function SearchTool({
     searchQuery,
     setSearchQuery,
 }: SearchToolProps) {
+    const { t } = useT();
     return (
         <div className="mx-auto max-w-5xl pb-6 sm:pb-12 animate-tool-in">
             <div className="relative">
@@ -32,7 +34,7 @@ export default function SearchTool({
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search tools..."
+                    placeholder={t("tools.search")}
                     className="
                         w-full
                         h-12

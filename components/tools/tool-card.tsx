@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { LucideIcon } from "lucide-react";
+import { useToolText } from "@/hooks/useToolText";
 
 interface ToolCardProps {
     name: string;
@@ -22,6 +23,9 @@ export default function ToolCard({
     badge,
     comingSoon = false,
 }: ToolCardProps) {
+    const { toolName, toolDescription, badgeLabel } = useToolText();
+    const shownName = toolName(href, name);
+    const shownDescription = toolDescription(href, description);
     // The lift on hover was a framer-motion whileHover. This card is on screen
     // twenty-two times on /tools, and the profile put framer among the most
     // expensive scripts there — for a translate and a scale, which CSS does free.
@@ -86,11 +90,11 @@ export default function ToolCard({
                 column instead of forcing the card wider than its grid track. */}
             <div className="w-full min-w-0">
                 <h3 className="text-[11px] font-semibold leading-tight text-fg transition-colors duration-300 [overflow-wrap:anywhere] group-hover:text-primary sm:text-base sm:leading-snug">
-                    {name}
+                    {shownName}
                 </h3>
 
                 <p className="mt-1 text-[10px] leading-tight text-muted line-clamp-3 sm:mt-2 sm:text-sm sm:leading-6 sm:line-clamp-2 sm:block hidden">
-                    {description}
+                    {shownDescription}
                 </p>
             </div>
 
@@ -122,7 +126,7 @@ export default function ToolCard({
                         lg:text-[10px]
                     "
                 >
-                    {comingSoon ? "Soon" : badge}
+                    {comingSoon ? badgeLabel("Soon") : badgeLabel(badge!)}
                 </span>
             )}
 

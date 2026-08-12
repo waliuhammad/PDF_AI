@@ -5,12 +5,16 @@ import { Search, Wrench } from "lucide-react";
 
 import ToolCard from "./tool-card";
 import { tools } from "@/lib/tools";
+import { useToolText } from "@/hooks/useToolText";
+import { useT } from "@/components/locale-provider";
 
 // "All" first, then whatever categories the tool list actually declares, so a new
 // category in lib/tools.ts shows up here without touching this file.
 const categories = ["All", ...Array.from(new Set(tools.map((t) => t.category)))];
 
 export function ToolsHub() {
+    const { categoryLabel } = useToolText();
+    const { t } = useT();
     const [search, setSearch] = useState("");
     const [category, setCategory] = useState("All");
 
@@ -47,9 +51,9 @@ export function ToolsHub() {
         <div>
             <div className="flex items-center justify-between flex-wrap gap-2 mb-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-fg">All Tools</h1>
+                    <h1 className="text-2xl font-bold text-fg">{t("tools.allTools")}</h1>
                     <p className="text-muted text-sm mt-1">
-                        {filteredTools.length} {filteredTools.length === 1 ? "tool" : "tools"} available
+                        {filteredTools.length === 1 ? t("tools.availableOne") : t("tools.available", { count: filteredTools.length })}
                     </p>
                 </div>
             </div>
@@ -62,7 +66,7 @@ export function ToolsHub() {
                         type="text"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Search tools..."
+                        placeholder={t("tools.search")}
                         className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-card text-fg placeholder:text-muted text-sm focus:outline-none focus:border-[var(--primary)] transition-colors bg-card"
                     />
                 </div>
@@ -75,7 +79,7 @@ export function ToolsHub() {
                             className={`px-3 py-1.5 rounded-lg text-sm whitespace-nowrap transition-colors ${category === option ? "bg-[var(--primary)] text-white" : "text-muted hover:text-fg"
                                 }`}
                         >
-                            {option}
+                            {categoryLabel(option)}
                         </button>
                     ))}
                 </div>
@@ -86,7 +90,7 @@ export function ToolsHub() {
                     <div className="w-12 h-12 mx-auto rounded-xl bg-[var(--background-secondary)] flex items-center justify-center mb-3">
                         <Wrench size={20} className="text-muted" />
                     </div>
-                    <p className="text-muted text-sm">No tools match &ldquo;{search}&rdquo;.</p>
+                    <p className="text-muted text-sm">{t("tools.noMatch")} &ldquo;{search}&rdquo;.</p>
                 </div>
             ) : (
                 // Three per row on phones, matching the landing page grid.
