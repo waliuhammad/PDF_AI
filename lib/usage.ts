@@ -19,6 +19,8 @@ import type { PlanId } from "@/lib/plans";
  */
 
 export interface UsageResult {
+    /** The plan's storage allowance in gigabytes, from Remote Config. */
+    storageLimitGb: number;
     allowed: boolean;
     used: number;
     limit: number;
@@ -34,7 +36,7 @@ export async function checkAndCountUsage(uid: string, devPlanOverride?: PlanId):
     // Limits unenforceable without admin credentials: fail open rather
     // than lock every tool because of a configuration problem.
     if (!isAdminConfigured()) {
-        return { allowed: true, used: 0, limit: Infinity, plan: "free" };
+        return { allowed: true, used: 0, limit: Infinity, plan: "free", storageLimitGb: Infinity };
     }
 
     const db = getFirestore(getAdminApp());
@@ -48,8 +50,9 @@ export async function checkAndCountUsage(uid: string, devPlanOverride?: PlanId):
     // The client's Remote Config supplies the number; monthly is the
     // reference cycle (their weekly/monthly/yearly values are identical
     // today, and the billing cycle isn't stored per-user yet).
-    const { limits } = await getAppConfig();
+    const { limits, storageGb } = await getAppConfig();
     const limit = limits.monthly[plan];
+    const storageLimitGb = storageGb[plan];
 
     const usageRef = db.collection("usage").doc(`${uid}_${todayKey()}`);
 
@@ -58,7 +61,7 @@ export async function checkAndCountUsage(uid: string, devPlanOverride?: PlanId):
         const used = (snap.data()?.count as number | undefined) ?? 0;
 
         if (used >= limit) {
-            return { allowed: false, used, limit, plan };
+            return { allowed: false, used, limit, plan, storageLimitGb };
         }
 
         tx.set(
@@ -67,14 +70,14 @@ export async function checkAndCountUsage(uid: string, devPlanOverride?: PlanId):
             { merge: true }
         );
 
-        return { allowed: true, used: used + 1, limit, plan };
+        return { allowed: true, used: used + 1, limit, plan, storageLimitGb };
     });
 }
 
 /** Read-only variant for showing "X of Y used today" without consuming one. */
 export async function peekUsage(uid: string, devPlanOverride?: PlanId): Promise<UsageResult> {
     if (!isAdminConfigured()) {
-        return { allowed: true, used: 0, limit: Infinity, plan: "free" };
+        return { allowed: true, used: 0, limit: Infinity, plan: "free", storageLimitGb: Infinity };
     }
 
     const db = getFirestore(getAdminApp());
@@ -82,11 +85,12 @@ export async function peekUsage(uid: string, devPlanOverride?: PlanId): Promise<
     const profileSnap = await db.collection("users").doc(uid).get();
     const plan = devPlanOverride ?? resolvePlan((profileSnap.data() ?? null) as UserProfile | null);
 
-    const { limits } = await getAppConfig();
+    const { limits, storageGb } = await getAppConfig();
     const limit = limits.monthly[plan];
+    const storageLimitGb = storageGb[plan];
 
     const snap = await db.collection("usage").doc(`${uid}_${todayKey()}`).get();
     const used = (snap.data()?.count as number | undefined) ?? 0;
 
-    return { allowed: used < limit, used, limit, plan };
+    return { allowed: used < limit, used, limit, plan, storageLimitGb };
 }

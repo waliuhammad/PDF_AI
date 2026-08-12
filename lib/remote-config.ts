@@ -34,6 +34,12 @@ const DEFAULTS = {
     yearly_free_plan_all: "2",
     yearly_pro_plan_all: "20",
     yearly_business_plan_all: "50",
+
+    // Storage allowance per plan, in gigabytes. Same story as the operation
+    // limits: tunable from the Console without a deploy.
+    free_plan_storage_gb: "2",
+    pro_plan_storage_gb: "5",
+    business_plan_storage_gb: "10",
 } as const;
 
 export interface AppConfig {
@@ -41,6 +47,8 @@ export interface AppConfig {
     aiToolsEnabled: boolean;
     /** Daily operation limits: limits[cycle][plan] = ops per 24 hours. */
     limits: Record<PlanCycle, Record<PlanId, number>>;
+    /** Storage allowance per plan, in gigabytes. */
+    storageGb: Record<PlanId, number>;
 }
 
 let template: ServerTemplate | null = null;
@@ -156,9 +164,18 @@ function defaultLimits(): AppConfig["limits"] {
     };
 }
 
+function defaultStorage(): AppConfig["storageGb"] {
+    return {
+        free: Number(DEFAULTS.free_plan_storage_gb),
+        pro: Number(DEFAULTS.pro_plan_storage_gb),
+        business: Number(DEFAULTS.business_plan_storage_gb),
+    };
+}
+
 export async function getAppConfig(): Promise<AppConfig> {
     const [t, client] = await Promise.all([getTemplate(), getClientParams()]);
     const d = defaultLimits();
+    const ds = defaultStorage();
 
     /** Client-template value for a key, when it parses as a positive number. */
     const fromClient = (key: string): number | null => {
@@ -176,10 +193,17 @@ export async function getAppConfig(): Promise<AppConfig> {
                 if (v !== null) limits[cycle][plan] = v;
             }
         }
+        const storageGb = defaultStorage();
+        for (const plan of ["free", "pro", "business"] as PlanId[]) {
+            const v = fromClient(`${plan}_plan_storage_gb`);
+            if (v !== null) storageGb[plan] = v;
+        }
+
         return {
             maintenanceBanner: client.maintenance_banner ?? DEFAULTS.maintenance_banner,
             aiToolsEnabled: (client.ai_tools_enabled ?? DEFAULTS.ai_tools_enabled) === "true",
             limits,
+            storageGb,
         };
     }
 
@@ -218,6 +242,11 @@ export async function getAppConfig(): Promise<AppConfig> {
                 pro: num("yearly_pro_plan_all", d.yearly.pro),
                 business: num("yearly_business_plan_all", d.yearly.business),
             },
+        },
+        storageGb: {
+            free: num("free_plan_storage_gb", ds.free),
+            pro: num("pro_plan_storage_gb", ds.pro),
+            business: num("business_plan_storage_gb", ds.business),
         },
     };
 }

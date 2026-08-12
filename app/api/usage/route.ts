@@ -30,5 +30,9 @@ export async function GET(req: NextRequest) {
         used: usage.used,
         limit: usage.limit,
         plan: usage.plan,
+        // The storage allowance follows the same plan resolution, so the
+        // dashboard tile and the meter can never disagree about which plan
+        // the numbers belong to.
+        storageLimitGb: usage.storageLimitGb,
     });
 }

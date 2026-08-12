@@ -1,5 +1,6 @@
 "use client";
 import { UsageMeter } from "@/components/usage-meter";
+import { usePlanUsage } from "@/hooks/usePlanUsage";
 import { useMemo } from "react";
 import Link from "next/link";
 import {
@@ -29,6 +30,12 @@ export default function DashboardPage() {
     const { user, profile } = useAuth();
     const documents = useLibrary((s) => s.documents);
     const chats = useLibrary((s) => s.chats);
+
+    // The allowance comes from the plan, through the same request and the same
+    // plan resolution the usage meter uses, so the tester switches both.
+    const { usage } = usePlanUsage();
+    const storageLimitGb =
+        usage && Number.isFinite(usage.storageLimitGb) ? usage.storageLimitGb : null;
 
     // storagePercent went with the Storage Usage card; storageUsedGb still
     // feeds the "Storage Used" stat tile at the top of the page.
@@ -65,7 +72,18 @@ export default function DashboardPage() {
             <div className="hidden lg:grid grid-cols-4 gap-4 mb-8">
                 <StatCard label="Total Documents" value={String(documents.length)} icon={FileText} />
                 <StatCard label="Total Chats" value={String(chats.length)} icon={MessageSquare} />
-                <StatCard label="Storage Used" value={`${storageUsedGb.toFixed(2)} GB`} icon={HardDrive} />
+                {/* "of Y GB" comes from the plan, so the tile states the
+                    allowance rather than a bare number with nothing to judge
+                    it against. */}
+                <StatCard
+                    label="Storage Used"
+                    value={
+                        storageLimitGb === null
+                            ? `${storageUsedGb.toFixed(2)} GB`
+                            : `${storageUsedGb.toFixed(2)} / ${storageLimitGb} GB`
+                    }
+                    icon={HardDrive}
+                />
                 <StatCard label="Favorites" value={String(favouriteCount)} icon={Star} />
             </div>
 
@@ -80,7 +98,11 @@ export default function DashboardPage() {
                 </div>
                 <div className="bg-card border border-card rounded-xl p-2 text-center flex flex-col items-center justify-center">
                     <span className="text-[10px] text-muted truncate w-full">Storage</span>
-                    <span className="text-sm font-bold text-fg">{storageUsedGb.toFixed(1)}G</span>
+                    <span className="text-sm font-bold text-fg">
+                        {storageLimitGb === null
+                            ? `${storageUsedGb.toFixed(1)}G`
+                            : `${storageUsedGb.toFixed(1)}/${storageLimitGb}G`}
+                    </span>
                 </div>
                 <div className="bg-card border border-card rounded-xl p-2 text-center flex flex-col items-center justify-center">
                     <span className="text-[10px] text-muted truncate w-full">Favs</span>

@@ -12,6 +12,7 @@ import { DocumentCard } from "@/components/documents/document-card";
 import { DocumentRow } from "@/components/documents/document-row";
 import { UploadModal } from "@/components/documents/upload-modal";
 import { useLibrary } from "@/lib/store";
+import { usePlanUsage } from "@/hooks/usePlanUsage";
 import { formatRelativeTime } from "@/lib/utils";
 
 type SortOption = "newest" | "oldest" | "name" | "size";
@@ -30,6 +31,16 @@ export default function DocumentsPage() {
     const [filter, setFilter] = useState<FilterOption>("all");
     const [sortOpen, setSortOpen] = useState(false);
     const [showUpload, setShowUpload] = useState(false);
+    const [storageError, setStorageError] = useState<string | null>(null);
+
+    // Allowance and plan name come from /api/usage, which resolves the plan the
+    // same way the tool routes do — so the tester changes this too.
+    const { usage } = usePlanUsage();
+    const storageLimitGb =
+        usage && Number.isFinite(usage.storageLimitGb) ? usage.storageLimitGb : null;
+    const planName = usage?.plan ?? "current";
+    const storageUsedGb =
+        documents.reduce((total, doc) => total + doc.sizeMb, 0) / 1024;
 
     const filteredDocs = useMemo(() => {
         let result = [...documents];
@@ -80,6 +91,12 @@ export default function DocumentsPage() {
                     <h1 className="text-2xl font-bold text-fg">My Documents</h1>
                     <p className="text-muted text-sm mt-1">
                         {filteredDocs.length} {filteredDocs.length === 1 ? "document" : "documents"}
+                        {storageLimitGb !== null && (
+                            <>
+                                {" · "}
+                                {storageUsedGb.toFixed(2)} of {storageLimitGb} GB used
+                            </>
+                        )}
                     </p>
                 </div>
                 <button
@@ -90,6 +107,12 @@ export default function DocumentsPage() {
                     Upload PDF
                 </button>
             </div>
+
+            {storageError && (
+                <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-600 dark:text-red-400">
+                    {storageError}
+                </div>
+            )}
 
             {/* Toolbar */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mb-6">
@@ -207,9 +230,28 @@ export default function DocumentsPage() {
             {showUpload && (
                 <UploadModal
                     onClose={() => setShowUpload(false)}
-                    onUploadComplete={(files) =>
-                        addDocuments(files.map((f) => ({ name: f.name, bytes: f.bytes })))
-                    }
+                    onUploadComplete={(files) => {
+                        // The plan's storage allowance is a real limit, not a
+                        // label: an upload that would take the library past it
+                        // is refused rather than silently accepted.
+                        const incomingGb =
+                            files.reduce((total, f) => total + f.bytes, 0) / (1024 * 1024 * 1024);
+
+                        if (
+                            storageLimitGb !== null &&
+                            storageUsedGb + incomingGb > storageLimitGb
+                        ) {
+                            setStorageError(
+                                `That upload needs ${(storageUsedGb + incomingGb).toFixed(2)} GB, ` +
+                                `over your ${storageLimitGb} GB ${planName} storage. ` +
+                                `Remove some documents or upgrade for more space.`
+                            );
+                            return;
+                        }
+
+                        setStorageError(null);
+                        addDocuments(files.map((f) => ({ name: f.name, bytes: f.bytes })));
+                    }}
                 />
             )}
         </div>
