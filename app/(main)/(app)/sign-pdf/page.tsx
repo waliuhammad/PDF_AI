@@ -7,6 +7,34 @@ import type * as PdfjsLib from "pdfjs-dist";
 import { loadPdfjs } from "@/lib/pdf-libs";
 import { errorName } from "@/lib/errors";
 
+/**
+ * The faces pdf-lib can embed from the PDF standard set, so the preview and
+ * the signed file agree. `css` is the nearest browser equivalent for the
+ * canvas preview; the id is what the route maps back to a StandardFont.
+ */
+const FONT_OPTIONS = [
+    { id: "helvetica-oblique", label: "Signature (italic)", css: "italic 1em Helvetica, Arial, sans-serif" },
+    { id: "helvetica", label: "Sans", css: "1em Helvetica, Arial, sans-serif" },
+    { id: "helvetica-bold", label: "Sans bold", css: "bold 1em Helvetica, Arial, sans-serif" },
+    { id: "times-italic", label: "Serif italic", css: "italic 1em 'Times New Roman', Times, serif" },
+    { id: "times", label: "Serif", css: "1em 'Times New Roman', Times, serif" },
+    { id: "times-bold", label: "Serif bold", css: "bold 1em 'Times New Roman', Times, serif" },
+    { id: "courier-oblique", label: "Mono italic", css: "italic 1em 'Courier New', Courier, monospace" },
+    { id: "courier", label: "Mono", css: "1em 'Courier New', Courier, monospace" },
+] as const;
+
+type FontChoice = (typeof FONT_OPTIONS)[number]["id"];
+
+/** Ink colours, matching the palette the watermark tool offers. */
+const SIGNATURE_COLORS = [
+    "#0f172a",
+    "#1d4ed8",
+    "#dc2626",
+    "#059669",
+    "#7c3aed",
+    "#d97706",
+];
+
 export default function SignPdfPage() {
   const [file, setFile] = useState<{ name: string; size: string; rawFile: File } | null>(null);
   const [mode, setMode] = useState<"type" | "draw">("type");
@@ -21,6 +49,11 @@ export default function SignPdfPage() {
 
   // Drawing states
   const [penColor, setPenColor] = useState("#0f172a");
+  // Typography for the typed signature. The faces are the ones pdf-lib can
+  // embed without shipping a font file, so what the preview shows is what the
+  // PDF can actually contain.
+  const [fontFamily, setFontFamily] = useState<FontChoice>("helvetica-oblique");
+  const [fontSize, setFontSize] = useState(18);
   const [isDrawing, setIsDrawing] = useState(false);
   /** True once a stroke has been drawn, so an untouched canvas can't be "signed" with. */
   const [hasDrawn, setHasDrawn] = useState(false);
@@ -94,7 +127,12 @@ export default function SignPdfPage() {
           let sigX = margin;
 
           if (mode === "type" && signatureText.trim()) {
-            context.font = "italic 18px cursive";
+            // Was a fixed "italic 18px cursive", so neither the face nor the
+            // size chosen in the panel showed here. The CSS shorthand carries
+            // style and family together, with 1em swapped for the real size.
+            const face =
+              FONT_OPTIONS.find((f) => f.id === fontFamily)?.css ?? FONT_OPTIONS[0].css;
+            context.font = face.replace("1em", `${fontSize}px`);
             context.fillStyle = penColor;
             const metrics = context.measureText(signatureText);
             const textWidth = metrics.width;
@@ -133,7 +171,7 @@ export default function SignPdfPage() {
     return () => {
       isCancelled = true;
     };
-  }, [pdfDocProxy, currentPage, signatureText, mode, position, penColor]);
+  }, [pdfDocProxy, currentPage, signatureText, mode, position, penColor, fontFamily, fontSize]);
 
   useEffect(() => {
     if (mode === "draw" && canvasRef.current) {
@@ -213,6 +251,8 @@ export default function SignPdfPage() {
 
       if (mode === "type") {
         formData.append("signatureText", signatureText.trim());
+        formData.append("fontFamily", fontFamily);
+        formData.append("fontSize", String(fontSize));
       } else {
         const canvas = canvasRef.current;
         if (!canvas || !hasDrawn) {
@@ -369,6 +409,66 @@ export default function SignPdfPage() {
                     placeholder="e.g. Maniha Iman"
                     className="w-full px-3.5 py-2.5 rounded-xl border border-card bg-card text-sm text-fg focus:outline-none focus:border-slate-900 dark:focus:border-slate-100"
                   />
+
+                  {/* Typography and ink for the typed signature. Draw mode has
+                      had a colour row all along; typing had neither, so the
+                      signature was always the same face, size and colour. */}
+                  <div className="mt-4 space-y-3">
+                    <div>
+                      <label className="text-xs text-muted block mb-1 font-medium">Font</label>
+                      <select
+                        value={fontFamily}
+                        onChange={(e) => setFontFamily(e.target.value as FontChoice)}
+                        className="w-full px-3 py-2 rounded-xl border border-card bg-card text-sm text-fg focus:outline-none focus:border-slate-900 dark:focus:border-slate-100"
+                      >
+                        {FONT_OPTIONS.map((f) => (
+                          <option key={f.id} value={f.id}>
+                            {f.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-xs text-muted block mb-1 font-medium">
+                        Size: {fontSize}px
+                      </label>
+                      <input
+                        type="range"
+                        min={8}
+                        max={48}
+                        value={fontSize}
+                        onChange={(e) => setFontSize(Number(e.target.value))}
+                        className="w-full accent-slate-900 dark:accent-white"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs text-muted block mb-1.5 font-medium">Ink Colour</label>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {SIGNATURE_COLORS.map((col) => (
+                          <button
+                            key={col}
+                            type="button"
+                            onClick={() => setPenColor(col)}
+                            title={col}
+                            className={`w-6 h-6 rounded-full border-2 transition-transform ${penColor.toLowerCase() === col.toLowerCase()
+                              ? "border-slate-900 dark:border-white scale-110"
+                              : "border-transparent"
+                              }`}
+                            style={{ backgroundColor: col }}
+                          />
+                        ))}
+                        <input
+                          type="color"
+                          value={penColor}
+                          onChange={(e) => setPenColor(e.target.value)}
+                          aria-label="Custom ink colour"
+                          className="h-7 w-10 rounded-lg border border-card bg-card cursor-pointer p-0.5"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -378,7 +478,9 @@ export default function SignPdfPage() {
                     </label>
                     <div className="flex items-center space-x-3">
                       <div className="flex space-x-1.5">
-                        {["#0f172a", "#2563eb", "#dc2626", "#059669"].map((col) => (
+                        {/* The same palette the typed mode offers, so switching
+                            between them does not change the available inks. */}
+                        {SIGNATURE_COLORS.map((col) => (
                           <button
                             key={col}
                             type="button"
