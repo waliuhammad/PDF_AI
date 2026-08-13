@@ -7,6 +7,7 @@ import { errorName } from "@/lib/errors";
 // Type-only, so it adds nothing to the bundle — the library itself still
 // arrives through the dynamic import below.
 import type * as PdfjsLib from "pdfjs-dist";
+import { downloadBlob } from "@/lib/download";
 
 export default function RotatePdfPage(): JSX.Element {
   const [file, setFile] = useState<File | null>(null);
@@ -187,14 +188,7 @@ export default function RotatePdfPage(): JSX.Element {
       }
 
       const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${file.name.replace(/\.[^/.]+$/, "")}_rotated.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      downloadBlob(blob, `${file.name.replace(/\.[^/.]+$/, "")}_rotated.pdf`);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);

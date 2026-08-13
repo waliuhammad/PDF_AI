@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { loadJsPdfWithAutoTable, loadXlsx } from "@/lib/pdf-libs";
 import { errorMessage } from "@/lib/errors";
+import { claimOperation } from "@/lib/claim-operation";
 
 /** A cell as xlsx hands it back from sheet_to_json with header:1. */
 type CellValue = string | number | boolean | null;
@@ -110,6 +111,14 @@ export default function ExcelToPdf(): JSX.Element {
   const handleConvertToPdf = async (): Promise<void> => {
     if (sheets.length === 0) {
       setError("Please upload a spreadsheet first.");
+      return;
+    }
+
+    // Converting happens in the browser, so no route meters this tool. Claim
+    // the operation first, and stop if the plan says no.
+    const claim = await claimOperation();
+    if (!claim.ok) {
+      setError(claim.message);
       return;
     }
 

@@ -17,7 +17,7 @@ const firebaseConfig = {
  * It used to run at module scope, so prerendering any page that imported it
  * called getAuth() on the build machine. With NEXT_PUBLIC_FIREBASE_API_KEY
  * absent there, that threw auth/invalid-api-key and took the whole build down
- * on /chats. A public client key belonging to the browser should not be able to
+ * in the user library. A public client key belonging to the browser should not be able to
  * fail a server build; now it cannot, and a missing key shows up in the browser
  * where it can actually be acted on.
  */

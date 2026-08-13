@@ -2,10 +2,10 @@
 
 import React, {
     createContext,
+    useCallback,
     useContext,
-    useEffect,
     useMemo,
-    useState,
+    useSyncExternalStore,
 } from "react";
 
 export type TestPlan = "free" | "pro" | "business";
@@ -33,6 +33,63 @@ const planLevel: Record<TestPlan, number> = {
     business: 2,
 };
 
+function isTestPlan(value: string | null | undefined): value is TestPlan {
+    return value === "free" || value === "pro" || value === "business";
+}
+
+/**
+ * The selected plan, from localStorage first and the cookie second.
+ *
+ * Both are written on every change: localStorage is what this provider reads,
+ * and the cookie is what the server reads, so the tools and the usage meter
+ * agree with the switch.
+ */
+function readStoredPlan(): TestPlan {
+    if (typeof window === "undefined") return "free";
+
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (isTestPlan(saved)) return saved;
+
+    const fromCookie = document.cookie
+        .split("; ")
+        .find((entry) => entry.startsWith(`${COOKIE_NAME}=`))
+        ?.split("=")[1];
+
+    return isTestPlan(fromCookie) ? fromCookie : "free";
+}
+
+/**
+ * localStorage is an external store, so it is subscribed to rather than copied
+ * into state by an effect.
+ *
+ * The effect version rendered "free" first and corrected itself immediately
+ * after mount, so the tester briefly disagreed with itself on every page load
+ * — and it only ever noticed changes made by this tab. Subscribing fixes both:
+ * there is no first-render-then-correct, and switching plan in one tab reaches
+ * the others through the storage event.
+ */
+const listeners = new Set<() => void>();
+
+function subscribe(onChange: () => void): () => void {
+    listeners.add(onChange);
+    // Fired by other tabs; this tab notifies its own listeners directly.
+    window.addEventListener("storage", onChange);
+
+    return () => {
+        listeners.delete(onChange);
+        window.removeEventListener("storage", onChange);
+    };
+}
+
+function notify(): void {
+    for (const listener of listeners) listener();
+}
+
+/** Servers have no localStorage, and no tester either — always the free plan. */
+function serverSnapshot(): TestPlan {
+    return "free";
+}
+
 export function TestPlanProvider({
     children,
 }: {
@@ -45,43 +102,30 @@ export function TestPlanProvider({
         process.env.NODE_ENV !== "production" &&
         enablePlanTester !== "false";
 
-    const [plan, setPlanState] = useState<TestPlan>("free");
+    const stored = useSyncExternalStore(subscribe, readStoredPlan, serverSnapshot);
 
-    useEffect(() => {
-        if (!isTestMode) return;
+    // Outside test mode the stored value is ignored entirely, which is what
+    // kept the tester from leaking into production before.
+    const plan: TestPlan = isTestMode ? stored : "free";
 
-        const savedPlan = localStorage.getItem(STORAGE_KEY);
-        const cookiePlan = document.cookie
-            .split("; ")
-            .find((entry) => entry.startsWith(`${COOKIE_NAME}=`))
-            ?.split("=")[1];
+    const setPlan = useCallback(
+        (newPlan: TestPlan) => {
+            if (!isTestMode) return;
 
-        const nextPlan =
-            savedPlan === "free" || savedPlan === "pro" || savedPlan === "business"
-                ? savedPlan
-                : cookiePlan === "free" || cookiePlan === "pro" || cookiePlan === "business"
-                    ? cookiePlan
-                    : "free";
-
-        setPlanState(nextPlan);
-    }, [isTestMode]);
-
-    const setPlan = (newPlan: TestPlan) => {
-        setPlanState(newPlan);
-
-        if (isTestMode) {
             localStorage.setItem(STORAGE_KEY, newPlan);
             document.cookie = `${COOKIE_NAME}=${newPlan}; path=/; max-age=31536000; SameSite=Lax`;
-        }
-    };
+            notify();
+        },
+        [isTestMode]
+    );
 
-    const hasPlan = (requiredPlan: TestPlan) => {
-        if (!isTestMode) {
-            return false;
-        }
-
-        return planLevel[plan] >= planLevel[requiredPlan];
-    };
+    const hasPlan = useCallback(
+        (requiredPlan: TestPlan) => {
+            if (!isTestMode) return false;
+            return planLevel[plan] >= planLevel[requiredPlan];
+        },
+        [isTestMode, plan]
+    );
 
     const value = useMemo(
         () => ({
@@ -93,7 +137,7 @@ export function TestPlanProvider({
             isBusiness: plan === "business",
             hasPlan,
         }),
-        [plan, isTestMode]
+        [plan, isTestMode, setPlan, hasPlan]
     );
 
     return (

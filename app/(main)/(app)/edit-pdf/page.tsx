@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Upload, FileText, X, Download, Loader2, Type, Bold, Italic, Pencil, Trash2, ChevronLeft, ChevronRight, Eraser, Move, Sparkles } from "lucide-react";
 import type * as PdfjsLib from "pdfjs-dist";
+import { downloadBlob } from "@/lib/download";
 
 interface TextAnnotation {
   id: string;
@@ -418,14 +419,7 @@ export default function EditPdfPage() {
       }
 
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `edited_${rawFile.name}`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      downloadBlob(blob, `edited_${rawFile.name}`);
     } catch {
       setErrorMessage("An error occurred while saving the document.");
     } finally {

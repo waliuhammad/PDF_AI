@@ -25,9 +25,8 @@ router.post("/parse", upload.single("file"), async (req, res) => {
       });
     }
 
-    // Parse only: text extraction, cleaning and chunking. The full
-    // processPDF pipeline also embeds and stores into a chat session's
-    // collection — which a parse test has no reason to touch.
+    // Text extraction, cleaning and chunking — the whole pipeline now that
+    // retrieval has gone.
     const result = await extractText(req.file.buffer);
 
     return res.status(200).json(result);

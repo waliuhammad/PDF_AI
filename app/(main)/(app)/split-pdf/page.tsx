@@ -14,6 +14,7 @@ import { loadPdfLib, loadPdfjs } from "@/lib/pdf-libs";
 // aliased: this component already has state called errorMessage, which would
 // shadow the import and turn the call below into calling a string.
 import { errorMessage as messageFrom } from "@/lib/errors";
+import { downloadBlob } from "@/lib/download";
 
 export default function SplitPdfPage() {
   const [rawFile, setRawFile] = useState<File | null>(null);
@@ -271,14 +272,7 @@ export default function SplitPdfPage() {
       }
 
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = type === "remaining" ? "remaining-pages.pdf" : "split-document.pdf";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      downloadBlob(blob, type === "remaining" ? "remaining-pages.pdf" : "split-document.pdf");
     };
 
     try {

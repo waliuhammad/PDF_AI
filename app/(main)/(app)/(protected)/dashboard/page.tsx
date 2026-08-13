@@ -6,7 +6,6 @@ import { useMemo } from "react";
 import Link from "next/link";
 import {
     FileText,
-    MessageSquare,
     HardDrive,
     Star,
     Upload,
@@ -22,7 +21,6 @@ import { formatRelativeTime, formatStorageUsed } from "@/lib/utils";
 const quickActions = [
     { key: "dashboard.upload", icon: Upload, href: "/documents" },
     { key: "nav.tools", icon: Wrench, href: "/tools" },
-    { key: "nav.chats", icon: MessageSquare, href: "/chats" },
     { key: "dashboard.aiTools", icon: Cpu, href: "/tools?category=AI%20Tools" },
 ] as const;
 
@@ -31,7 +29,6 @@ export default function DashboardPage() {
     const { user, profile } = useAuth();
     const { t } = useT();
     const documents = useLibrary((s) => s.documents);
-    const chats = useLibrary((s) => s.chats);
 
     // The allowance comes from the plan, through the same request and the same
     // plan resolution the usage meter uses, so the tester switches both.
@@ -41,7 +38,7 @@ export default function DashboardPage() {
 
     // storagePercent went with the Storage Usage card; storageUsedGb still
     // feeds the "Storage Used" stat tile at the top of the page.
-    const { storageUsedGb, favouriteCount, recentDocs, recentChats } = useMemo(() => {
+    const { storageUsedGb, favouriteCount, recentDocs } = useMemo(() => {
         const usedGb = documents.reduce((total, doc) => total + doc.sizeMb, 0) / 1024;
 
         return {
@@ -50,9 +47,8 @@ export default function DashboardPage() {
             // Five, so the panel is filled when there are enough documents to
             // fill it. The rest are on /documents behind "View all".
             recentDocs: [...documents].sort((a, b) => b.timestamp - a.timestamp).slice(0, 5),
-            recentChats: [...chats].sort((a, b) => b.timestamp - a.timestamp).slice(0, 2),
         };
-    }, [documents, chats]);
+    }, [documents]);
 
     const displayName =
         profile?.fullName || user?.displayName || user?.email?.split("@")[0] || "there";
@@ -75,7 +71,6 @@ export default function DashboardPage() {
             {/* Stats: Desktop version (lg:grid-cols-4), Mobile ultra-compact row (grid-cols-4) */}
             <div className="hidden lg:grid grid-cols-4 gap-4 mb-8">
                 <StatCard label={t("dashboard.totalDocuments")} value={String(documents.length)} icon={FileText} />
-                <StatCard label={t("dashboard.totalChats")} value={String(chats.length)} icon={MessageSquare} />
                 {/* "of Y GB" comes from the plan, so the tile states the
                     allowance rather than a bare number with nothing to judge
                     it against. */}
@@ -91,14 +86,11 @@ export default function DashboardPage() {
                 <StatCard label={t("dashboard.favorites")} value={String(favouriteCount)} icon={Star} />
             </div>
 
-            <div className="grid grid-cols-4 gap-2 mb-4 lg:hidden">
+            {/* Three across since Chats went: four columns left a visible gap. */}
+            <div className="grid grid-cols-3 gap-2 mb-4 lg:hidden">
                 <div className="bg-card border border-card rounded-xl p-2 text-center flex flex-col items-center justify-center">
                     <span className="text-[10px] text-muted truncate w-full">{t("dashboard.docs")}</span>
                     <span className="text-sm font-bold text-fg">{documents.length}</span>
-                </div>
-                <div className="bg-card border border-card rounded-xl p-2 text-center flex flex-col items-center justify-center">
-                    <span className="text-[10px] text-muted truncate w-full">{t("dashboard.chats")}</span>
-                    <span className="text-sm font-bold text-fg">{chats.length}</span>
                 </div>
                 <div className="bg-card border border-card rounded-xl p-2 text-center flex flex-col items-center justify-center">
                     <span className="text-[10px] text-muted truncate w-full">{t("dashboard.storage")}</span>
@@ -193,44 +185,6 @@ export default function DashboardPage() {
                         </div>
                     </div>
                 </div>
-            </div>
-
-            {/* Recent Chats */}
-            <div className="mt-6 bg-card border border-card rounded-2xl p-4 sm:p-6">
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold text-fg">{t("dashboard.recentChats")}</h2>
-                    <Link href="/chats" className="text-sm text-[var(--primary)] font-medium hover:underline">
-                        View all
-                    </Link>
-                </div>
-                {recentChats.length === 0 ? (
-                    <p className="text-sm text-muted py-6 text-center">
-                        No chats yet — start one from any of your documents.
-                    </p>
-                ) : (
-                    <div className="space-y-2">
-                        {recentChats.map((chat) => (
-                            <Link
-                                key={chat.id}
-                                href={`/chats/${chat.id}`}
-                                className="flex items-center justify-between p-3 rounded-xl hover:bg-[var(--background-secondary)] transition-colors"
-                            >
-                                <div className="flex items-center gap-3 min-w-0">
-                                    <div className="w-10 h-10 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center shrink-0">
-                                        <MessageSquare size={18} className="text-[var(--primary)]" />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <p className="text-sm font-medium text-fg truncate">{chat.title}</p>
-                                        <p className="text-xs text-muted truncate">{chat.pdfName}</p>
-                                    </div>
-                                </div>
-                                <span className="text-xs text-muted shrink-0 ml-3">
-                                    {formatRelativeTime(chat.timestamp)}
-                                </span>
-                            </Link>
-                        ))}
-                    </div>
-                )}
             </div>
 
             {/* Quick Actions (Mobile-only version) */}

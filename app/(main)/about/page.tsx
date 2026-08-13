@@ -43,7 +43,7 @@ export default function AboutPage() {
                     <Link href="/tools" className="text-[var(--primary)] hover:underline">
                         tools page
                     </Link>
-                    . Creating an account adds a document library and saved chats — see{" "}
+                    . Creating an account adds a document library — see{" "}
                     <Link href="/pricing" className="text-[var(--primary)] hover:underline">
                         pricing
                     </Link>{" "}

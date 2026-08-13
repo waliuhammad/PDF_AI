@@ -5,6 +5,7 @@ import { Upload, FileText, X, FileArchive, Download, Loader2, CheckCircle2 } fro
 // aliased: this component already has state called errorMessage, which would
 // shadow the import and turn the call below into calling a string.
 import { errorMessage as messageFrom } from "@/lib/errors";
+import { downloadBlob } from "@/lib/download";
 
 interface TargetOption {
   label: string;
@@ -98,14 +99,7 @@ export default function CompressPdfPage() {
       const blob = await response.blob();
       setCompressedSize(blob.size);
 
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `compressed_${rawFile.name}`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      downloadBlob(blob, `compressed_${rawFile.name}`);
 
       setDone(true);
     } catch (err) {

@@ -5,6 +5,7 @@ import { FileText, Trash2, Download, Eye, EyeOff, Wand2, Copy, Check, Lock, Shie
 import { UploadCard } from "@/components/tools/upload-card";
 import { loadPdfjs } from "@/lib/pdf-libs";
 import { errorMessage } from "@/lib/errors";
+import { downloadBlob } from "@/lib/download";
 
 export default function ProtectPdfPage() {
     const [file, setFile] = useState<{ name: string; size: string; rawFile: File } | null>(null);
@@ -134,14 +135,7 @@ export default function ProtectPdfPage() {
             }
 
             const blob = await res.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `${file.name.replace(/\.[^/.]+$/, "")}-protected.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
+            downloadBlob(blob, `${file.name.replace(/\.[^/.]+$/, "")}-protected.pdf`);
             setDone(true);
         } catch (err) {
             setError(errorMessage(err, "An unexpected error occurred."));

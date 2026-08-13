@@ -7,7 +7,7 @@ import { loadLibrary } from "@/lib/firebase/library";
 
 /**
  * Bridges auth to the library store: when a user signs in, their
- * documents and chats are loaded from Firestore into the store; when
+ * documents are loaded from Firestore into the store; when
  * they sign out, it empties. Renders nothing — mount it once inside the
  * signed-in layout.
  */
@@ -19,20 +19,20 @@ export function LibraryLoader() {
         if (loading) return;
 
         if (!user) {
-            hydrate(null, [], []);
+            hydrate(null, []);
             return;
         }
 
         let cancelled = false;
 
         loadLibrary(user.uid)
-            .then(({ documents, chats }) => {
-                if (!cancelled) hydrate(user.uid, documents, chats);
+            .then(({ documents }) => {
+                if (!cancelled) hydrate(user.uid, documents);
             })
             .catch((err) => {
                 console.error("Failed to load library:", err);
                 // Signed in but unreadable: keep uid so new work still saves.
-                if (!cancelled) hydrate(user.uid, [], []);
+                if (!cancelled) hydrate(user.uid, []);
             });
 
         return () => {

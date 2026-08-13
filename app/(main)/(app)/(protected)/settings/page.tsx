@@ -280,7 +280,7 @@ export default function SettingsPage() {
                         <div className="max-w-md space-y-4">
                             <h2 className="text-lg font-semibold text-fg mb-4">Notifications</h2>
                             {[
-                                { key: "email" as const, label: "Email notifications", desc: "Receive updates about your chats and documents" },
+                                { key: "email" as const, label: "Email notifications", desc: "Receive updates about your documents" },
                                 { key: "product" as const, label: "Product updates", desc: "New features and improvements" },
                                 { key: "marketing" as const, label: "Marketing emails", desc: "Tips, offers, and promotions" },
                             ].map((item) => {

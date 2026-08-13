@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import type * as PdfjsLib from "pdfjs-dist";
 import { loadPdfjs } from "@/lib/pdf-libs";
+import { downloadBlob } from "@/lib/download";
 
 export default function PdfToWordPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -152,15 +153,8 @@ export default function PdfToWordPage() {
       }
 
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
       const originalNameWithoutExt = selectedFile.name.replace(/\.[^/.]+$/, "");
-      a.download = `${originalNameWithoutExt}_converted.docx`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      downloadBlob(blob, `${originalNameWithoutExt}_converted.docx`);
 
       setSuccessMessage(true);
     } catch {

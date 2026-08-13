@@ -3,6 +3,7 @@
 import React, { useState, useRef, JSX } from "react";
 import { UploadCard } from "@/components/tools/upload-card";
 import { FileText, Trash2, Download, ShieldCheck, Menu, FileStack } from "lucide-react";
+import { downloadUrl as saveFromUrl } from "@/lib/download";
 
 export default function PdfToPpt(): JSX.Element {
   const [file, setFile] = useState<File | null>(null);
@@ -25,7 +26,9 @@ export default function PdfToPpt(): JSX.Element {
     setFile(uploadedFile);
     setError(null);
     setSuccess(false);
-    setDownloadUrl(null);
+    // Release the previous result before replacing it, or each conversion
+    // leaks a blob for the life of the tab.
+    setDownloadUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return null; });
     setLoading(true);
 
     try {
@@ -68,19 +71,17 @@ export default function PdfToPpt(): JSX.Element {
     setFile(null);
     setSuccess(false);
     setError(null);
-    setDownloadUrl(null);
+    setDownloadUrl((previous) => { if (previous) URL.revokeObjectURL(previous); return null; });
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const handleDownload = (): void => {
     if (!downloadUrl || !file) return;
-    const a = document.createElement("a");
-    a.href = downloadUrl;
-    a.download = `${file.name.replace(/\.[^/.]+$/, "")}-converted.pptx`;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(downloadUrl);
+    // Not revoked here. This URL is held in state and the button stays on
+    // screen, so releasing it after the first click left the second click
+    // pointing at nothing — the button appeared to do nothing at all. It is
+    // released when the file is cleared or replaced instead.
+    saveFromUrl(downloadUrl, `${file.name.replace(/\.[^/.]+$/, "")}-converted.pptx`);
   };
 
   return (

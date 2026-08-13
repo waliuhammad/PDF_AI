@@ -35,7 +35,7 @@ const clauses = [
         items: [
             [
                 "2.1",
-                "PDFAI provides online tools for working with PDF documents and related content, including document conversion, merging, splitting, compression, signing, OCR, protection, unlocking, watermarking, and other document-processing features. PDFAI may also provide AI-assisted features such as summarization, translation, grammar checking, and document chat.",
+                "PDFAI provides online tools for working with PDF documents and related content, including document conversion, merging, splitting, compression, signing, OCR, protection, unlocking, watermarking, and other document-processing features. PDFAI may also provide AI-assisted features such as summarization, translation and grammar checking.",
             ],
             [
                 "2.2",
@@ -118,7 +118,7 @@ const clauses = [
             ],
             [
                 "5.5",
-                "Files submitted for one-off processing may be retained only for as long as reasonably necessary to complete the requested operation and related technical processing. Documents and chats that you choose to save to your account may be retained according to our service functionality and Privacy Policy until you delete them, close your account, or they are otherwise removed in accordance with these Terms.",
+                "Files submitted for one-off processing may be retained only for as long as reasonably necessary to complete the requested operation and related technical processing. Documents that you choose to save to your account may be retained according to our service functionality and Privacy Policy until you delete them, close your account, or they are otherwise removed in accordance with these Terms.",
             ],
             [
                 "5.6",

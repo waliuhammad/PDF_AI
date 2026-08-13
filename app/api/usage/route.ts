@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readDevPlanFromRequest } from "@/lib/dev-plan";
 import { getRequestUid } from "@/lib/server-auth";
+import { requireUsageAllowance } from "@/lib/metered";
 import { peekUsage } from "@/lib/usage";
 
 /**
@@ -35,4 +36,28 @@ export async function GET(req: NextRequest) {
         // the numbers belong to.
         storageLimitGb: usage.storageLimitGb,
     });
+}
+
+/**
+ * Claims one operation from today's allowance, for tools that do their work in
+ * the browser.
+ *
+ * Most tools POST the file to their own route, and that route meters the
+ * request on the way through. Three of them — image-to-pdf, excel-to-pdf and
+ * pdf-to-image — convert entirely in the page, so they never reached a route
+ * and never counted: on the free plan they ran without limit while every other
+ * tool stopped at five.
+ *
+ * The decision is still made here rather than in the browser. The client asks
+ * before it starts and does nothing if refused, so the plan is enforced by the
+ * same counter, the same limits and the same dev-plan override as everywhere
+ * else. A user who bypasses the request keeps a conversion their browser did
+ * anyway — the point is that the allowance is real for normal use, not that
+ * client-side work can be policed.
+ */
+export async function POST(req: NextRequest) {
+    const refusal = await requireUsageAllowance(req);
+    if (refusal) return refusal;
+
+    return NextResponse.json({ success: true });
 }

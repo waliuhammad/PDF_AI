@@ -1,14 +1,14 @@
 "use client";
 
 import { getDb } from "./client";
-import type { ChatItem, DocumentItem } from "@/lib/store";
+import type { DocumentItem } from "@/lib/store";
 
 /**
  * Firestore persistence for the user's library.
  *
- * Everything lives under the user's own document — users/{uid}/documents
- * and users/{uid}/chats — which is exactly the shape the security rules
- * protect: a signed-in user can touch their own branch and nobody else's.
+ * Everything lives under the user's own document — users/{uid}/documents —
+ * which is exactly the shape the security rules protect: a signed-in user can
+ * touch their own branch and nobody else's.
  *
  * getDb() resolves to Firestore asynchronously (the SDK is lazy-loaded so
  * pages that never touch the database don't ship it), so every function
@@ -17,7 +17,7 @@ import type { ChatItem, DocumentItem } from "@/lib/store";
  * The query helpers are imported the same way, for the same reason. They used
  * to be a plain top-level import, which quietly undid the lazy loading: this
  * module is reached from lib/store, which the (app) layout mounts, so every
- * visitor to any of the 22 tool pages downloaded the whole Firestore SDK —
+ * visitor to any of the tool pages downloaded the whole Firestore SDK —
  * including signed-out ones, who have no library to load.
  *
  * Records keep the same field shapes as the in-memory store (numeric
@@ -34,23 +34,16 @@ async function firestore() {
 /** Everything at once: one read on sign-in fills the whole library. */
 export async function loadLibrary(
     uid: string
-): Promise<{ documents: DocumentItem[]; chats: ChatItem[] }> {
+): Promise<{ documents: DocumentItem[] }> {
     const { collection, getDocs, db } = await firestore();
 
-    const [docsSnap, chatsSnap] = await Promise.all([
-        getDocs(collection(db, "users", uid, "documents")),
-        getDocs(collection(db, "users", uid, "chats")),
-    ]);
+    const docsSnap = await getDocs(collection(db, "users", uid, "documents"));
 
     const documents = docsSnap.docs
         .map((d) => d.data() as DocumentItem)
         .sort((a, b) => b.timestamp - a.timestamp);
 
-    const chats = chatsSnap.docs
-        .map((d) => d.data() as ChatItem)
-        .sort((a, b) => b.timestamp - a.timestamp);
-
-    return { documents, chats };
+    return { documents };
 }
 
 export async function saveDocumentRecord(uid: string, item: DocumentItem): Promise<void> {
@@ -61,14 +54,4 @@ export async function saveDocumentRecord(uid: string, item: DocumentItem): Promi
 export async function deleteDocumentRecord(uid: string, id: string): Promise<void> {
     const { doc, deleteDoc, db } = await firestore();
     await deleteDoc(doc(db, "users", uid, "documents", id));
-}
-
-export async function saveChatRecord(uid: string, chat: ChatItem): Promise<void> {
-    const { doc, setDoc, db } = await firestore();
-    await setDoc(doc(db, "users", uid, "chats", chat.id), chat);
-}
-
-export async function deleteChatRecord(uid: string, id: string): Promise<void> {
-    const { doc, deleteDoc, db } = await firestore();
-    await deleteDoc(doc(db, "users", uid, "chats", id));
 }

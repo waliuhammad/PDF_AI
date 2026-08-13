@@ -90,7 +90,7 @@ export default function SecurityPage() {
                 <li>
                   <strong className="text-slate-900 dark:text-white">On our servers:</strong> heavier
                   operations — format conversion, OCR, and AI features such as summaries and
-                  document chat — are processed on our servers over an encrypted connection.
+                  OCR — are processed on our servers over an encrypted connection.
                   Working copies exist only for the duration of the operation.
                 </li>
                 <li>
@@ -123,7 +123,7 @@ export default function SecurityPage() {
                 <div>
                   <h4 className="font-semibold text-slate-900 dark:text-white">At rest</h4>
                   <p className="mt-1 text-slate-600 dark:text-purple-200/80">
-                    Account data, saved documents, and chats are stored in Google Firebase, where
+                    Account data and saved documents are stored in Google Firebase, where
                     Google encrypts all data at rest by default using <strong>AES-256</strong>.
                     Payment card details are never stored by PDFAI at all — billing is handled
                     entirely by our payment provider.
@@ -170,7 +170,7 @@ export default function SecurityPage() {
                   <h4 className="font-semibold text-slate-900 dark:text-white">Nothing kept without a reason</h4>
                   <p className="mt-1 text-slate-600 dark:text-purple-200/80">
                     Files sent to one-off tools are discarded after processing completes. Content
-                    is retained only when you deliberately save a document or chat to your
+                    is retained only when you deliberately save a document to your
                     account — and those you can delete yourself, individually or entirely, from
                     your dashboard at any time.
                   </p>
