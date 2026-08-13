@@ -498,7 +498,7 @@ export default function EditPdfPage() {
               <Upload size={22} className="sm:hidden" />
               <Upload size={26} className="hidden sm:block" />
             </div>
-            <p className="text-fg font-semibold text-sm sm:text-lg">Click to browse or drag & drop a PDF</p>
+            <p className="text-[var(--primary)] font-semibold text-sm sm:text-lg">Click to browse or drag & drop a PDF</p>
             <p className="text-slate-600 dark:text-[#9ca3af] text-xs sm:text-sm mt-1">Supports text documents and reports</p>
           </div>
 

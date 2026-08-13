@@ -346,7 +346,7 @@ export default function SplitPdfPage() {
           <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[var(--background-secondary)] mx-auto flex items-center justify-center mb-3 sm:mb-4 text-fg shadow-sm border border-card">
             <Upload className="w-6 h-6 sm:w-[26px] sm:h-[26px]" />
           </div>
-          <p className="text-fg font-semibold text-[15px] sm:text-lg">Click to browse or drag &amp; drop PDFs</p>
+          <p className="text-[var(--primary)] font-semibold text-[15px] sm:text-lg">Click to browse or drag &amp; drop PDFs</p>
           <p className="text-slate-600 dark:text-[#9ca3af] text-[13px] sm:text-sm mt-1">
             Upload a document to start splitting pages
           </p>
