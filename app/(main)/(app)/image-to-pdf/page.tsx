@@ -13,6 +13,7 @@ import { UploadCard } from "@/components/tools/upload-card";
 import { Trash2, UploadCloud, Sparkles, Loader2, Image as Plus, Sliders, Type } from "lucide-react";
 import { loadJsPdf } from "@/lib/pdf-libs";
 import { errorMessage } from "@/lib/errors";
+import { claimOperation } from "@/lib/claim-operation";
 
 interface TextAnnotation {
   id: string;
@@ -329,6 +330,14 @@ export default function ImageToPdf(): JSX.Element {
   const handleConvertToPdf = async (): Promise<void> => {
     if (images.length === 0) {
       setError("Please upload at least one image.");
+      return;
+    }
+
+    // Converting happens in the browser, so no route meters this tool. Claim
+    // the operation first, and stop if the plan says no.
+    const claim = await claimOperation();
+    if (!claim.ok) {
+      setError(claim.message);
       return;
     }
 

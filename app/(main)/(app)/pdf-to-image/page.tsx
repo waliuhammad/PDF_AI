@@ -5,6 +5,7 @@ import { UploadCard } from "@/components/tools/upload-card";
 import { FormatSelect } from "@/components/tools/format-select";
 import { loadPdfjs, loadJsZip } from "@/lib/pdf-libs";
 import { errorMessage } from "@/lib/errors";
+import { claimOperation } from "@/lib/claim-operation";
 import {
   FileText,
   Trash2,
@@ -347,6 +348,14 @@ export default function PdfToImageConverter() {
         setError(`Please enter a valid page number between 1 and ${numPages}.`);
         return;
       }
+    }
+
+    // Converting happens in the browser, so no route meters this tool. Claim
+    // the operation first, and stop if the plan says no.
+    const claim = await claimOperation();
+    if (!claim.ok) {
+      setError(claim.message);
+      return;
     }
 
     setLoading(true);
