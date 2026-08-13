@@ -5,8 +5,10 @@ import { UploadCard } from "@/components/tools/upload-card";
 import { Languages, Sparkles, Copy, Loader2, FileText, X, ArrowRight } from "lucide-react";
 import LanguageSelect from "@/components/language-select";   // ← add this line
 import { errorMessage } from "@/lib/errors";
+import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 export default function PdfTranslatorPage() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const { begin, cancel } = useCancellableRun();
     const [fileMeta, setFileMeta] = useState<{ name: string; size: string } | null>(null);
     const [targetLang, setTargetLang] = useState("Spanish");
     
@@ -34,6 +36,7 @@ export default function PdfTranslatorPage() {
     };
 
     const handleTranslate = async (e: React.FormEvent) => {
+      const signal = begin();
         e.preventDefault();
         if (!selectedFile || loading) return;
 
@@ -48,8 +51,7 @@ export default function PdfTranslatorPage() {
 
             const res = await fetch("/api/translate", {
   method: "POST",
-  body: formData,
-});
+  body: formData, signal });
             const data = await res.json();
 
             if (!res.ok) {
@@ -61,6 +63,7 @@ export default function PdfTranslatorPage() {
 
 setTranslatedText(result);
         } catch (err) {
+      if (wasCancelled(err, signal)) return;
             setError(errorMessage(err, "Something went wrong connecting to the server."));
         } finally {
             setLoading(false);
@@ -117,7 +120,7 @@ setTranslatedText(result);
                                     <p className="text-muted text-xs">{fileMeta.size}</p>
                                 </div>
                                 <button 
-                                    onClick={() => { setSelectedFile(null); setFileMeta(null); setTranslatedText(null); setError(null); }} 
+                                    onClick={() => { cancel(); setSelectedFile(null); setFileMeta(null); setTranslatedText(null); setError(null); }} 
                                     className="text-muted hover:text-[var(--primary)] shrink-0"
                                 >
                                     <X size={16} />

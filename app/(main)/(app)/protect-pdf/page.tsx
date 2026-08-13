@@ -6,9 +6,11 @@ import { UploadCard } from "@/components/tools/upload-card";
 import { loadPdfjs } from "@/lib/pdf-libs";
 import { errorMessage } from "@/lib/errors";
 import { downloadBlob } from "@/lib/download";
+import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
 export default function ProtectPdfPage() {
     const [file, setFile] = useState<{ name: string; size: string; rawFile: File } | null>(null);
+    const { begin, cancel } = useCancellableRun();
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
@@ -67,6 +69,8 @@ export default function ProtectPdfPage() {
     };
 
     const clearFile = () => {
+    // Removing the file stops whatever it was being used for.
+    cancel();
         setFile(null);
         setDone(false);
         setNumPages(0);
@@ -102,6 +106,7 @@ export default function ProtectPdfPage() {
     };
 
     const handleProtect = async (e: React.FormEvent) => {
+      const signal = begin();
         e.preventDefault();
         if (!file) {
             setError("Please select a PDF file.");
@@ -126,8 +131,7 @@ export default function ProtectPdfPage() {
         try {
             const res = await fetch("/api/protect-pdf", {
                 method: "POST",
-                body: formData,
-            });
+                body: formData, signal });
 
             if (!res.ok) {
                 const data = await res.json();
@@ -138,6 +142,7 @@ export default function ProtectPdfPage() {
             downloadBlob(blob, `${file.name.replace(/\.[^/.]+$/, "")}-protected.pdf`);
             setDone(true);
         } catch (err) {
+      if (wasCancelled(err, signal)) return;
             setError(errorMessage(err, "An unexpected error occurred."));
         } finally {
             setProcessing(false);

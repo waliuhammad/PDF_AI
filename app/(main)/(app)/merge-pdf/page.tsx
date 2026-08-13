@@ -20,6 +20,7 @@ import {
 import { useRef, useState } from "react";
 import { UploadCard } from "@/components/tools/upload-card";
 import { downloadBlob } from "@/lib/download";
+import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
 interface PDFSourceFile {
   fileIndex: number;
@@ -40,6 +41,7 @@ interface PageItem {
 
 export default function MergePdfPage() {
   const [sourceFiles, setSourceFiles] = useState<PDFSourceFile[]>([]);
+  const { begin, cancel } = useCancellableRun();
   const [pagesList, setPagesList] = useState<PageItem[]>([]);
   const [activePreviewIndex, setActivePreviewIndex] = useState(0);
   const [processing, setProcessing] = useState(false);
@@ -111,6 +113,7 @@ export default function MergePdfPage() {
           });
         }
       } catch (err) {
+      if (wasCancelled(err)) return;
         console.error("Error reading PDF:", err);
       }
     }
@@ -209,6 +212,8 @@ export default function MergePdfPage() {
   };
 
   const removeFile = (fileIndex: number) => {
+    // Removing the file stops whatever it was being used for.
+    cancel();
     const updatedSourceFiles = sourceFiles.filter((f) => f.fileIndex !== fileIndex);
     const updatedPagesList = pagesList.filter((p) => p.fileIndex !== fileIndex);
 
@@ -249,6 +254,7 @@ export default function MergePdfPage() {
   const estimatedFinalSize = formatSize(totalOriginalSize * 0.95);
 
   const executeMerge = async () => {
+    const signal = begin();
     if (sourceFiles.length < 2) {
       setErrorMessage("Please upload at least 2 PDF files in order to merge documents.");
       return;
@@ -277,8 +283,7 @@ export default function MergePdfPage() {
 
       const response = await fetch("/api/merge-pdf", {
         method: "POST",
-        body: formData,
-      });
+        body: formData, signal });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

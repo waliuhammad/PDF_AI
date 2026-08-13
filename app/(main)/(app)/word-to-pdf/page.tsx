@@ -4,9 +4,11 @@ import React, { useState } from "react";
 import { FileText, Trash2, Loader2, Download } from "lucide-react";
 import { UploadCard } from "@/components/tools/upload-card";
 import { downloadBlob } from "@/lib/download";
+import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
 export default function WordToPdfPage() {
   const [file, setFile] = useState<File | null>(null);
+  const { begin, cancel } = useCancellableRun();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,11 +34,14 @@ export default function WordToPdfPage() {
   };
 
   const clearFile = () => {
+    // Removing the file stops whatever it was being used for.
+    cancel();
     setFile(null);
     setError(null);
   };
 
   const handleConvert = async () => {
+    const signal = begin();
     if (!file) return;
 
     setLoading(true);
@@ -48,8 +53,7 @@ export default function WordToPdfPage() {
 
       const res = await fetch("/api/word-to-pdf", {
         method: "POST",
-        body: formData,
-      });
+        body: formData, signal });
 
       if (!res.ok) {
         let errorMessage = "Conversion failed.";
@@ -65,6 +69,7 @@ export default function WordToPdfPage() {
       const blob = await res.blob();
       downloadBlob(blob, `${file.name.replace(/\.[^/.]+$/, "")}_converted.pdf`);
     } catch (err: unknown) {
+      if (wasCancelled(err, signal)) return;
       if (err instanceof Error) {
         setError(err.message);
       } else {

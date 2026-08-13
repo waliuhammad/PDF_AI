@@ -4,9 +4,11 @@ import React, { useState } from "react";
 import { UploadCard, FileChip } from "@/components/tools/upload-card";
 import { Presentation, ShieldCheck, Download, Loader2 } from "lucide-react";
 import { downloadBlob } from "@/lib/download";
+import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
 export default function PptToPdfPage() {
   const [file, setFile] = useState<File | null>(null);
+  const { begin, cancel } = useCancellableRun();
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,11 +34,14 @@ export default function PptToPdfPage() {
   };
 
   const clearFile = () => {
+    // Removing the file stops whatever it was being used for.
+    cancel();
     setFile(null);
     setError(null);
   };
 
   const handleConvert = async (e: React.FormEvent) => {
+    const signal = begin();
     e.preventDefault();
     if (!file) {
       setError("Please select a PowerPoint file first.");
@@ -52,8 +57,7 @@ export default function PptToPdfPage() {
 
       const response = await fetch("/api/ppt-to-pdf", {
         method: "POST",
-        body: formData,
-      });
+        body: formData, signal });
 
       if (!response.ok) {
         let errorMessage = "Failed to convert PPT to PDF.";
@@ -70,6 +74,7 @@ export default function PptToPdfPage() {
       const blob = await response.blob();
       downloadBlob(blob, `${file.name.replace(/\.[^/.]+$/, "")}-converted.pdf`);
     } catch (err: unknown) {
+      if (wasCancelled(err, signal)) return;
       if (err instanceof Error) {
         setError(err.message);
       } else {

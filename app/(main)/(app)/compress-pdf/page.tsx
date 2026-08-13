@@ -6,6 +6,7 @@ import { Upload, FileText, X, FileArchive, Download, Loader2, CheckCircle2 } fro
 // shadow the import and turn the call below into calling a string.
 import { errorMessage as messageFrom } from "@/lib/errors";
 import { downloadBlob } from "@/lib/download";
+import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
 interface TargetOption {
   label: string;
@@ -15,6 +16,7 @@ interface TargetOption {
 
 export default function CompressPdfPage() {
   const [rawFile, setRawFile] = useState<File | null>(null);
+  const { begin, cancel } = useCancellableRun();
   const [fileDetails, setFileDetails] = useState<{ name: string; size: number; formattedSize: string } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [options, setOptions] = useState<TargetOption[]>([]);
@@ -76,6 +78,7 @@ export default function CompressPdfPage() {
   };
 
   const executeCompress = async () => {
+    const signal = begin();
     if (!rawFile || !selectedOption) return;
     setProcessing(true);
     setErrorMessage(null);
@@ -88,8 +91,7 @@ export default function CompressPdfPage() {
 
       const response = await fetch("/api/compress-pdf", {
         method: "POST",
-        body: formData,
-      });
+        body: formData, signal });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -103,6 +105,7 @@ export default function CompressPdfPage() {
 
       setDone(true);
     } catch (err) {
+      if (wasCancelled(err, signal)) return;
       setErrorMessage(messageFrom(err, "An error occurred while connecting to the server."));
     } finally {
       setProcessing(false);
@@ -189,6 +192,8 @@ export default function CompressPdfPage() {
             <button
               type="button"
               onClick={() => {
+                // Removing the file stops whatever it was being used for.
+                cancel();
                 setFileDetails(null);
                 setRawFile(null);
                 setDone(false);
@@ -245,6 +250,8 @@ export default function CompressPdfPage() {
                   <button
                     type="button"
                     onClick={() => {
+                      // Removing the file stops whatever it was being used for.
+                      cancel();
                       setFileDetails(null);
                       setRawFile(null);
                       setDone(false);

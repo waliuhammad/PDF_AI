@@ -4,9 +4,11 @@ import { useState} from "react";
 import { UploadCard } from "@/components/tools/upload-card";
 import { FileText, X, Copy, ScanText } from "lucide-react";
 import { errorMessage } from "@/lib/errors";
+import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
 export default function OcrPdfPage() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const { begin, cancel } = useCancellableRun();
     const [fileMeta, setFileMeta] = useState<{ name: string; size: string } | null>(null);
     const [processing, setProcessing] = useState(false);
     const [extractedText, setExtractedText] = useState<string | null>(null);
@@ -32,6 +34,7 @@ export default function OcrPdfPage() {
     };
 
     const handleOcrScan = async () => {
+      const signal = begin();
         if (!selectedFile) return;
 
         setProcessing(true);
@@ -44,8 +47,7 @@ export default function OcrPdfPage() {
             // Updated to match your API route folder structure: app/api/AI tools/ocr/route.ts
             const res = await fetch("/api/ocr", {
   method: "POST",
-  body: formData,
-});
+  body: formData, signal });
 
             const data = await res.json();
 
@@ -56,6 +58,7 @@ export default function OcrPdfPage() {
             const resultText = data.text || data.extractedText || JSON.stringify(data, null, 2);
             setExtractedText(resultText);
         } catch (err) {
+      if (wasCancelled(err, signal)) return;
             setError(errorMessage(err, "Something went wrong connecting to the server."));
         } finally {
             setProcessing(false);
@@ -102,7 +105,7 @@ export default function OcrPdfPage() {
                             <p className="text-muted text-xs">{fileMeta.size}</p>
                         </div>
                         <button 
-                            onClick={() => { setSelectedFile(null); setFileMeta(null); setExtractedText(null); setError(null); }} 
+                            onClick={() => { cancel(); setSelectedFile(null); setFileMeta(null); setExtractedText(null); setError(null); }} 
                             className="text-muted hover:text-[var(--primary)] shrink-0"
                         >
                             <X size={16} />

@@ -15,9 +15,11 @@ import { loadPdfLib, loadPdfjs } from "@/lib/pdf-libs";
 // shadow the import and turn the call below into calling a string.
 import { errorMessage as messageFrom } from "@/lib/errors";
 import { downloadBlob } from "@/lib/download";
+import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
 export default function SplitPdfPage() {
   const [rawFile, setRawFile] = useState<File | null>(null);
+  const { begin, cancel } = useCancellableRun();
   const [fileDetails, setFileDetails] = useState<{ name: string; size: string } | null>(null);
   const [pageCount, setPageCount] = useState<number>(0);
   const [thumbnails, setThumbnails] = useState<string[]>([]);
@@ -79,6 +81,7 @@ export default function SplitPdfPage() {
       }
       setThumbnails(thumbs);
     } catch (err) {
+      if (wasCancelled(err)) return;
       console.error("Error generating real page thumbnails:", err);
       setErrorMessage("Could not render actual page previews for this PDF.");
     }
@@ -109,12 +112,15 @@ export default function SplitPdfPage() {
 
       await generateThumbnails(f);
     } catch (err) {
+      if (wasCancelled(err)) return;
       console.error("Error reading PDF:", err);
       setErrorMessage("Failed to read the selected PDF file.");
     }
   };
 
   const resetAll = () => {
+    // Removing the file stops whatever it was being used for.
+    cancel();
     setFileDetails(null);
     setRawFile(null);
     setDone(false);
@@ -248,11 +254,13 @@ export default function SplitPdfPage() {
   };
 
   const executeDownload = async (choice: "split" | "remaining" | "both") => {
+    const signal = begin();
     if (!rawFile) return;
     setProcessing(true);
     setErrorMessage(null);
 
     const downloadSingle = async (type: "split" | "remaining") => {
+      const signal = begin();
       const formData = new FormData();
       formData.append("file", rawFile);
       formData.append("splitMode", splitMode);
@@ -263,8 +271,7 @@ export default function SplitPdfPage() {
 
       const response = await fetch("/api/split-pdf", {
         method: "POST",
-        body: formData,
-      });
+        body: formData, signal });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -284,6 +291,7 @@ export default function SplitPdfPage() {
         await downloadSingle(choice);
       }
     } catch (err) {
+      if (wasCancelled(err, signal)) return;
       setErrorMessage(messageFrom(err, "An unexpected error occurred while connecting to the server."));
     } finally {
       setProcessing(false);

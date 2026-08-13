@@ -35,6 +35,7 @@ import type * as PdfjsLib from "pdfjs-dist";
 import { loadPdfjs } from "@/lib/pdf-libs";
 import { UploadCard } from "@/components/tools/upload-card";
 import { downloadBlob } from "@/lib/download";
+import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
 type Position =
   | "top-left"
@@ -49,6 +50,7 @@ type Position =
 
 export default function WatermarkPdfPage() {
   const [rawFile, setRawFile] = useState<File | null>(null);
+  const { begin, cancel } = useCancellableRun();
 
   // Watermark Type Options
   const [watermarkType, setWatermarkType] = useState<"text" | "image">("text");
@@ -111,6 +113,7 @@ export default function WatermarkPdfPage() {
       setPdfDoc(loadedPdf);
       setNumPages(loadedPdf.numPages);
     } catch (err) {
+      if (wasCancelled(err)) return;
       console.error("Error loading PDF for preview:", err);
       setErrorMessage("Failed to load PDF preview layout.");
     }
@@ -153,6 +156,7 @@ export default function WatermarkPdfPage() {
           setRenderedPages(pagesMap);
         }
       } catch (err) {
+      if (wasCancelled(err)) return;
         console.error("Pages render error:", err);
       } finally {
         if (!isCancelled) setIsRendering(false);
@@ -167,6 +171,8 @@ export default function WatermarkPdfPage() {
   }, [pdfDoc, numPages]);
 
   const clearFile = () => {
+    // Removing the file stops whatever it was being used for.
+    cancel();
     setRawFile(null);
     setErrorMessage(null);
     setSuccessMessage(false);
@@ -194,6 +200,7 @@ export default function WatermarkPdfPage() {
   };
 
   const executeApplyWatermark = async () => {
+    const signal = begin();
     if (!rawFile) return;
     setProcessing(true);
     setErrorMessage(null);
@@ -224,8 +231,7 @@ export default function WatermarkPdfPage() {
 
       const response = await fetch("/api/watermark-pdf", {
         method: "POST",
-        body: formData,
-      });
+        body: formData, signal });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

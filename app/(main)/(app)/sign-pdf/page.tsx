@@ -7,6 +7,7 @@ import type * as PdfjsLib from "pdfjs-dist";
 import { loadPdfjs } from "@/lib/pdf-libs";
 import { errorName } from "@/lib/errors";
 import { downloadBlob } from "@/lib/download";
+import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
 /**
  * The faces pdf-lib can embed from the PDF standard set, so the preview and
@@ -38,6 +39,7 @@ const SIGNATURE_COLORS = [
 
 export default function SignPdfPage() {
   const [file, setFile] = useState<{ name: string; size: string; rawFile: File } | null>(null);
+  const { begin, cancel } = useCancellableRun();
   const [mode, setMode] = useState<"type" | "draw">("type");
   const [signatureText, setSignatureText] = useState("");
 
@@ -93,12 +95,15 @@ export default function SignPdfPage() {
       setNumPages(pdf.numPages);
       setCurrentPage(1);
     } catch (err) {
+      if (wasCancelled(err)) return;
       console.error("Error loading PDF preview:", err);
       setErrorMessage("Failed to load the PDF preview.");
     }
   };
 
   const clearFile = () => {
+    // Removing the file stops whatever it was being used for.
+    cancel();
     setFile(null);
     setPdfDocProxy(null);
     setNumPages(0);
@@ -172,6 +177,7 @@ export default function SignPdfPage() {
           }
         }
       } catch (err) {
+      if (wasCancelled(err)) return;
         // Render cancellations are routine when flipping pages quickly.
         if (errorName(err) !== "RenderingCancelledException") {
           console.error("Preview render error:", err);
@@ -254,6 +260,7 @@ export default function SignPdfPage() {
    * ever actually signed.
    */
   const executeSignAndDownload = async () => {
+    const signal = begin();
     if (!file) return;
 
     setProcessing(true);
@@ -284,8 +291,7 @@ export default function SignPdfPage() {
 
       const response = await fetch("/api/sign-pdf", {
         method: "POST",
-        body: formData,
-      });
+        body: formData, signal });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
