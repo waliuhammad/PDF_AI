@@ -5,9 +5,11 @@ import { FileText, Trash2, Download, Eye, EyeOff, LockOpen, ShieldCheck, Loader2
 import { UploadCard } from "@/components/tools/upload-card";
 import { errorMessage } from "@/lib/errors";
 import { downloadBlob } from "@/lib/download";
+import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
 export default function UnlockPdfPage() {
     const [file, setFile] = useState<{ name: string; size: string; rawFile: File } | null>(null);
+    const { begin, cancel } = useCancellableRun();
     const [password, setPassword] = useState("");
     const [showPassword, setShowPassword] = useState(false);
     const [processing, setProcessing] = useState(false);
@@ -34,6 +36,8 @@ export default function UnlockPdfPage() {
     };
 
     const clearFile = () => {
+    // Removing the file stops whatever it was being used for.
+    cancel();
         setFile(null);
         setDone(false);
         setError("");
@@ -41,6 +45,7 @@ export default function UnlockPdfPage() {
     };
 
     const handleUnlock = async (e: React.FormEvent) => {
+      const signal = begin();
         e.preventDefault();
         if (!file) {
             setError("Please select a PDF file.");
@@ -61,8 +66,7 @@ export default function UnlockPdfPage() {
         try {
             const res = await fetch("/api/unlock-pdf", {
                 method: "POST",
-                body: formData,
-            });
+                body: formData, signal });
 
             if (!res.ok) {
                 const data = await res.json().catch(() => ({}));
@@ -73,6 +77,7 @@ export default function UnlockPdfPage() {
             downloadBlob(blob, `${file.name.replace(/\.[^/.]+$/, "")}-unlocked.pdf`);
             setDone(true);
         } catch (err) {
+      if (wasCancelled(err, signal)) return;
             setError(errorMessage(err, "An unexpected error occurred."));
         } finally {
             setProcessing(false);

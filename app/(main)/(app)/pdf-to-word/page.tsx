@@ -21,9 +21,11 @@ import {
 import type * as PdfjsLib from "pdfjs-dist";
 import { loadPdfjs } from "@/lib/pdf-libs";
 import { downloadBlob } from "@/lib/download";
+import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
 export default function PdfToWordPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const { begin, cancel } = useCancellableRun();
   const [processing, setProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState(false);
@@ -63,6 +65,7 @@ export default function PdfToWordPage() {
       setPdfDoc(loadedPdf);
       setNumPages(loadedPdf.numPages);
     } catch (err) {
+      if (wasCancelled(err)) return;
       console.error("Error loading PDF for preview:", err);
       setErrorMessage("Failed to load PDF preview layout.");
     }
@@ -107,6 +110,7 @@ export default function PdfToWordPage() {
           setRenderedPages(pagesMap);
         }
       } catch (err) {
+      if (wasCancelled(err)) return;
         console.error("Pages render error:", err);
       } finally {
         if (!isCancelled) setIsRendering(false);
@@ -121,6 +125,8 @@ export default function PdfToWordPage() {
   }, [pdfDoc, numPages]);
 
   const clearFile = () => {
+    // Removing the file stops whatever it was being used for.
+    cancel();
     setSelectedFile(null);
     setErrorMessage(null);
     setSuccessMessage(false);
@@ -131,6 +137,7 @@ export default function PdfToWordPage() {
   };
 
   const executeConversion = async () => {
+    const signal = begin();
     if (!selectedFile) return;
 
     setProcessing(true);
@@ -142,8 +149,7 @@ export default function PdfToWordPage() {
 
       const response = await fetch("/api/pdf-to-word", {
         method: "POST",
-        body: formData,
-      });
+        body: formData, signal });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

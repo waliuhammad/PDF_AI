@@ -5,12 +5,14 @@ import { UploadCard } from "@/components/tools/upload-card";
 import { FileText, Trash2, Download, ShieldCheck, Sparkles, FileSpreadsheet } from "lucide-react";
 import { loadXlsx } from "@/lib/pdf-libs";
 import { errorMessage } from "@/lib/errors";
+import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
 /** A cell as xlsx hands it back from sheet_to_json with header:1. */
 type CellValue = string | number | boolean | null;
 
 export default function PdfToExcel(): JSX.Element {
   const [file, setFile] = useState<File | null>(null);
+  const { begin, cancel } = useCancellableRun();
   const [extractedRows, setExtractedRows] = useState<CellValue[][] | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,6 +20,7 @@ export default function PdfToExcel(): JSX.Element {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (fileList: FileList | null): Promise<void> => {
+    const signal = begin();
     const uploadedFile = fileList?.[0];
     if (!uploadedFile) return;
 
@@ -37,14 +40,14 @@ export default function PdfToExcel(): JSX.Element {
 
       const response = await fetch("/api/pdf-to-excel", {
         method: "POST",
-        body: formData,
-      });
+        body: formData, signal });
 
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Failed to process PDF.");
 
       setExtractedRows(data.rows || [["No tabular text lines found"]]);
     } catch (err) {
+      if (wasCancelled(err, signal)) return;
       setError(errorMessage(err, "An error occurred while parsing the PDF."));
     } finally {
       setLoading(false);
@@ -52,6 +55,8 @@ export default function PdfToExcel(): JSX.Element {
   };
 
   const handleClear = (): void => {
+    // Removing the file stops whatever it was being used for.
+    cancel();
     setFile(null);
     setExtractedRows(null);
     setError(null);

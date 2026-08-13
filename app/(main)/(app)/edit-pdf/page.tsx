@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Upload, FileText, X, Download, Loader2, Type, Bold, Italic, Pencil, Trash2, ChevronLeft, ChevronRight, Eraser, Move, Sparkles } from "lucide-react";
 import type * as PdfjsLib from "pdfjs-dist";
 import { downloadBlob } from "@/lib/download";
+import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
 interface TextAnnotation {
   id: string;
@@ -66,6 +67,7 @@ const COLOR_SWATCHES = [
 
 export default function EditPdfPage() {
   const [rawFile, setRawFile] = useState<File | null>(null);
+  const { begin, cancel } = useCancellableRun();
   const [fileDetails, setFileDetails] = useState<{ name: string; size: string } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [pageCount, setPageCount] = useState<number>(0);
@@ -182,6 +184,7 @@ export default function EditPdfPage() {
       setAnnotations([]);
       setErrorMessage(null);
     } catch (err) {
+      if (wasCancelled(err)) return;
       console.error("Error loading PDF:", err);
       setErrorMessage("Could not render PDF document.");
     }
@@ -222,6 +225,7 @@ export default function EditPdfPage() {
 
         await page.render(renderContext).promise;
       } catch (err) {
+      if (wasCancelled(err)) return;
         console.error("Canvas render error:", err);
       }
     };
@@ -371,6 +375,7 @@ export default function EditPdfPage() {
   };
 
   const executeSave = async () => {
+    const signal = begin();
     if (!rawFile) return;
     setProcessing(true);
     setErrorMessage(null);
@@ -408,8 +413,7 @@ export default function EditPdfPage() {
 
       const response = await fetch("/api/edit-pdf", {
         method: "POST",
-        body: formData,
-      });
+        body: formData, signal });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -519,7 +523,7 @@ export default function EditPdfPage() {
                 <p className="text-fg text-sm truncate font-medium">{fileDetails.name}</p>
                 <p className="text-muted text-xs">{fileDetails.size} • {pageCount} pages</p>
               </div>
-              <button onClick={() => { setFileDetails(null); setRawFile(null); setAnnotations([]); setPdfDocProxy(null); }} className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
+              <button onClick={() => { cancel(); setFileDetails(null); setRawFile(null); setAnnotations([]); setPdfDocProxy(null); }} className="text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors">
                 <X size={16} />
               </button>
             </div>

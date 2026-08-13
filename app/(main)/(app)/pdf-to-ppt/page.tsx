@@ -4,9 +4,11 @@ import React, { useState, useRef, JSX } from "react";
 import { UploadCard } from "@/components/tools/upload-card";
 import { FileText, Trash2, Download, ShieldCheck, Menu, FileStack } from "lucide-react";
 import { downloadUrl as saveFromUrl } from "@/lib/download";
+import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
 export default function PdfToPpt(): JSX.Element {
   const [file, setFile] = useState<File | null>(null);
+  const { begin, cancel } = useCancellableRun();
   const [loading, setLoading] = useState<boolean>(false);
   const [success, setSuccess] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -15,6 +17,7 @@ export default function PdfToPpt(): JSX.Element {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileUpload = async (fileList: FileList | null): Promise<void> => {
+    const signal = begin();
     const uploadedFile = fileList?.[0];
     if (!uploadedFile) return;
 
@@ -37,8 +40,7 @@ export default function PdfToPpt(): JSX.Element {
 
       const response = await fetch("/api/pdf-to-ppt", {
         method: "POST",
-        body: formData,
-      });
+        body: formData, signal });
 
       if (!response.ok) {
         let errorMessage = "Failed to process PDF.";
@@ -57,6 +59,7 @@ export default function PdfToPpt(): JSX.Element {
       setDownloadUrl(url);
       setSuccess(true);
     } catch (err: unknown) {
+      if (wasCancelled(err, signal)) return;
       if (err instanceof Error) {
         setError(err.message);
       } else {
@@ -68,6 +71,8 @@ export default function PdfToPpt(): JSX.Element {
   };
 
   const handleClear = (): void => {
+    // Removing the file stops whatever it was being used for.
+    cancel();
     setFile(null);
     setSuccess(false);
     setError(null);

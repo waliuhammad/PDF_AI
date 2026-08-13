@@ -8,9 +8,11 @@ import { errorName } from "@/lib/errors";
 // arrives through the dynamic import below.
 import type * as PdfjsLib from "pdfjs-dist";
 import { downloadBlob } from "@/lib/download";
+import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
 export default function RotatePdfPage(): JSX.Element {
   const [file, setFile] = useState<File | null>(null);
+  const { begin, cancel } = useCancellableRun();
   const [pdfDoc, setPdfDoc] = useState<PdfjsLib.PDFDocumentProxy | null>(null);
   const [numPages, setNumPages] = useState<number>(0);
   const [rotation, setRotation] = useState<number>(90);
@@ -80,6 +82,7 @@ export default function RotatePdfPage(): JSX.Element {
           setPdfDoc(loadedPdf);
           setNumPages(loadedPdf.numPages);
         } catch (err) {
+      if (wasCancelled(err)) return;
           console.error("PDF parse error:", err);
 
           if (errorName(err) === "PasswordException") {
@@ -98,6 +101,8 @@ export default function RotatePdfPage(): JSX.Element {
   };
 
   const handleClearFile = (): void => {
+    // Removing the file stops whatever it was being used for.
+    cancel();
     setFile(null);
     setPdfDoc(null);
     setNumPages(0);
@@ -143,6 +148,7 @@ export default function RotatePdfPage(): JSX.Element {
           const renderTask = page.render(renderContext);
           await renderTask.promise;
         } catch (err) {
+      if (wasCancelled(err)) return;
           console.error(`Error rendering page ${i}:`, err);
         }
       }
@@ -156,6 +162,7 @@ export default function RotatePdfPage(): JSX.Element {
   }, [pdfDoc, numPages]);
 
   const handleRotateAndDownload = async (): Promise<void> => {
+    const signal = begin();
     if (!file) return;
 
     if (mode === "custom" && !pageNumber.trim()) {
@@ -175,8 +182,7 @@ export default function RotatePdfPage(): JSX.Element {
 
       const res = await fetch("/api/rotate-pdf", {
         method: "POST",
-        body: formData,
-      });
+        body: formData, signal });
 
       if (!res.ok) {
         let errorMessage = "Rotation failed.";
@@ -190,6 +196,7 @@ export default function RotatePdfPage(): JSX.Element {
       const blob = await res.blob();
       downloadBlob(blob, `${file.name.replace(/\.[^/.]+$/, "")}_rotated.pdf`);
     } catch (err: unknown) {
+      if (wasCancelled(err, signal)) return;
       if (err instanceof Error) {
         setError(err.message);
       } else {

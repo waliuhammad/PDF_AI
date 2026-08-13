@@ -4,9 +4,11 @@ import { useState} from "react";
 import { UploadCard } from "@/components/tools/upload-card";
 import { FileText, X, Copy, Sparkles } from "lucide-react";
 import { errorMessage } from "@/lib/errors";
+import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
 export default function SummarizePdfPage() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const { begin, cancel } = useCancellableRun();
     const [fileMeta, setFileMeta] = useState<{ name: string; size: string } | null>(null);
     const [processing, setProcessing] = useState(false);
     const [summary, setSummary] = useState<string[] | null>(null);
@@ -32,6 +34,7 @@ export default function SummarizePdfPage() {
     };
 
     const handleSummarize = async () => {
+      const signal = begin();
     if (!selectedFile) return;
 
     setProcessing(true);
@@ -43,8 +46,7 @@ export default function SummarizePdfPage() {
 
         const res = await fetch("/api/summary", {
             method: "POST",
-            body: formData,
-        });
+            body: formData, signal });
 
         const data = await res.json();
 
@@ -64,6 +66,7 @@ export default function SummarizePdfPage() {
         setSummary(resultSummary);
 
     } catch (err) {
+      if (wasCancelled(err, signal)) return;
         setError(errorMessage(err, "Something went wrong connecting to the server."));
     } finally {
         setProcessing(false);
@@ -109,7 +112,7 @@ export default function SummarizePdfPage() {
                             <p className="text-muted text-xs">{fileMeta.size}</p>
                         </div>
                         <button 
-                            onClick={() => { setSelectedFile(null); setFileMeta(null); setSummary(null); setError(null); }} 
+                            onClick={() => { cancel(); setSelectedFile(null); setFileMeta(null); setSummary(null); setError(null); }} 
                             className="text-muted hover:text-[var(--primary)] shrink-0"
                         >
                             <X size={16} />

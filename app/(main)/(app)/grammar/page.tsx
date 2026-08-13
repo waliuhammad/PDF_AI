@@ -5,9 +5,11 @@ import { UploadCard } from "@/components/tools/upload-card";
 import { CheckCheck, Sparkles, Copy, Loader2, FileText, X, ArrowRight } from "lucide-react";
 import { errorMessage } from "@/lib/errors";
 import { diffWords, countEdits } from "@/lib/text-diff";
+import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
 export default function GrammarCheckerPage() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
+    const { begin, cancel } = useCancellableRun();
     const [fileMeta, setFileMeta] = useState<{ name: string; size: string } | null>(null);
     const [correctedText, setCorrectedText] = useState<string | null>(null);
     const [originalText, setOriginalText] = useState<string | null>(null);
@@ -44,6 +46,7 @@ export default function GrammarCheckerPage() {
     };
 
     const handleCheckGrammar = async () => {
+      const signal = begin();
         if (!selectedFile || loading) return;
 
         setLoading(true);
@@ -56,8 +59,7 @@ formData.append("file", selectedFile);
 
 const res = await fetch("/api/grammar", {
     method: "POST",
-    body: formData,
-});
+    body: formData, signal });
 
 const data = await res.json();
 
@@ -73,6 +75,7 @@ if (!res.ok) {
             // view is hidden rather than shown empty.
             setOriginalText(typeof data.originalText === "string" ? data.originalText : null);
         } catch (err) {
+      if (wasCancelled(err, signal)) return;
             setError(errorMessage(err, "Something went wrong connecting to the server."));
         } finally {
             setLoading(false);
@@ -126,7 +129,7 @@ if (!res.ok) {
                                     <p className="text-muted text-xs">{fileMeta.size}</p>
                                 </div>
                                 <button 
-                                    onClick={() => { setSelectedFile(null); setFileMeta(null); setCorrectedText(null); setError(null); }} 
+                                    onClick={() => { cancel(); setSelectedFile(null); setFileMeta(null); setCorrectedText(null); setError(null); }} 
                                     className="text-muted hover:text-[var(--primary)] shrink-0"
                                 >
                                     <X size={16} />
