@@ -1,12 +1,5 @@
 "use client";
 
-import {
-    collection,
-    deleteDoc,
-    doc,
-    getDocs,
-    setDoc,
-} from "firebase/firestore";
 import { getDb } from "./client";
 import type { ChatItem, DocumentItem } from "@/lib/store";
 
@@ -21,16 +14,28 @@ import type { ChatItem, DocumentItem } from "@/lib/store";
  * pages that never touch the database don't ship it), so every function
  * awaits it before building references.
  *
+ * The query helpers are imported the same way, for the same reason. They used
+ * to be a plain top-level import, which quietly undid the lazy loading: this
+ * module is reached from lib/store, which the (app) layout mounts, so every
+ * visitor to any of the 22 tool pages downloaded the whole Firestore SDK —
+ * including signed-out ones, who have no library to load.
+ *
  * Records keep the same field shapes as the in-memory store (numeric
  * timestamps included), so the store and pages don't translate anything;
  * they just gain persistence.
  */
 
+/** The SDK and the database together, both resolved on first use. */
+async function firestore() {
+    const [sdk, db] = await Promise.all([import("firebase/firestore"), getDb()]);
+    return { ...sdk, db };
+}
+
 /** Everything at once: one read on sign-in fills the whole library. */
 export async function loadLibrary(
     uid: string
 ): Promise<{ documents: DocumentItem[]; chats: ChatItem[] }> {
-    const db = await getDb();
+    const { collection, getDocs, db } = await firestore();
 
     const [docsSnap, chatsSnap] = await Promise.all([
         getDocs(collection(db, "users", uid, "documents")),
@@ -49,21 +54,21 @@ export async function loadLibrary(
 }
 
 export async function saveDocumentRecord(uid: string, item: DocumentItem): Promise<void> {
-    const db = await getDb();
+    const { doc, setDoc, db } = await firestore();
     await setDoc(doc(db, "users", uid, "documents", item.id), item);
 }
 
 export async function deleteDocumentRecord(uid: string, id: string): Promise<void> {
-    const db = await getDb();
+    const { doc, deleteDoc, db } = await firestore();
     await deleteDoc(doc(db, "users", uid, "documents", id));
 }
 
 export async function saveChatRecord(uid: string, chat: ChatItem): Promise<void> {
-    const db = await getDb();
+    const { doc, setDoc, db } = await firestore();
     await setDoc(doc(db, "users", uid, "chats", chat.id), chat);
 }
 
 export async function deleteChatRecord(uid: string, id: string): Promise<void> {
-    const db = await getDb();
+    const { doc, deleteDoc, db } = await firestore();
     await deleteDoc(doc(db, "users", uid, "chats", id));
 }
