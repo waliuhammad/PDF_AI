@@ -5,7 +5,7 @@ import { UploadCard } from "@/components/tools/upload-card";
 import { FormatSelect } from "@/components/tools/format-select";
 import { loadPdfjs, loadJsZip } from "@/lib/pdf-libs";
 import { errorMessage } from "@/lib/errors";
-import { claimOperation } from "@/lib/claim-operation";
+import { claimOperation, releaseOperation } from "@/lib/claim-operation";
 import { downloadBlob } from "@/lib/download";
 import {
   FileText,
@@ -376,6 +376,8 @@ export default function PdfToImageConverter() {
 
       setSuccessMessage("Conversion completed successfully! Your download has started.");
     } catch (err) {
+      // The operation was claimed before the work started, so give it back.
+      void releaseOperation();
       setError(errorMessage(err, "An unexpected error occurred during conversion."));
     } finally {
       setLoading(false);

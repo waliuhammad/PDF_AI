@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
-import { requireUsageAllowance } from "@/lib/metered";
+import { metered } from "@/lib/metered";
 import { extractPageLines } from "@/lib/pdf-text";
 import pptxgen from "pptxgenjs";
 
@@ -8,14 +8,8 @@ import pptxgen from "pptxgenjs";
 // so the platform default is not enough.
 export const maxDuration = 60;
 
-export async function POST(req: NextRequest) {
+export const POST = metered(async (req: NextRequest) => {
   try {
-    // This was the one conversion route with no allowance check, so it kept
-    // converting after the daily limit was spent. Every sibling route opens
-    // with this same guard.
-    const denied = await requireUsageAllowance(req);
-    if (denied) return denied;
-
     const formData = await readFormData(req);
         if (!formData) {
             return NextResponse.json({ error: "No file provided." }, { status: 400 });
@@ -142,4 +136,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

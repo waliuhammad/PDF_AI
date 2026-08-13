@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireUsageAllowance } from "@/lib/metered";
+import { metered } from "@/lib/metered";
 import { docxToPdf } from "@/lib/docx-to-pdf";
 
 export const runtime = "nodejs";
@@ -14,12 +14,10 @@ export const maxDuration = 60;
  * tool did nothing at all. It also meant every uploaded document was sent to a
  * third party. A .docx is a zip of XML, so it does not have to leave.
  */
-export async function POST(req: NextRequest) {
+export const POST = metered(async (req: NextRequest) => {
     try {
         // Every tool counts against the user's daily allowance (2/20/50 by
         // plan, from Remote Config) and therefore requires sign-in.
-        const refusal = await requireUsageAllowance(req);
-        if (refusal) return refusal;
 
         // formData() throws outright on a request with no multipart body, so a
         // missing file has to be caught here or it surfaces as a 500.
@@ -75,4 +73,4 @@ export async function POST(req: NextRequest) {
             { status: 500 }
         );
     }
-}
+});

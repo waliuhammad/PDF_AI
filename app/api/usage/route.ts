@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readDevPlanFromRequest } from "@/lib/dev-plan";
 import { getRequestUid } from "@/lib/server-auth";
 import { requireUsageAllowance } from "@/lib/metered";
-import { peekUsage } from "@/lib/usage";
+import { peekUsage, refundOperation } from "@/lib/usage";
 
 /**
  * Reports the signed-in user's tool usage for today without consuming any:
@@ -59,5 +59,23 @@ export async function POST(req: NextRequest) {
     const refusal = await requireUsageAllowance(req);
     if (refusal) return refusal;
 
+    return NextResponse.json({ success: true });
+}
+
+/**
+ * Gives back an operation claimed for work that then failed.
+ *
+ * The routes that do their own work refund automatically, because the server
+ * sees the failure. These three tools convert in the browser, so only the
+ * browser knows the conversion threw — and without this, a file the library
+ * could not read still cost the user an operation.
+ */
+export async function DELETE(req: NextRequest) {
+    const uid = await getRequestUid(req);
+    if (!uid) {
+        return NextResponse.json({ success: false, message: "Not signed in." }, { status: 401 });
+    }
+
+    await refundOperation(uid);
     return NextResponse.json({ success: true });
 }

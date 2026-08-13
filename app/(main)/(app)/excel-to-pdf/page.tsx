@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { loadJsPdfWithAutoTable, loadXlsx } from "@/lib/pdf-libs";
 import { errorMessage } from "@/lib/errors";
-import { claimOperation } from "@/lib/claim-operation";
+import { claimOperation, releaseOperation } from "@/lib/claim-operation";
 
 /** A cell as xlsx hands it back from sheet_to_json with header:1. */
 type CellValue = string | number | boolean | null;
@@ -176,6 +176,8 @@ export default function ExcelToPdf(): JSX.Element {
 
       doc.save(outputName);
     } catch (err) {
+      // The operation was claimed before the work started, so give it back.
+      void releaseOperation();
       setError(errorMessage(err, "Failed to generate PDF."));
     } finally {
       setLoading(false);

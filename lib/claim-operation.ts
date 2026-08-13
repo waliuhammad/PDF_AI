@@ -34,3 +34,22 @@ export async function claimOperation(): Promise<{ ok: true } | { ok: false; mess
             "Could not check your daily allowance. Please try again.",
     };
 }
+
+/**
+ * Give back an operation whose work then failed.
+ *
+ * Claiming happens before the conversion starts, so a file the library cannot
+ * read would otherwise still cost the user one of their daily operations. The
+ * server-side tools refund themselves — only these browser-side ones have to
+ * say so explicitly.
+ *
+ * Best effort: if the release does not land, the user has lost one operation,
+ * which is not worth a second error message on top of the one they already saw.
+ */
+export async function releaseOperation(): Promise<void> {
+    try {
+        await fetch("/api/usage", { method: "DELETE" });
+    } catch {
+        // Nothing useful to do, and nothing worth telling the user about.
+    }
+}

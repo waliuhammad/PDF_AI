@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
-import { getRequestUid } from "@/lib/server-auth";
-import { requireUsageAllowance } from "@/lib/metered";
+import { metered } from "@/lib/metered";
 import { pdfToPng } from "pdf-to-png-converter";
 import type { PdfToPngOptions } from "pdf-to-png-converter";
 import fs from "fs";
@@ -14,7 +13,7 @@ import { withOwnPdfWorker } from "@/lib/pdf-worker-isolation";
 // so the platform default is not enough.
 export const maxDuration = 60;
 
-export async function POST(req: NextRequest) {
+export const POST = metered(async (req: NextRequest) => {
   try {
     const formData = await readFormData(req);
     if (!formData) {
@@ -27,16 +26,7 @@ export async function POST(req: NextRequest) {
     // Only "convert", the actual work, counts against the daily allowance;
     // charging both would bill every conversion twice.
     if (action === "get-info") {
-      const uid = await getRequestUid(req);
-      if (!uid) {
-        return NextResponse.json(
-          { error: "Please sign in to use the tools." },
-          { status: 401 }
-        );
-      }
     } else {
-      const refusal = await requireUsageAllowance(req);
-      if (refusal) return refusal;
     }
 
     const file = formData.get("file") as File;
@@ -118,4 +108,4 @@ export async function POST(req: NextRequest) {
     console.error("PDF conversion error:", err);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
-}
+});

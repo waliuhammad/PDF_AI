@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
-import { requireUsageAllowance } from "@/lib/metered";
+import { metered } from "@/lib/metered";
 import { pdfToDocx } from "@/lib/pdf-to-docx";
 
 export const runtime = "nodejs";
@@ -14,12 +14,10 @@ export const maxDuration = 60;
  * This route required CONVERTAPI_SECRET and answered 503 without it, so the
  * tool did nothing, and every uploaded document went to a third party.
  */
-export async function POST(req: NextRequest) {
+export const POST = metered(async (req: NextRequest) => {
     try {
         // Every tool counts against the user's daily allowance (2/20/50 by
         // plan, from Remote Config) and therefore requires sign-in.
-        const refusal = await requireUsageAllowance(req);
-        if (refusal) return refusal;
 
         const formData = await readFormData(req);
         if (!formData) {
@@ -58,4 +56,4 @@ export async function POST(req: NextRequest) {
             { status: 500 }
         );
     }
-}
+});

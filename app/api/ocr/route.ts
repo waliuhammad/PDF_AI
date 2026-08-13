@@ -1,9 +1,7 @@
 import { getAppConfig } from "@/lib/remote-config";
-import { readDevPlanFromRequest } from "@/lib/dev-plan";
-import { getRequestUid } from "@/lib/server-auth";
-import { checkAndCountUsage } from "@/lib/usage";
 import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
+import { metered } from "@/lib/metered";
 
 // OCR over every page — measured about 11s,
 // so the platform default is not enough.
@@ -12,7 +10,7 @@ export const maxDuration = 60;
 const AI_SERVICE =
   process.env.AI_SERVICE_URL || "http://localhost:8001";
 
-export async function POST(req: NextRequest) {
+export const POST = metered(async (req: NextRequest) => {
   try {
     // Remote Config kill-switch: lets the AI features be disabled from the
     // Firebase Console (parameter: ai_tools_enabled) without a redeploy.
@@ -24,32 +22,6 @@ export async function POST(req: NextRequest) {
           message: "AI features are temporarily disabled. Please try again later.",
         },
         { status: 503 }
-      );
-    }
-
-    // AI features are metered per user, so they require a signed-in user:
-    // an anonymous visitor has no identity to count against.
-    const uid = await getRequestUid(req);
-    if (!uid) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Please sign in to use AI features.",
-        },
-        { status: 401 }
-      );
-    }
-
-    // Count this operation against today's plan allowance (limits come
-    // from the client's Remote Config: free 2/day, pro 20, business 50).
-    const usage = await checkAndCountUsage(uid, readDevPlanFromRequest(req) ?? undefined);
-    if (!usage.allowed) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: `Daily limit reached (${Math.min(usage.used, usage.limit)}/${usage.limit} operations on the ${usage.plan} plan). Upgrade for a higher daily allowance, or come back tomorrow.`,
-        },
-        { status: 429 }
       );
     }
 
@@ -79,4 +51,4 @@ export async function POST(req: NextRequest) {
       }
     );
   }
-}
+}, { signInMessage: "Please sign in to use AI features." });

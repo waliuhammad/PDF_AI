@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
-import { requireUsageAllowance } from "@/lib/metered";
+import { metered } from "@/lib/metered";
 import { PDFDocument } from "pdf-lib";
 
-export async function POST(req: NextRequest) {
+export const POST = metered(async (req: NextRequest) => {
   try {
     // Every tool counts against the user's daily allowance (2/20/50 by
     // plan, from Remote Config) and therefore requires sign-in.
-    const refusal = await requireUsageAllowance(req);
-    if (refusal) return refusal;
 
     const formData = await readFormData(req);
     if (!formData) {
@@ -81,4 +79,4 @@ export async function POST(req: NextRequest) {
     console.error("PDF Split Error:", error);
     return NextResponse.json({ error: "Failed to split PDF" }, { status: 500 });
   }
-}
+});

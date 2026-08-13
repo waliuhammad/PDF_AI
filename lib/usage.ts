@@ -74,6 +74,40 @@ export async function checkAndCountUsage(uid: string, devPlanOverride?: PlanId):
     });
 }
 
+/**
+ * Give back an operation that produced nothing.
+ *
+ * The allowance is claimed before the work starts, because that is the only
+ * point where the check and the increment can be one atomic step — without it,
+ * requests fired together would all read the same count and all pass. The cost
+ * is that a failure, a rejected file or a cancelled conversion spent an
+ * operation the user never got a result from. This returns it.
+ *
+ * Floored at zero inside the transaction: a refund that arrives after the day
+ * has rolled over, or twice for one claim, must not push the counter negative
+ * and hand out free operations tomorrow.
+ */
+export async function refundOperation(uid: string): Promise<void> {
+    if (!isAdminConfigured()) return;
+
+    const db = getFirestore(getAdminApp());
+    const usageRef = db.collection("usage").doc(`${uid}_${todayKey()}`);
+
+    try {
+        await db.runTransaction(async (tx) => {
+            const snap = await tx.get(usageRef);
+            const used = (snap.data()?.count as number | undefined) ?? 0;
+            if (used <= 0) return;
+
+            tx.set(usageRef, { uid, date: todayKey(), count: used - 1 }, { merge: true });
+        });
+    } catch (err) {
+        // A failed refund must not turn a tool error into a second error for
+        // the user; the worst case is one operation they did not receive.
+        console.error("Could not refund an operation:", err);
+    }
+}
+
 /** Read-only variant for showing "X of Y used today" without consuming one. */
 export async function peekUsage(uid: string, devPlanOverride?: PlanId): Promise<UsageResult> {
     if (!isAdminConfigured()) {

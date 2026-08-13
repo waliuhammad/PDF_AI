@@ -13,7 +13,7 @@ import { UploadCard } from "@/components/tools/upload-card";
 import { Trash2, UploadCloud, Sparkles, Loader2, Image as Plus, Sliders, Type } from "lucide-react";
 import { loadJsPdf } from "@/lib/pdf-libs";
 import { errorMessage } from "@/lib/errors";
-import { claimOperation } from "@/lib/claim-operation";
+import { claimOperation, releaseOperation } from "@/lib/claim-operation";
 
 interface TextAnnotation {
   id: string;
@@ -382,6 +382,8 @@ export default function ImageToPdf(): JSX.Element {
 
       pdf.save("combined-images-layout.pdf");
     } catch (err) {
+      // The operation was claimed before the work started, so give it back.
+      void releaseOperation();
       setError(errorMessage(err, "Failed to convert images to PDF."));
     } finally {
       setLoading(false);
