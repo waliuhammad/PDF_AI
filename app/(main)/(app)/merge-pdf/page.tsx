@@ -47,6 +47,12 @@ export default function MergePdfPage() {
   const [draggedFileIndex, setDraggedFileIndex] = useState<number | null>(null);
   const [dragOverFileIndex, setDragOverFileIndex] = useState<number | null>(null);
 
+  // Controls whether the source-files list is expanded or collapsed into a
+  // dropdown header. Only relevant once there are 3+ files — below that
+  // threshold the list is always shown and the container just hugs its
+  // content height instead of reserving fixed empty space.
+  const [isFileListExpanded, setIsFileListExpanded] = useState(true);
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const formatSize = (bytes: number) => {
@@ -302,6 +308,11 @@ export default function MergePdfPage() {
     ? `${URL.createObjectURL(activeSourceFile.file)}#page=${activePage.localPageIndex + 1}&view=FitH,top&scrollbar=1&toolbar=0&navpanes=0`
     : "";
 
+  // Once there are 3+ files, the list becomes a collapsible dropdown so it
+  // doesn't keep growing forever; below that it's always shown in full.
+  const isCollapsible = sourceFiles.length >= 3;
+  const isListVisible = !isCollapsible || isFileListExpanded;
+
   return (
     <div className="max-w-7xl mx-auto w-full px-4 py-8 text-[#222430] dark:text-white bg-white dark:bg-transparent transition-colors">
       <div className="text-center mb-8">
@@ -336,13 +347,30 @@ export default function MergePdfPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Sidebar Card */}
           <div
-            className="lg:col-span-5 border border-[#222430]/15 dark:border-white/20 rounded-3xl p-4 shadow-sm flex flex-col h-[600px] bg-[var(--background-secondary)] text-[#222430] dark:text-white transition-colors"
+            className={`lg:col-span-5 border border-[#222430]/15 dark:border-white/20 rounded-3xl p-4 shadow-sm flex flex-col bg-[var(--background-secondary)] text-[#222430] dark:text-white transition-all duration-200 ${
+              isCollapsible ? "max-h-[600px]" : "h-auto"
+            }`}
           >
-            <div className="flex items-center justify-between pb-3 mb-3 border-b border-[#222430]/10 dark:border-white/20">
-              <span className="text-xs font-bold uppercase tracking-wider text-[#222430]/70 dark:text-white">Source Files ({sourceFiles.length})</span>
+            <div
+              className={`flex items-center justify-between border-[#222430]/10 dark:border-white/20 ${
+                isListVisible ? "pb-3 mb-3 border-b" : "pb-1"
+              } ${isCollapsible ? "cursor-pointer select-none" : ""}`}
+              onClick={() => {
+                if (isCollapsible) setIsFileListExpanded((prev) => !prev);
+              }}
+            >
+              <span className="text-xs font-bold uppercase tracking-wider text-[#222430]/70 dark:text-white flex items-center gap-1.5">
+                Source Files ({sourceFiles.length})
+                {isCollapsible && (
+                  isFileListExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />
+                )}
+              </span>
               <button
                 type="button"
-                onClick={() => fileInputRef.current?.click()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  fileInputRef.current?.click();
+                }}
                 className="p-1 rounded-lg border border-[#222430]/10 dark:border-white/20 bg-[#222430]/5 dark:bg-[var(--background-secondary)] text-[#222430] dark:text-white hover:bg-[#222430]/10 dark:hover:bg-white dark:hover:text-[#222430] transition-colors"
                 title="Add More PDFs"
               >
@@ -350,86 +378,90 @@ export default function MergePdfPage() {
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto space-y-3 px-2 pt-1">
-              {sourceFiles.map((sf, listIdx) => {
-                const isSelected = activeSourceFile?.fileIndex === sf.fileIndex;
-                const isBeingDragged = draggedFileIndex === sf.fileIndex;
-                const isDragOver = dragOverFileIndex === sf.fileIndex;
+            {isListVisible && (
+              <div
+                className={`space-y-3 px-2 pt-1 ${isCollapsible ? "flex-1 overflow-y-auto" : ""}`}
+              >
+                {sourceFiles.map((sf, listIdx) => {
+                  const isSelected = activeSourceFile?.fileIndex === sf.fileIndex;
+                  const isBeingDragged = draggedFileIndex === sf.fileIndex;
+                  const isDragOver = dragOverFileIndex === sf.fileIndex;
 
-                return (
-                  <div
-                    key={sf.fileIndex}
-                    draggable
-                    onDragStart={(e) => handleDragStart(e, sf.fileIndex)}
-                    onDragOver={(e) => handleDragOver(e, sf.fileIndex)}
-                    onDrop={(e) => handleDrop(e, sf.fileIndex)}
-                    onDragEnd={handleDragEnd}
-                    onClick={() => jumpToFile(sf.fileIndex)}
-                    className={`py-4 px-3 rounded-2xl border border-[#222430]/20 dark:border-white/30 cursor-pointer transition-all flex items-center gap-2 relative group text-[#222430] dark:text-white overflow-hidden w-full box-border shadow-sm ${isSelected ? "ring-2 ring-[#222430] dark:ring-white bg-[#222430]/5 dark:bg-[var(--background-secondary)]" : "bg-[var(--background-secondary)] hover:bg-[#222430]/5 dark:hover:bg-white/5"
-                      } ${isBeingDragged ? "opacity-40 border-dashed" : ""
-                      } ${isDragOver ? "border-t-2 border-t-[#222430] dark:border-t-white scale-[1.02]" : ""
-                      }`}
-                  >
-                    {/* Reorder controls: arrows work everywhere including touch
-                        screens, where HTML5 drag events never fire. */}
-                    <div className="flex flex-col shrink-0 -my-1">
-                      <button
-                        type="button"
-                        disabled={listIdx === 0}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          moveFile(sf.fileIndex, "up");
-                        }}
-                        className="p-1 rounded-md text-[#222430]/60 dark:text-white/60 hover:text-[#222430] dark:hover:text-white disabled:opacity-20 transition-colors"
-                        title="Move up"
-                      >
-                        <ChevronUp size={16} />
-                      </button>
-                      <button
-                        type="button"
-                        disabled={listIdx === sourceFiles.length - 1}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          moveFile(sf.fileIndex, "down");
-                        }}
-                        className="p-1 rounded-md text-[#222430]/60 dark:text-white/60 hover:text-[#222430] dark:hover:text-white disabled:opacity-20 transition-colors"
-                        title="Move down"
-                      >
-                        <ChevronDown size={16} />
-                      </button>
-                    </div>
-
+                  return (
                     <div
-                      className="cursor-grab active:cursor-grabbing p-1 shrink-0 text-[#222430]/50 dark:text-white/50 hover:text-[#222430] dark:hover:text-white transition-colors hidden sm:block"
-                      title="Drag up or down to reorder"
+                      key={sf.fileIndex}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, sf.fileIndex)}
+                      onDragOver={(e) => handleDragOver(e, sf.fileIndex)}
+                      onDrop={(e) => handleDrop(e, sf.fileIndex)}
+                      onDragEnd={handleDragEnd}
+                      onClick={() => jumpToFile(sf.fileIndex)}
+                      className={`py-4 px-3 rounded-2xl border border-[#222430]/20 dark:border-white/30 cursor-pointer transition-all flex items-center gap-2 relative group text-[#222430] dark:text-white overflow-hidden w-full box-border shadow-sm ${isSelected ? "ring-2 ring-[#222430] dark:ring-white bg-[#222430]/5 dark:bg-[var(--background-secondary)]" : "bg-[var(--background-secondary)] hover:bg-[#222430]/5 dark:hover:bg-white/5"
+                        } ${isBeingDragged ? "opacity-40 border-dashed" : ""
+                        } ${isDragOver ? "border-t-2 border-t-[#222430] dark:border-t-white scale-[1.02]" : ""
+                        }`}
                     >
-                      <GripVertical size={16} />
-                    </div>
+                      {/* Reorder controls: arrows work everywhere including touch
+                          screens, where HTML5 drag events never fire. */}
+                      <div className="flex flex-col shrink-0 -my-1">
+                        <button
+                          type="button"
+                          disabled={listIdx === 0}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            moveFile(sf.fileIndex, "up");
+                          }}
+                          className="p-1 rounded-md text-[#222430]/60 dark:text-white/60 hover:text-[#222430] dark:hover:text-white disabled:opacity-20 transition-colors"
+                          title="Move up"
+                        >
+                          <ChevronUp size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={listIdx === sourceFiles.length - 1}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            moveFile(sf.fileIndex, "down");
+                          }}
+                          className="p-1 rounded-md text-[#222430]/60 dark:text-white/60 hover:text-[#222430] dark:hover:text-white disabled:opacity-20 transition-colors"
+                          title="Move down"
+                        >
+                          <ChevronDown size={16} />
+                        </button>
+                      </div>
 
-                    <div className="w-9 h-9 rounded-xl border border-[#222430]/20 dark:border-white/30 bg-[#222430]/5 dark:bg-white/5 flex items-center justify-center shrink-0 text-[#222430] dark:text-white">
-                      <FileText size={18} />
-                    </div>
+                      <div
+                        className="cursor-grab active:cursor-grabbing p-1 shrink-0 text-[#222430]/50 dark:text-white/50 hover:text-[#222430] dark:hover:text-white transition-colors hidden sm:block"
+                        title="Drag up or down to reorder"
+                      >
+                        <GripVertical size={16} />
+                      </div>
 
-                    <div className="min-w-0 flex-1 overflow-hidden pr-1">
-                      <p className="text-xs font-bold truncate text-[#222430] dark:text-white w-full tracking-tight">{sf.name}</p>
-                      <p className="text-[11px] mt-0.5 text-[#222430]/60 dark:text-white/70 font-medium">{sf.size} • {sf.pageCount} {sf.pageCount === 1 ? "page" : "pages"}</p>
-                    </div>
+                      <div className="w-9 h-9 rounded-xl border border-[#222430]/20 dark:border-white/30 bg-[#222430]/5 dark:bg-white/5 flex items-center justify-center shrink-0 text-[#222430] dark:text-white">
+                        <FileText size={18} />
+                      </div>
 
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        removeFile(sf.fileIndex);
-                      }}
-                      className="p-2 rounded-xl border border-[#222430]/15 dark:border-white/20 bg-[var(--background-secondary)] transition-all shrink-0 text-[#222430]/70 dark:text-white/70 hover:text-red-600 dark:hover:text-red-400 hover:border-red-500/50 hover:bg-red-500/10 shadow-sm"
-                      title="Delete File"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
+                      <div className="min-w-0 flex-1 overflow-hidden pr-1">
+                        <p className="text-xs font-bold truncate text-[#222430] dark:text-white w-full tracking-tight">{sf.name}</p>
+                        <p className="text-[11px] mt-0.5 text-[#222430]/60 dark:text-white/70 font-medium">{sf.size} • {sf.pageCount} {sf.pageCount === 1 ? "page" : "pages"}</p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeFile(sf.fileIndex);
+                        }}
+                        className="p-2 rounded-xl border border-[#222430]/15 dark:border-white/20 bg-[var(--background-secondary)] transition-all shrink-0 text-[#222430]/70 dark:text-white/70 hover:text-red-600 dark:hover:text-red-400 hover:border-red-500/50 hover:bg-red-500/10 shadow-sm"
+                        title="Delete File"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Right Preview Panel */}
@@ -583,23 +615,23 @@ export default function MergePdfPage() {
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-2">
-              <button
-                type="button"
-                onClick={clearAll}
-                className="py-4 px-8 rounded-2xl border border-[#222430]/15 dark:border-white/20 bg-[var(--background-secondary)] text-[#222430] dark:text-white hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] font-bold text-sm transition-colors shadow-sm"
-              >
-                Clear All
-              </button>
-
+            <div className="flex flex-col sm:flex-row-reverse items-stretch gap-2.5 sm:gap-3 pt-2">
               <button
                 type="button"
                 onClick={executeMerge}
                 disabled={processing}
-                className="flex-1 py-4 px-6 rounded-2xl border border-[#222430]/20 bg-[#222430] text-white hover:bg-[#2f3242] dark:bg-[#2b1b3d] dark:text-white dark:hover:bg-[#382451] font-extrabold text-base shadow-xl disabled:opacity-40 flex items-center justify-center gap-2.5 transition-all cursor-pointer"
+                className="flex-1 py-3 px-5 rounded-xl border border-[#222430]/20 bg-[#222430] text-white hover:bg-[#2f3242] dark:bg-[#2b1b3d] dark:text-white dark:hover:bg-[#382451] font-bold text-sm shadow-lg disabled:opacity-40 flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
-                {processing ? <Loader2 className="animate-spin" size={20} /> : <Download size={20} />}
-                {processing ? "Merging PDFs..." : `Merge & Download Final PDF (${pagesList.length} ${pagesList.length === 1 ? "Page" : "Pages"})`}
+                {processing ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
+                {processing ? "Merging PDFs..." : `Merge & Download (${pagesList.length} ${pagesList.length === 1 ? "Page" : "Pages"})`}
+              </button>
+
+              <button
+                type="button"
+                onClick={clearAll}
+                className="py-3 px-5 sm:px-6 rounded-xl border border-[#222430]/15 dark:border-white/20 bg-[var(--background-secondary)] text-[#222430] dark:text-white hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] font-semibold text-sm transition-colors shadow-sm"
+              >
+                Clear All
               </button>
             </div>
           </div>

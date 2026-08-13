@@ -200,9 +200,9 @@ export default function CompressPdfPage() {
                 setDone(false);
                 setErrorMessage(null);
               }}
-              className="w-full sm:w-auto py-1.5 px-3.5 rounded-xl bg-red-950/50 hover:bg-red-900/50 text-red-400 font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors shrink-0"
+              className="w-full sm:w-auto py-1.5 px-3.5 rounded-xl border border-card bg-[var(--background-secondary)] hover:bg-card text-slate-600 dark:text-[#9ca3af] hover:text-fg font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors shrink-0"
             >
-              <X size={15} /> Remove File
+              <X size={15} className="text-red-500 dark:text-red-400" /> Remove File
             </button>
           </div>
 
