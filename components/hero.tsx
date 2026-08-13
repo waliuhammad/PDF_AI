@@ -162,8 +162,15 @@ export function Hero() {
                         the 200px they took stacked. lg:contents dissolves this
                         wrapper on desktop so each card is a direct child of the
                         relative container again and its lg:absolute still
-                        positions against it. */}
-                    <div className="mt-3 grid grid-cols-2 gap-3 max-w-sm mx-auto lg:contents">
+                        positions against it.
+
+                        items-start because grid rows stretch by default: the
+                        report.pdf card holds one line of text but was pulled to
+                        the height of the three-line summary beside it, leaving
+                        57px of empty card under its own content. Each card now
+                        takes the height it needs. No effect on desktop, where
+                        lg:contents means there is no grid to align against. */}
+                    <div className="mt-3 grid grid-cols-2 items-start gap-3 max-w-sm mx-auto lg:contents">
 
                     {/* AI Summary */}
                     <div
