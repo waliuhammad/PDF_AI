@@ -21,9 +21,6 @@ const productLinks: FooterLink[] = [
     // call the same tool the same thing.
     { label: "Edit PDF", href: "/edit-pdf" },
     { label: "OCR PDF", href: "/ocr-pdf" },
-    // /chats is the signed-in thread list, so a visitor clicking this from the
-    // marketing footer was bounced to the login page. /chat-pdf is the tool.
-    { label: "Chat with PDF", href: "/chat-pdf" },
 ];
 
 

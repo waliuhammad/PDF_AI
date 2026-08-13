@@ -30,7 +30,7 @@ import {
 // /checkout is here so an anonymous visitor is sent to sign in and returned to
 // the same plan afterwards, rather than reaching a payment page that can only
 // answer 401 — a payment has to belong to an account.
-const PROTECTED = ["/dashboard", "/documents", "/chats", "/settings", "/admin", "/checkout"];
+const PROTECTED = ["/dashboard", "/documents", "/settings", "/admin", "/checkout"];
 
 export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -78,7 +78,6 @@ export const config = {
     matcher: [
         "/dashboard/:path*",
         "/documents/:path*",
-        "/chats/:path*",
         "/settings/:path*",
         "/admin/:path*",
         "/checkout",

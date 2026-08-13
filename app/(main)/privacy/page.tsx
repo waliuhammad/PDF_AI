@@ -53,9 +53,8 @@ export default function PrivacyPage() {
                     </li>
 
                     <li>
-                        <strong>Documents and chats:</strong> files you upload
-                        for processing and documents or chat conversations that
-                        you choose to save to your account.
+                        <strong>Documents:</strong> files you upload for processing
+                        and documents that you choose to save to your account.
                     </li>
 
                     <li>
@@ -109,8 +108,8 @@ export default function PrivacyPage() {
                     </li>
 
                     <li>
-                        <strong>Saved documents and chats:</strong> documents
-                        and chat conversations that you choose to save while
+                        <strong>Saved documents:</strong> documents that you
+                        choose to save while
                         signed in may be stored in our application
                         infrastructure and associated with your account until
                         you delete them, close your account, or they are
@@ -130,7 +129,7 @@ export default function PrivacyPage() {
             <Section heading="AI Features & Third-Party Processing">
                 <p className="mb-4 text-gray-800 dark:text-purple-100">
                     Some PDFAI features, including summarisation, translation,
-                    grammar checking, OCR, and document chat, may use
+                    grammar checking and OCR, may use
                     third-party artificial-intelligence services. Our current
                     AI provider includes Google&apos;s Gemini API.
                 </p>
@@ -190,7 +189,7 @@ export default function PrivacyPage() {
                     <li>
                         <strong>Google Firebase:</strong> used for
                         authentication and application data storage, including
-                        saved documents and chats where applicable.
+                        saved documents where applicable.
                     </li>
 
                     <li>
@@ -253,7 +252,7 @@ export default function PrivacyPage() {
                     </li>
 
                     <li>
-                        <strong>Saved documents and chats:</strong> remain
+                        <strong>Saved documents:</strong> remain
                         associated with your account until you delete them,
                         close your account, or they are otherwise removed
                         according to our retention practices.
@@ -314,8 +313,8 @@ export default function PrivacyPage() {
                     </li>
 
                     <li>
-                        <strong>Deletion:</strong> you can delete documents and
-                        chats through available account controls where those
+                        <strong>Deletion:</strong> you can delete documents
+                        through available account controls where those
                         controls are provided. You may also contact us to
                         request deletion of applicable personal information.
                     </li>

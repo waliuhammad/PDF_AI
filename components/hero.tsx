@@ -42,7 +42,7 @@ export function Hero() {
                     </h1>
 
                     <p className="mt-4 max-w-lg text-sm sm:text-base leading-6 sm:leading-7 text-muted">
-                        Convert, edit, merge, compress, summarise and chat with PDFs
+                        Convert, edit, merge, compress and summarise PDFs
                         using intelligent AI tools. Fast, secure and built for modern
                         professionals.
                     </p>

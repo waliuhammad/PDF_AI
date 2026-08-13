@@ -4,8 +4,6 @@ import helmet from "helmet";
 import morgan from "morgan";
 
 import parserRoute from "./routes/parser.route";
-import retrieverRoute from "./routes/retriever.route";
-import chatRoute from "./routes/chat.route";
 import summaryRoute from "./routes/summary.route";
 import grammarRoute from "./routes/grammar.route";
 import translateRoute from "./routes/translate.route";
@@ -22,8 +20,6 @@ app.use(morgan("dev"));
 
 // Routes
 app.use("/api", parserRoute);
-app.use("/api/retriever", retrieverRoute);
-app.use("/api/chat", chatRoute);
 app.use("/api/summary", summaryRoute);
 app.use("/api/grammar", grammarRoute);
 app.use("/api/translate", translateRoute);

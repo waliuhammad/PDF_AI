@@ -169,14 +169,6 @@ export const tools: Tool[] = [
         badge: "AI",
     },
     {
-        name: "Chat with PDF",
-        description: "Ask questions about your documents.",
-        icon: FileSearch,
-        href: "/chat-pdf", // Updated to match your exact folder name
-        category: "AI Tools",
-        badge: "AI",
-    },
-    {
         name: "Translate PDF",
         description: "Translate your documents.",
         icon: FileSearch,

@@ -204,16 +204,6 @@ export const TOOL_TEXT: Record<string, Partial<Record<Locale, Pair>>> = {
         ur: ["AI خلاصہ", "دستاویزات کا فوری خلاصہ بنائیں۔"],
         zh: ["AI 摘要", "即时生成文档摘要。"],
     },
-    "/chat-pdf": {
-        en: ["Chat with PDF", "Ask questions about your documents."],
-        es: ["Chatear con PDF", "Haz preguntas sobre tus documentos."],
-        fr: ["Discuter avec un PDF", "Posez des questions sur vos documents."],
-        de: ["Mit PDF chatten", "Stellen Sie Fragen zu Ihren Dokumenten."],
-        pt: ["Conversar com PDF", "Faça perguntas sobre seus documentos."],
-        ar: ["الدردشة مع PDF", "اطرح أسئلة حول مستنداتك."],
-        ur: ["PDF سے گفتگو", "اپنی دستاویزات کے بارے میں سوال کریں۔"],
-        zh: ["与 PDF 对话", "就您的文档提问。"],
-    },
     "/translate": {
         en: ["Translate PDF", "Translate your documents."],
         es: ["Traducir PDF", "Traduce tus documentos."],

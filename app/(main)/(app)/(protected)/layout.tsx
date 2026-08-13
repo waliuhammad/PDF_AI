@@ -5,7 +5,7 @@ import { readDevPlanFromCookies } from "@/lib/dev-plan";
 import { peekUsage } from "@/lib/usage";
 
 /**
- * Wraps only the routes backed by user data — dashboard, documents, chats and
+ * Wraps only the routes backed by user data — dashboard, documents and
  * settings. The PDF tools deliberately sit outside this group so anonymous
  * visitors arriving from the marketing pages can still use them.
  *

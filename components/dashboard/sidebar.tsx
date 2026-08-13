@@ -9,7 +9,6 @@ import { useState } from "react";
 import {
     LayoutDashboard,
     FileText,
-    MessageSquare,
     Wrench,
     Settings,
     LogOut,
@@ -43,7 +42,6 @@ const SidebarLogout = dynamic(
 const navItems = [
     { key: "nav.dashboard", href: "/dashboard", icon: LayoutDashboard },
     { key: "nav.documents", href: "/documents", icon: FileText },
-    { key: "nav.chats", href: "/chats", icon: MessageSquare },
     { key: "nav.tools", href: "/tools", icon: Wrench },
     { key: "nav.settings", href: "/settings", icon: Settings },
 ] as const;
@@ -57,7 +55,7 @@ export function Sidebar() {
 
     // The PDF tools are open to visitors without an account, and they share
     // this layout with the signed-in pages — so an anonymous visitor was shown
-    // Dashboard, My Documents, Chats and Settings, every one of which bounces
+    // Dashboard, My Documents and Settings, every one of which bounces
     // them to the login page. The whole sidebar belongs to the signed-in area.
     //
     // Hidden while auth is still resolving as well: assuming signed-in would

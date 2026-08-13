@@ -5,18 +5,10 @@ import {
     ScanText,
     Languages,
     Table2,
-    MessageSquare,
     ArrowRight,
 } from "lucide-react";
 
 const features = [
-    {
-        title: "Chat with PDF",
-        description: "Ask questions about any PDF and receive accurate answers instantly.",
-        icon: MessageSquare,
-        badge: "AI",
-        slug: "chatai-info",
-    },
     {
         title: "AI Summary",
         description: "Generate concise summaries from lengthy reports, books and documents.",
