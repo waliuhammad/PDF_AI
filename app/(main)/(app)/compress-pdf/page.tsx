@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import { Upload, FileText, X, FileArchive, Download, Loader2, CheckCircle2 } from "lucide-react";
+import React, { useState } from "react";
+import { FileText, X, FileArchive, Download, Loader2, CheckCircle2 } from "lucide-react";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 // aliased: this component already has state called errorMessage, which would
 // shadow the import and turn the call below into calling a string.
 import { errorMessage as messageFrom } from "@/lib/errors";
@@ -18,14 +19,12 @@ export default function CompressPdfPage() {
   const [rawFile, setRawFile] = useState<File | null>(null);
   const { begin, cancel } = useCancellableRun();
   const [fileDetails, setFileDetails] = useState<{ name: string; size: number; formattedSize: string } | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
   const [options, setOptions] = useState<TargetOption[]>([]);
   const [selectedOption, setSelectedOption] = useState<TargetOption | null>(null);
   const [processing, setProcessing] = useState(false);
   const [done, setDone] = useState(false);
   const [compressedSize, setCompressedSize] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const formatSize = (bytes: number) => {
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
@@ -132,48 +131,12 @@ export default function CompressPdfPage() {
         </p>
       </div>
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept="application/pdf"
-        hidden
-        onChange={(e) => handleFile(e.target.files)}
-      />
-
       {!fileDetails ? (
-        <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsDragging(true);
-          }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={(e) => {
-            e.preventDefault();
-            setIsDragging(false);
-            handleFile(e.dataTransfer.files);
-          }}
-          onClick={() => inputRef.current?.click()}
-          // See split-pdf: a bare div with an onClick is unreachable without a
-          // mouse, and the input behind it is display:none.
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              inputRef.current?.click();
-            }
-          }}
-          className={`cursor-pointer rounded-2xl sm:rounded-[32px] p-5 sm:p-16 h-auto min-h-[200px] sm:h-[380px] flex flex-col items-center justify-center text-center transition-all bg-[var(--background-secondary)] border border-card shadow-xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${
-            isDragging ? "border-slate-900 dark:border-white scale-[1.01]" : "hover:border-slate-300 dark:hover:border-[#333a4a]"
-          }`}
-        >
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[var(--background-secondary)] mx-auto flex items-center justify-center mb-3 sm:mb-4 text-fg shadow-sm border border-card">
-            <Upload size={22} className="sm:hidden" />
-            <Upload size={26} className="hidden sm:block" />
-          </div>
-          <p className="text-[var(--primary)] font-semibold text-sm sm:text-lg">Click to browse or drag & drop PDFs</p>
-          <p className="text-slate-600 dark:text-[#9ca3af] text-xs sm:text-sm mt-1">Upload a document to start compression</p>
-        </div>
+        <UploadCard
+          onFiles={handleFile}
+          title="Click to browse or drag & drop PDFs"
+          hint="Upload a document to start compression"
+        />
       ) : (
         <div className="space-y-4 sm:space-y-6">
           <div className="bg-card border border-card rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
@@ -320,6 +283,8 @@ export default function CompressPdfPage() {
           </div>
         </div>
       )}
+
+      <SecureNote />
     </div>
   );
 }

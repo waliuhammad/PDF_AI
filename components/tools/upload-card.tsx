@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Upload, X, FileText } from "lucide-react";
+import { Upload, X, FileText, ShieldCheck } from "lucide-react";
 
 /**
  * The one upload area every tool uses.
@@ -11,6 +11,10 @@ import { Upload, X, FileText } from "lucide-react";
  * hex values, so no two pages looked alike and none followed the theme. This
  * takes its colours from the design tokens, which means it also follows the
  * light/dark switch without a `dark:` variant for every rule.
+ *
+ * The width is capped here rather than left to the page, because the tool
+ * pages run from max-w-xl to max-w-7xl and the box came out a different size
+ * on every one of them.
  */
 export function UploadCard({
     onFiles,
@@ -18,7 +22,6 @@ export function UploadCard({
     multiple = false,
     title = "Drag & drop your PDF here",
     hint = "or click to browse",
-    note,
     disabled = false,
 }: {
     onFiles: (files: FileList | null) => void;
@@ -26,8 +29,6 @@ export function UploadCard({
     multiple?: boolean;
     title?: string;
     hint?: string;
-    /** Small print below a divider — several tools reassure about file retention here. */
-    note?: React.ReactNode;
     disabled?: boolean;
 }) {
     const inputRef = useRef<HTMLInputElement>(null);
@@ -59,7 +60,7 @@ export function UploadCard({
                 setDragging(false);
                 if (!disabled) onFiles(e.dataTransfer.files);
             }}
-            className={`w-full rounded-3xl border p-8 sm:p-12 text-center transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${disabled
+            className={`mx-auto w-full max-w-[624px] rounded-3xl border p-8 sm:p-12 text-center transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${disabled
                     ? "cursor-not-allowed opacity-60 border-card bg-[var(--background-secondary)]"
                     : dragging
                         ? "cursor-pointer border-[var(--primary)] bg-primary-tint"
@@ -85,12 +86,20 @@ export function UploadCard({
 
             <p className="text-[var(--primary)] font-semibold text-sm">{title}</p>
             <p className="text-muted text-xs mt-1">{hint}</p>
+        </div>
+    );
+}
 
-            {note && (
-                <div className="mt-4 pt-3 sm:mt-6 sm:pt-4 border-t border-card flex flex-wrap items-center justify-center gap-1.5 text-center text-xs text-muted">
-                    {note}
-                </div>
-            )}
+/**
+ * The reassurance line every tool ends with. It sits below the upload box
+ * rather than inside it — a few tools used to tuck it under a divider within
+ * the box, which made those boxes taller than the rest.
+ */
+export function SecureNote() {
+    return (
+        <div className="pt-5 sm:pt-6 flex flex-wrap items-center justify-center gap-1.5 text-center text-muted text-[11px] sm:text-xs">
+            <ShieldCheck className="w-4 h-4 shrink-0" />
+            <span>Secure processing • Files processed privately</span>
         </div>
     );
 }

@@ -25,7 +25,6 @@ import {
   ArrowDownLeft,
   ArrowDown,
   ArrowDownRight,
-  ShieldCheck,
   Droplets,
   Loader2,
   Trash2,
@@ -33,7 +32,7 @@ import {
 } from "lucide-react";
 import type * as PdfjsLib from "pdfjs-dist";
 import { loadPdfjs } from "@/lib/pdf-libs";
-import { UploadCard } from "@/components/tools/upload-card";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { downloadBlob } from "@/lib/download";
 import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
@@ -312,12 +311,6 @@ export default function WatermarkPdfPage() {
           onFiles={handlePdfFile}
           title="Click to browse or drag & drop a PDF"
           hint="Supports text documents and reports"
-          note={
-            <>
-              <ShieldCheck size={14} className="text-[var(--primary)]" />
-              <span>Secure PDF processing • No file retention</span>
-            </>
-          }
         />
       ) : (
         <div className="space-y-4 sm:space-y-6">
@@ -665,6 +658,8 @@ export default function WatermarkPdfPage() {
           </div>
         </div>
       )}
+
+      <SecureNote />
     </div>
   );
 }

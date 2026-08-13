@@ -9,7 +9,7 @@
 
 
 import React, { useState, useRef, JSX } from "react";
-import { UploadCard } from "@/components/tools/upload-card";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { Trash2, UploadCloud, Sparkles, Loader2, Image as Plus, Sliders, Type } from "lucide-react";
 import { loadJsPdf } from "@/lib/pdf-libs";
 import { errorMessage } from "@/lib/errors";
@@ -774,6 +774,8 @@ export default function ImageToPdf(): JSX.Element {
             </div>
           </div>
         )}
+
+        <SecureNote />
       </div>
     </div>
   );

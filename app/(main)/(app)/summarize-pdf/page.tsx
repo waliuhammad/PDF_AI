@@ -1,7 +1,7 @@
 "use client";
 
 import { useState} from "react";
-import { UploadCard } from "@/components/tools/upload-card";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { FileText, X, Copy, Sparkles } from "lucide-react";
 import { errorMessage } from "@/lib/errors";
 import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
@@ -163,6 +163,8 @@ export default function SummarizePdfPage() {
                     </div>
                 </>
             )}
+
+            <SecureNote />
         </div>
     );
 }

@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { FileText, Trash2, Download, Eye, EyeOff, LockOpen, ShieldCheck, Loader2 } from "lucide-react";
-import { UploadCard } from "@/components/tools/upload-card";
+import { FileText, Trash2, Download, Eye, EyeOff, LockOpen, Loader2 } from "lucide-react";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { errorMessage } from "@/lib/errors";
 import { downloadBlob } from "@/lib/download";
 import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
@@ -108,12 +108,6 @@ export default function UnlockPdfPage() {
                         onFiles={handleFile}
                         title="Click to browse or drag & drop a PDF"
                         hint="Supports text documents and reports"
-                        note={
-                            <>
-                                <ShieldCheck size={14} className="text-[var(--primary)]" />
-                                <span>Secure PDF processing • No file retention</span>
-                            </>
-                        }
                     />
 
                     {error && (
@@ -209,12 +203,10 @@ export default function UnlockPdfPage() {
                         </button>
                     </div>
 
-                    <div className="flex items-center justify-center gap-2 text-[11px] sm:text-xs text-muted pt-3 border-t border-card text-center">
-                        <ShieldCheck size={16} className="text-purple-900 dark:text-cyan-400 shrink-0" />
-                        <span>Secure processing • Password decryption verified safely</span>
-                    </div>
                 </form>
             )}
+
+            <SecureNote />
         </div>
     );
 }

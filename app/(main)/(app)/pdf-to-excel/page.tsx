@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useRef, JSX } from "react";
-import { UploadCard } from "@/components/tools/upload-card";
-import { FileText, Trash2, Download, ShieldCheck, Sparkles, FileSpreadsheet } from "lucide-react";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
+import { FileText, Trash2, Download, Sparkles, FileSpreadsheet } from "lucide-react";
 import { loadXlsx } from "@/lib/pdf-libs";
 import { errorMessage } from "@/lib/errors";
 import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
@@ -178,10 +178,7 @@ export default function PdfToExcel(): JSX.Element {
           </button>
         )}
 
-        <div className="pt-1 md:pt-2 flex items-center justify-center space-x-1.5 text-slate-500 dark:text-slate-500 text-[10px] md:text-xs text-center">
-          <ShieldCheck className="w-4 h-4 text-slate-400 shrink-0" />
-          <span>Secure PDF text extraction • No file retention</span>
-        </div>
+        <SecureNote />
 
       </div>
     </div>

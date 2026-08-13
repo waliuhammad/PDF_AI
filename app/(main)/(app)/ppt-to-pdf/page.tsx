@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { UploadCard, FileChip } from "@/components/tools/upload-card";
-import { Presentation, ShieldCheck, Download, Loader2 } from "lucide-react";
+import { UploadCard, FileChip, SecureNote } from "@/components/tools/upload-card";
+import { Presentation, Download, Loader2 } from "lucide-react";
 import { downloadBlob } from "@/lib/download";
 import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
@@ -143,10 +143,7 @@ export default function PptToPdfPage() {
         )}
       </form>
 
-      <div className="pt-6 sm:pt-8 flex items-center justify-center gap-1.5 text-muted text-[11px] sm:text-xs text-center">
-        <ShieldCheck className="w-4 h-4 shrink-0" />
-        <span>Secure processing • No file retention</span>
-      </div>
+      <SecureNote />
     </div>
   );
 }

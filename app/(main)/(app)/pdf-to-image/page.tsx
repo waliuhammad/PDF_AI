@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { UploadCard } from "@/components/tools/upload-card";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { FormatSelect } from "@/components/tools/format-select";
 import { loadPdfjs, loadJsZip } from "@/lib/pdf-libs";
 import { errorMessage } from "@/lib/errors";
@@ -550,6 +550,8 @@ export default function PdfToImageConverter() {
           )}
 
         </div>
+
+        <SecureNote />
       </div>
     </main>
   );

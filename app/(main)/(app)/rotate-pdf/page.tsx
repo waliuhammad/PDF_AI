@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef, JSX } from "react";
-import { UploadCard } from "@/components/tools/upload-card";
-import { FileText, Trash2, RotateCw, Download, Layers, ShieldCheck, Loader2 } from "lucide-react";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
+import { FileText, Trash2, RotateCw, Download, Layers, Loader2 } from "lucide-react";
 import { errorName } from "@/lib/errors";
 // Type-only, so it adds nothing to the bundle — the library itself still
 // arrives through the dynamic import below.
@@ -412,10 +412,7 @@ export default function RotatePdfPage(): JSX.Element {
         </div>
       )}
 
-      <div className="pt-5 sm:pt-6 flex items-center justify-center gap-1.5 text-muted text-[11px] sm:text-xs">
-        <ShieldCheck className="w-4 h-4 shrink-0" />
-        <span>Secure processing • Files processed privately</span>
-      </div>
+      <SecureNote />
     </div>
   );
 }

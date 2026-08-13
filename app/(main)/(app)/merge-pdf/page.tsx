@@ -18,7 +18,7 @@ import {
   GripVertical,
 } from "lucide-react";
 import { useRef, useState } from "react";
-import { UploadCard } from "@/components/tools/upload-card";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { downloadBlob } from "@/lib/download";
 import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
@@ -639,6 +639,8 @@ export default function MergePdfPage() {
           </div>
         </div>
       )}
+
+      <SecureNote />
     </div>
   );
 }

@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { FileText, Trash2, Download, ShieldCheck, PenLine, Loader2, CheckCircle2 } from "lucide-react";
-import { UploadCard } from "@/components/tools/upload-card";
+import { FileText, Trash2, Download, PenLine, Loader2, CheckCircle2 } from "lucide-react";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import type * as PdfjsLib from "pdfjs-dist";
 import { loadPdfjs } from "@/lib/pdf-libs";
 import { errorName } from "@/lib/errors";
@@ -333,12 +333,6 @@ export default function SignPdfPage() {
             onFiles={handleFile}
             title="Click to browse or drag & drop a PDF"
             hint="Supports text documents and reports"
-            note={
-              <>
-                <ShieldCheck size={14} className="text-[var(--primary)]" />
-                <span>Secure PDF processing • No file retention</span>
-              </>
-            }
           />
 
           {/* An invalid-file message had nowhere to render before */}
@@ -646,6 +640,8 @@ export default function SignPdfPage() {
           </div>
         </div>
       )}
+
+      <SecureNote />
     </div>
   );
 }

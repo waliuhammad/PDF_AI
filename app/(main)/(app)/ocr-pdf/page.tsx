@@ -1,7 +1,7 @@
 "use client";
 
 import { useState} from "react";
-import { UploadCard } from "@/components/tools/upload-card";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { FileText, X, Copy, ScanText } from "lucide-react";
 import { errorMessage } from "@/lib/errors";
 import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
@@ -153,6 +153,8 @@ export default function OcrPdfPage() {
                     </div>
                 </>
             )}
+
+            <SecureNote />
         </div>
     );
 }

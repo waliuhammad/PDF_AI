@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { FileText, Trash2, Loader2, Download } from "lucide-react";
-import { UploadCard } from "@/components/tools/upload-card";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { downloadBlob } from "@/lib/download";
 import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
@@ -167,6 +167,8 @@ export default function WordToPdfPage() {
           </div>
         </div>
       )}
+
+      <SecureNote />
     </div>
   );
 }

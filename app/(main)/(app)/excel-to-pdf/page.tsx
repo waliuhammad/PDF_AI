@@ -1,12 +1,11 @@
 "use client";
 
 import React, { useState, useRef, JSX } from "react";
-import { UploadCard } from "@/components/tools/upload-card";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import {
   FileSpreadsheet,
   Trash2,
   Download,
-  ShieldCheck,
   Sparkles,
   Layers,
   Sliders,
@@ -459,13 +458,7 @@ export default function ExcelToPdf(): JSX.Element {
         )}
 
         {/* Security Notice */}
-        <div className="pt-1 md:pt-2 flex items-center justify-center space-x-1.5 text-slate-500 text-[10px] md:text-xs text-center">
-          <ShieldCheck className="w-4 h-4 text-slate-400 shrink-0" />
-
-          <span>
-            Secure client-side spreadsheet range restriction • No file retention
-          </span>
-        </div>
+        <SecureNote />
 
       </div>
     </div>

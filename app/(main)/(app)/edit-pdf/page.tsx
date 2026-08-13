@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Upload, FileText, X, Download, Loader2, Type, Bold, Italic, Pencil, Trash2, ChevronLeft, ChevronRight, Eraser, Move, Sparkles } from "lucide-react";
+import { FileText, X, Download, Loader2, Type, Bold, Italic, Pencil, Trash2, ChevronLeft, ChevronRight, Eraser, Move, Sparkles } from "lucide-react";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import type * as PdfjsLib from "pdfjs-dist";
 import { downloadBlob } from "@/lib/download";
 import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
@@ -69,7 +70,6 @@ export default function EditPdfPage() {
   const [rawFile, setRawFile] = useState<File | null>(null);
   const { begin, cancel } = useCancellableRun();
   const [fileDetails, setFileDetails] = useState<{ name: string; size: string } | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
   const [pageCount, setPageCount] = useState<number>(0);
   const [selectedPageIndex, setSelectedPageIndex] = useState<number>(0);
   const [pdfDocProxy, setPdfDocProxy] = useState<PdfjsLib.PDFDocumentProxy | null>(null);
@@ -121,7 +121,6 @@ export default function EditPdfPage() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const overlayContainerRef = useRef<HTMLDivElement | null>(null);
   const previewBoxRef = useRef<HTMLDivElement | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!window.pdfjsLib) {
@@ -465,46 +464,11 @@ export default function EditPdfPage() {
             <p className="text-muted text-xs sm:text-sm px-2 max-w-lg mx-auto">Add text, replace content, or draw with precise positioning.</p>
           </div>
 
-          <input
-            ref={inputRef}
-            type="file"
-            accept="application/pdf"
-            hidden
-            onChange={(e) => handleFile(e.target.files)}
+          <UploadCard
+            onFiles={handleFile}
+            title="Click to browse or drag & drop a PDF"
+            hint="Supports text documents and reports"
           />
-
-          {/* Solid, rounded, centered dropzone — matching compress-pdf exactly */}
-          <div
-            onDragOver={(e) => {
-              e.preventDefault();
-              setIsDragging(true);
-            }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={(e) => {
-              e.preventDefault();
-              setIsDragging(false);
-              handleFile(e.dataTransfer.files);
-            }}
-            onClick={() => inputRef.current?.click()}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                inputRef.current?.click();
-              }
-            }}
-            className={`cursor-pointer rounded-2xl sm:rounded-[32px] p-5 sm:p-16 h-auto min-h-[200px] sm:h-[380px] flex flex-col items-center justify-center text-center transition-all bg-[var(--background-secondary)] border border-card shadow-xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${
-              isDragging ? "border-slate-900 dark:border-white scale-[1.01]" : "hover:border-slate-300 dark:hover:border-[#333a4a]"
-            }`}
-          >
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[var(--background-secondary)] mx-auto flex items-center justify-center mb-3 sm:mb-4 text-fg shadow-sm border border-card">
-              <Upload size={22} className="sm:hidden" />
-              <Upload size={26} className="hidden sm:block" />
-            </div>
-            <p className="text-[var(--primary)] font-semibold text-sm sm:text-lg">Click to browse or drag & drop a PDF</p>
-            <p className="text-slate-600 dark:text-[#9ca3af] text-xs sm:text-sm mt-1">Supports text documents and reports</p>
-          </div>
 
           {errorMessage && (
             <div className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-xs text-center">
@@ -927,6 +891,8 @@ export default function EditPdfPage() {
           </div>
         </div>
       )}
+
+      <SecureNote />
     </div>
   );
 }
