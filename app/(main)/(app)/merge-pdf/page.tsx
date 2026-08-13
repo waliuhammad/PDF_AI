@@ -518,8 +518,11 @@ export default function MergePdfPage() {
 
                     {activePage && (
                       <div className="mt-4 text-center space-y-1">
-                        <p className="text-sm font-bold truncate max-w-xs text-[#222430] dark:text-white">
-                          Source File: <span className="text-[#222430]/70 dark:text-white/80">{activePage.fileName}</span>
+                        <p className="text-sm font-bold max-w-xs text-[#222430] dark:text-white">
+                          <span className="hidden sm:inline">Source File: </span>
+                          <span className="inline-block text-[#222430]/70 dark:text-white/80 break-all max-w-[220px] sm:max-w-none sm:truncate">
+                            {activePage.fileName}
+                          </span>
                         </p>
                         <p className="text-xs text-[#222430]/60 dark:text-white/80">
                           Original Document Page: <strong className="text-[#222430] dark:text-white">{activePage.localPageIndex + 1}</strong>
