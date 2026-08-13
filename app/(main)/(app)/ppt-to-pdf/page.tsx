@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { UploadCard, FileChip } from "@/components/tools/upload-card";
 import { Presentation, ShieldCheck, Download, Loader2 } from "lucide-react";
+import { downloadBlob } from "@/lib/download";
 
 export default function PptToPdfPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -67,14 +68,7 @@ export default function PptToPdfPage() {
       }
 
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${file.name.replace(/\.[^/.]+$/, "")}-converted.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      downloadBlob(blob, `${file.name.replace(/\.[^/.]+$/, "")}-converted.pdf`);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);

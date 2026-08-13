@@ -6,6 +6,7 @@ import { FormatSelect } from "@/components/tools/format-select";
 import { loadPdfjs, loadJsZip } from "@/lib/pdf-libs";
 import { errorMessage } from "@/lib/errors";
 import { claimOperation } from "@/lib/claim-operation";
+import { downloadBlob } from "@/lib/download";
 import {
   FileText,
   Trash2,
@@ -371,15 +372,7 @@ export default function PdfToImageConverter() {
         selectedFormat
       );
 
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.download = filename;
-
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(downloadUrl);
+      downloadBlob(blob, filename);
 
       setSuccessMessage("Conversion completed successfully! Your download has started.");
     } catch (err) {

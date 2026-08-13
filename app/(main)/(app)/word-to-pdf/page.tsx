@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { FileText, Trash2, Loader2, Download } from "lucide-react";
 import { UploadCard } from "@/components/tools/upload-card";
+import { downloadBlob } from "@/lib/download";
 
 export default function WordToPdfPage() {
   const [file, setFile] = useState<File | null>(null);
@@ -62,14 +63,7 @@ export default function WordToPdfPage() {
       }
 
       const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${file.name.replace(/\.[^/.]+$/, "")}_converted.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      downloadBlob(blob, `${file.name.replace(/\.[^/.]+$/, "")}_converted.pdf`);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);

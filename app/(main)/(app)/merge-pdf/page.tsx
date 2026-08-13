@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useRef, useState } from "react";
 import { UploadCard } from "@/components/tools/upload-card";
+import { downloadBlob } from "@/lib/download";
 
 interface PDFSourceFile {
   fileIndex: number;
@@ -287,14 +288,7 @@ export default function MergePdfPage() {
       }
 
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `merged_document_${Date.now()}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      downloadBlob(blob, `merged_document_${Date.now()}.pdf`);
     } catch {
       setErrorMessage("An error occurred while merging your PDF files.");
     } finally {

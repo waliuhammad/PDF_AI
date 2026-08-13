@@ -34,6 +34,7 @@ import {
 import type * as PdfjsLib from "pdfjs-dist";
 import { loadPdfjs } from "@/lib/pdf-libs";
 import { UploadCard } from "@/components/tools/upload-card";
+import { downloadBlob } from "@/lib/download";
 
 type Position =
   | "top-left"
@@ -234,15 +235,8 @@ export default function WatermarkPdfPage() {
       }
 
       const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
       const originalNameWithoutExt = rawFile.name.replace(/\.[^/.]+$/, "");
-      a.download = `${originalNameWithoutExt}_watermarked.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      downloadBlob(blob, `${originalNameWithoutExt}_watermarked.pdf`);
 
       setSuccessMessage(true);
     } catch {

@@ -6,6 +6,7 @@ import { UploadCard } from "@/components/tools/upload-card";
 import type * as PdfjsLib from "pdfjs-dist";
 import { loadPdfjs } from "@/lib/pdf-libs";
 import { errorName } from "@/lib/errors";
+import { downloadBlob } from "@/lib/download";
 
 /**
  * The faces pdf-lib can embed from the PDF standard set, so the preview and
@@ -294,14 +295,7 @@ export default function SignPdfPage() {
       }
 
       const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${file.name.replace(/\.[^/.]+$/, "")}-signed.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      downloadBlob(blob, `${file.name.replace(/\.[^/.]+$/, "")}-signed.pdf`);
 
       setSuccessMessage(true);
     } catch {

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { FileText, Trash2, Download, Eye, EyeOff, LockOpen, ShieldCheck, Loader2 } from "lucide-react";
 import { UploadCard } from "@/components/tools/upload-card";
 import { errorMessage } from "@/lib/errors";
+import { downloadBlob } from "@/lib/download";
 
 export default function UnlockPdfPage() {
     const [file, setFile] = useState<{ name: string; size: string; rawFile: File } | null>(null);
@@ -69,14 +70,7 @@ export default function UnlockPdfPage() {
             }
 
             const blob = await res.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement("a");
-            a.href = url;
-            a.download = `${file.name.replace(/\.[^/.]+$/, "")}-unlocked.pdf`;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(url);
+            downloadBlob(blob, `${file.name.replace(/\.[^/.]+$/, "")}-unlocked.pdf`);
             setDone(true);
         } catch (err) {
             setError(errorMessage(err, "An unexpected error occurred."));
