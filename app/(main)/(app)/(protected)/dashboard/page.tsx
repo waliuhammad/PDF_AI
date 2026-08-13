@@ -105,7 +105,7 @@ export default function DashboardPage() {
                     <span className="text-sm font-bold text-fg">
                         {storageLimitGb === null
                             ? formatStorageUsed(storageUsedGb)
-                            : `${formatStorageUsed(storageUsedGb)}/${storageLimitGb}G`}
+                            : `${formatStorageUsed(storageUsedGb)}/${storageLimitGb}GB`}
                     </span>
                 </div>
                 <div className="bg-card border border-card rounded-xl p-2 text-center flex flex-col items-center justify-center">
