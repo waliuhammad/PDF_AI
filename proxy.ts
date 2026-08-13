@@ -27,7 +27,10 @@ import {
 // /admin is here so its shell never renders for a signed-out visitor. The real
 // gate is the admin claim, checked by every route under /api/admin — this only
 // decides what renders, and the admin pages hold no data until those answer.
-const PROTECTED = ["/dashboard", "/documents", "/chats", "/settings", "/admin"];
+// /checkout is here so an anonymous visitor is sent to sign in and returned to
+// the same plan afterwards, rather than reaching a payment page that can only
+// answer 401 — a payment has to belong to an account.
+const PROTECTED = ["/dashboard", "/documents", "/chats", "/settings", "/admin", "/checkout"];
 
 export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -78,5 +81,7 @@ export const config = {
         "/chats/:path*",
         "/settings/:path*",
         "/admin/:path*",
+        "/checkout",
+        "/checkout/:path*",
     ],
 };

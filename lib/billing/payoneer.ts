@@ -150,6 +150,59 @@ export async function rejectPayment(
         note,
     })
 }
+export interface LatestPayment {
+    id: string
+    reference: string
+    amount: number
+    planId: PlanId
+    cycle: BillingCycle
+    status: PaymentStatus
+    note: string | null
+    createdAt: number | null
+}
+
+/**
+ * The caller's most recent payment whatever its state.
+ *
+ * The checkout page watches this to know when an admin has confirmed, so it
+ * has to see "paid" and "rejected" too — pendingPaymentFor stops answering the
+ * moment the payment stops being pending, which is exactly the moment the
+ * customer is waiting to hear about.
+ *
+ * Ordering happens here rather than in the query: `where uid == … orderBy
+ * createdAt` needs a composite index, and Firestore only says so the first time
+ * it runs, in production, on the screen someone is mid-payment on. A customer
+ * has a handful of payments, so sorting a small page costs nothing.
+ */
+export async function latestPaymentFor(uid: string): Promise<LatestPayment | null> {
+    const snap = await database().collection("payments").where("uid", "==", uid).limit(25).get()
+    if (snap.empty) return null
+
+    const rows = snap.docs
+        .map((doc) => {
+            const data = doc.data()
+            return {
+                id: doc.id,
+                reference: (data.reference as string) ?? "",
+                amount: (data.amount as number) ?? 0,
+                planId: (data.planId as PlanId) ?? "pro",
+                cycle: (data.cycle as BillingCycle) ?? "monthly",
+                status: (data.status as PaymentStatus) ?? "pending",
+                note: (data.note as string | null) ?? null,
+                createdAt: data.createdAt?.toMillis?.() ?? null,
+            }
+        })
+        // A pending invoice outranks a settled one regardless of age: it is the
+        // one the customer still has to act on.
+        .sort((a, b) => {
+            if (a.status === "pending" && b.status !== "pending") return -1
+            if (b.status === "pending" && a.status !== "pending") return 1
+            return (b.createdAt ?? 0) - (a.createdAt ?? 0)
+        })
+
+    return rows[0]
+}
+
 /** The caller's outstanding invoice, if they have one. */
 export async function pendingPaymentFor(
     uid: string
