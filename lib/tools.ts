@@ -1,3 +1,4 @@
+import { TOOL_PATHS } from "@/lib/tool-paths";
 import {
     FileStack,
     Scissors,
@@ -185,3 +186,23 @@ export const tools: Tool[] = [
         badge: "New",
     },
 ];
+/**
+ * lib/tool-paths.ts holds the same routes without the icons, so the navbar can
+ * ask "is this a tool page" without pulling twenty icon components into every
+ * marketing page. Drift between the two would leave a tool's page with no
+ * highlighted nav link and nothing to explain why, so it is caught here.
+ *
+ * Development only: this is a wiring mistake, not a condition to check on every
+ * production request.
+ */
+if (process.env.NODE_ENV !== "production") {
+    const known = new Set(TOOL_PATHS);
+    const missing = tools.map((t) => t.href).filter((href) => !known.has(href));
+
+    if (missing.length) {
+        console.error(
+            `lib/tool-paths.ts is missing ${missing.join(", ")} — add them, or the ` +
+            "navbar will not highlight Tools on those pages."
+        );
+    }
+}

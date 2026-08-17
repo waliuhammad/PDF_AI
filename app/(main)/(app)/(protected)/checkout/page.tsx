@@ -35,8 +35,10 @@ function isPlanId(value: string | null): value is PlanId {
 
 function priceFor(planId: PlanId, cycle: BillingCycle): number {
     const plan = getPlan(planId)
-    // Yearly is stored per month, so a one-time yearly invoice is twelve of them.
-    return cycle === "yearly" ? plan.yearlyPrice * 12 : plan.monthlyPrice
+    // Each field is the amount for its own cycle. Must stay in step with
+    // priceFor in lib/billing/payoneer.ts, which is what the invoice uses —
+    // if these disagree, the page quotes one price and charges another.
+    return cycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice
 }
 
 const CARD = "rounded-2xl border border-card bg-card"

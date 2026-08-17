@@ -26,8 +26,10 @@ function makeReference(): string {
 
 export function priceFor(planId: PlanId, cycle: BillingCycle): number {
     const plan = getPlan(planId)
-    // yearly price is stored per-month, so bill 12x for a one-time invoice
-    return cycle === "yearly" ? plan.yearlyPrice * 12 : plan.monthlyPrice
+    // Both are the amount for their own cycle. This used to multiply the yearly
+    // figure by twelve because the field held a per-month equivalent, which
+    // meant the invoice was computed from a number nobody could read as a price.
+    return cycle === "yearly" ? plan.yearlyPrice : plan.monthlyPrice
 }
 
 export async function createPayment(args: {

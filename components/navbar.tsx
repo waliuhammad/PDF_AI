@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { isToolPath } from "@/lib/tool-paths";
 import { useState, useEffect } from "react";
 import { Menu, X, FileText } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
@@ -37,8 +38,16 @@ export function Navbar() {
    * the hash decides. Anywhere else there are no sections to observe and the
    * route is the only thing that says where they are.
    */
-  const isActive = (item: (typeof navLinks)[number]) =>
-    pathname === "/" ? activeHash === hashOf(item.href) : item.page === pathname;
+  const isActive = (item: (typeof navLinks)[number]) => {
+    if (pathname === "/") return activeHash === hashOf(item.href);
+
+    // A tool's own page is still "Tools" as far as the bar is concerned —
+    // /merge-pdf is not a section anywhere, so without this nothing lights up
+    // on any of the twenty-one tool pages.
+    if (item.page === "/tools") return isToolPath(pathname);
+
+    return item.page === pathname;
+  };
 
   const handleNavClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
