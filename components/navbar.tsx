@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Menu, X, FileText } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
@@ -11,9 +12,13 @@ import { ThemeToggle } from "./theme-toggle";
  *  nothing at all. "/#tools" navigates home and lands on the section. */
 const navLinks = [
   { name: "Home", href: "/#hero" },
-  { name: "Tools", href: "/#tools" },
+  // `page` is the real route this link also stands for. The active state was
+  // decided purely by the landing page's hash, so on /tools — a page of its
+  // own, with no #tools section in it — nothing matched and no link was
+  // underlined at all. Same on /pricing.
+  { name: "Tools", href: "/#tools", page: "/tools" },
   { name: "How it Works", href: "/#how-it-works" },
-  { name: "Pricing", href: "/#pricing" },
+  { name: "Pricing", href: "/#pricing", page: "/pricing" },
   { name: "FAQ", href: "/#faq" },
 ];
 
@@ -23,6 +28,17 @@ const hashOf = (href: string) => href.slice(href.indexOf("#"));
 export function Navbar() {
   const [open, setOpen] = useState(false);
   const [activeHash, setActiveHash] = useState("");
+  const pathname = usePathname();
+
+  /**
+   * Which link to underline.
+   *
+   * On the landing page the sections are what the visitor is looking at, so
+   * the hash decides. Anywhere else there are no sections to observe and the
+   * route is the only thing that says where they are.
+   */
+  const isActive = (item: (typeof navLinks)[number]) =>
+    pathname === "/" ? activeHash === hashOf(item.href) : item.page === pathname;
 
   const handleNavClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
@@ -112,7 +128,7 @@ export function Navbar() {
         {/* Desktop Navigation */}
         <nav className="hidden items-center gap-8 lg:flex">
           {navLinks.map((item) => {
-            const active = activeHash === hashOf(item.href);
+            const active = isActive(item);
 
             return (
               <Link
@@ -182,7 +198,7 @@ export function Navbar() {
           >
             <div className="space-y-1 px-4 py-4 sm:space-y-2 sm:px-6 sm:py-6">
               {navLinks.map((item) => {
-                const active = activeHash === hashOf(item.href);
+                const active = isActive(item);
 
                 return (
                   <Link
