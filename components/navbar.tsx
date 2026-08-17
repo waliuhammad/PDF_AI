@@ -91,28 +91,68 @@ export function Navbar() {
 
     // getElementById, not querySelector — "/#tools" is not a valid selector.
     // On the content pages this finds nothing and the observer simply idles.
-    const sections = navLinks
-      .map((link) => document.getElementById(hashOf(link.href).slice(1)))
-      .filter(Boolean);
+    const ids = navLinks.map((link) => hashOf(link.href).slice(1));
+    const sections = ids
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveHash(`#${entry.target.id}`);
-          }
-        });
-      },
-      { threshold: 0.4 }
-    );
+    /**
+     * The section filling most of the screen is the one being read.
+     *
+     * This replaced an IntersectionObserver with a 0.4 threshold, which could
+     * not work here for two reasons. A threshold is a fraction of the section,
+     * and the tools section is nearly twice the viewport — 40% of it is never
+     * on screen at once, so it could never qualify. And the callback let every
+     * intersecting section set the hash, so the last one in the array won and
+     * nothing happened when a section left. Scrolling from the hero into the
+     * tools section left the underline on Home, which is what this fixes.
+     *
+     * Comparing visible height needs no threshold and no tuned band: it gives
+     * the same answer at every scroll position, including part-way between two
+     * sections.
+     */
+    const pickActive = () => {
+      const viewportHeight = window.innerHeight;
+      let winner = "";
+      let mostVisible = 0;
 
-    sections.forEach((section) => {
-      if (section) observer.observe(section);
-    });
+      for (const section of sections) {
+        const box = section.getBoundingClientRect();
+        const visible =
+          Math.min(box.bottom, viewportHeight) - Math.max(box.top, 0);
+
+        if (visible > mostVisible) {
+          mostVisible = visible;
+          winner = section.id;
+        }
+      }
+
+      if (winner) setActiveHash(`#${winner}`);
+    };
+
+    // One measurement per frame at most: five rects is cheap, but not once per
+    // scroll event.
+    let frame = 0;
+    const onScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        pickActive();
+      });
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    // Through rAF rather than straight away, so the first paint is not a
+    // second render triggered from inside this effect.
+    const initial = requestAnimationFrame(pickActive);
 
     return () => {
       window.removeEventListener("hashchange", handleHashChange);
-      observer.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      cancelAnimationFrame(initial);
+      if (frame) cancelAnimationFrame(frame);
     };
   }, []);
 
