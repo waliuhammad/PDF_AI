@@ -395,8 +395,8 @@ export default function ImageToPdf(): JSX.Element {
   const usedPages = Array.from(new Set(images.map((img) => img.page))).sort((a, b) => a - b);
 
   return (
-    <div className="min-h-screen bg-background text-fg antialiased selection:bg-slate-900 dark:selection:bg-blue-500 selection:text-white flex flex-col items-center md:justify-center px-3 py-4 md:p-6">
-      <div className="w-full max-w-4xl space-y-5 md:space-y-8 md:bg-card md:border md:border-card md:p-8 md:rounded-3xl md:shadow-xl dark:md:shadow-2xl md:backdrop-blur-xl">
+    <div className="w-full text-fg antialiased selection:bg-slate-900 dark:selection:bg-blue-500 selection:text-white px-4 sm:px-6 py-6 sm:py-10">
+      <div className="w-full max-w-4xl mx-auto space-y-5 md:space-y-8">
 
         <div className="text-center space-y-1.5 md:space-y-2">
           <div className="flex justify-center mb-1 md:mb-0">

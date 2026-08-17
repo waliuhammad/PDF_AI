@@ -190,9 +190,9 @@ export default function ExcelToPdf(): JSX.Element {
     : [];
 
   return (
-    <div className="min-h-screen bg-background text-fg antialiased selection:bg-slate-900 dark:selection:bg-slate-700 selection:text-white flex flex-col items-center md:justify-center px-3 py-4 md:p-6">
+    <div className="w-full text-fg antialiased selection:bg-slate-900 dark:selection:bg-slate-700 selection:text-white px-4 sm:px-6 py-6 sm:py-10">
 
-      <div className="w-full max-w-4xl space-y-5 md:space-y-8 md:bg-card md:border md:border-card md:p-8 md:rounded-3xl md:shadow-xl dark:md:shadow-2xl md:backdrop-blur-xl">
+      <div className="w-full max-w-4xl mx-auto space-y-5 md:space-y-8">
 
         {/* Tool Header */}
         <div className="text-center space-y-1.5 md:space-y-2">
