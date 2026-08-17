@@ -6,6 +6,7 @@ import {
     SESSION_COOKIE,
     SESSION_MAX_AGE_MS,
 } from "@/lib/firebase/admin";
+import { rateLimit, SESSION_LIMIT } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
@@ -23,6 +24,11 @@ export const runtime = "nodejs";
  * navigation but not a cross-site form post, and secure outside development.
  */
 export async function POST(req: NextRequest) {
+    // Each call verifies an ID token against Google, so an unthrottled endpoint
+    // is both a way to hammer sign-in and a way to spend someone else's quota.
+    const tooMany = rateLimit(req, SESSION_LIMIT);
+    if (tooMany) return tooMany;
+
     if (!isAdminConfigured()) {
         console.error(
             `auth/session: no session cookie can be issued — ${adminConfigProblem()}`

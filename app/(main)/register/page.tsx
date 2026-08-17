@@ -9,6 +9,7 @@ import { DEFAULT_DIAL_CODE } from "@/lib/countryCodes";
 import { SocialAuth } from "@/components/auth/social-auth";
 import { TermsAgreement } from "@/components/auth/terms-agreement";
 import { CountryCodeCombobox } from "@/components/auth/country-code-combobox";
+import { signUpErrorMessage, isUserCancelled } from "@/lib/auth-errors";
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -30,7 +31,9 @@ export default function RegisterPage() {
             await registerWithEmail({ fullName: name, email, password, phoneDialCode: dialCode, phoneNumber });
             router.push("/dashboard");
         } catch (err) {
-            setError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+            // Firebase's own message used to reach the screen, which showed the
+            // raw auth/... code and read like a crash.
+            setError(signUpErrorMessage(err));
         } finally {
             setLoading(false);
         }
@@ -47,14 +50,8 @@ export default function RegisterPage() {
             await signInWithSocial(provider);
             router.push("/dashboard");
         } catch (err) {
-            const code = (err as { code?: string })?.code;
-            if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
-                setError(null);
-            } else if (code === "auth/operation-not-allowed") {
-                setError("That sign-up method isn't enabled for this app yet.");
-            } else {
-                setError(err instanceof Error ? err.message : "Sign-up failed. Please try again.");
-            }
+            // A closed popup is the user changing their mind, not a failure.
+            setError(isUserCancelled(err) ? null : signUpErrorMessage(err));
         } finally {
             setLoading(false);
         }

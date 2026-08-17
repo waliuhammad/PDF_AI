@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import { metered } from "@/lib/metered";
 import { encryptPDF } from "@pdfsmaller/pdf-encrypt-lite";
+import { rejectBadUpload, contentDisposition } from "@/lib/uploads";
 
 export const POST = metered(async (req: NextRequest) => {
   try {
@@ -19,6 +20,10 @@ export const POST = metered(async (req: NextRequest) => {
       return NextResponse.json({ error: "Missing PDF file." }, { status: 400 });
     }
 
+    // Size and type are checked here, before anything reads the bytes.
+    const badUpload = rejectBadUpload(file, "pdf");
+    if (badUpload) return badUpload;
+
     if (!password || password.trim().length === 0) {
       return NextResponse.json({ error: "Password is required for protection." }, { status: 400 });
     }
@@ -33,7 +38,7 @@ export const POST = metered(async (req: NextRequest) => {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${file.name.replace(/\.[^/.]+$/, "")}-protected.pdf"`,
+        "Content-Disposition": contentDisposition(`${file.name.replace(/\.[^/.]+$/, "")}-protected.pdf`),
       },
     });
   } catch (err) {

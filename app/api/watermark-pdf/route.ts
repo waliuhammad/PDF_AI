@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import { metered } from "@/lib/metered";
 import { PDFDocument, rgb, degrees, StandardFonts } from "pdf-lib";
+import { rejectBadUpload, contentDisposition } from "@/lib/uploads";
 
 type Position =
   | "top-left"
@@ -29,6 +30,10 @@ export const POST = metered(async (req: NextRequest) => {
     if (!file) {
       return NextResponse.json({ error: "No PDF file uploaded" }, { status: 400 });
     }
+
+    // Size and type are checked here, before anything reads the bytes.
+    const badUpload = rejectBadUpload(file, "pdf");
+    if (badUpload) return badUpload;
 
     // The work happens inside `if (type === "text")` / `else if (type ===
     // "image")`. With neither, both branches were skipped and the file came
@@ -222,7 +227,7 @@ export const POST = metered(async (req: NextRequest) => {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="watermarked_${file.name}"`,
+        "Content-Disposition": contentDisposition(`watermarked_${file.name}`),
       },
     });
   } catch (error) {

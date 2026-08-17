@@ -2,6 +2,7 @@ import { getAppConfig } from "@/lib/remote-config";
 import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import { metered } from "@/lib/metered";
+import { rejectBadUpload } from "@/lib/uploads";
 
 // OCR over every page — measured about 11s,
 // so the platform default is not enough.
@@ -29,6 +30,17 @@ export const POST = metered(async (req: NextRequest) => {
     if (!formData) {
       return NextResponse.json({ error: "No file provided." }, { status: 400 });
     }
+
+    // Checked here rather than relayed unseen: this route forwards the
+    // whole form to the AI service, so an oversized or wrong-typed
+    // upload would otherwise become that service's problem too.
+    const upload = formData.get("file");
+    if (!(upload instanceof File)) {
+      return NextResponse.json({ error: "No file provided." }, { status: 400 });
+    }
+
+    const badUpload = rejectBadUpload(upload, "pdf");
+    if (badUpload) return badUpload;
 
     const response = await fetch(`${AI_SERVICE}/api/ocr`, {
       method: "POST",

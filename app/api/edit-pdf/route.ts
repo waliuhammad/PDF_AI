@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import { metered } from "@/lib/metered";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { rejectBadUpload, contentDisposition } from "@/lib/uploads";
 
 interface TextAnnotation {
   type: "text";
@@ -63,6 +64,10 @@ export const POST = metered(async (req: NextRequest) => {
     if (!file) {
       return NextResponse.json({ error: "No PDF file uploaded" }, { status: 400 });
     }
+
+    // Size and type are checked here, before anything reads the bytes.
+    const badUpload = rejectBadUpload(file, "pdf");
+    if (badUpload) return badUpload;
 
     const annotations: Annotation[] = annotationsRaw ? JSON.parse(annotationsRaw) : [];
     const arrayBuffer = await file.arrayBuffer();
@@ -139,7 +144,7 @@ export const POST = metered(async (req: NextRequest) => {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="edited_${file.name}"`,
+        "Content-Disposition": contentDisposition(`edited_${file.name}`),
       },
     });
   } catch (error) {

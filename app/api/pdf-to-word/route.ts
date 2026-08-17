@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import { metered } from "@/lib/metered";
 import { pdfToDocx } from "@/lib/pdf-to-docx";
+import { rejectBadUpload, contentDisposition } from "@/lib/uploads";
 
 export const runtime = "nodejs";
 
@@ -29,6 +30,10 @@ export const POST = metered(async (req: NextRequest) => {
             return NextResponse.json({ error: "No PDF file provided." }, { status: 400 });
         }
 
+        // Size and type are checked here, before anything reads the bytes.
+        const badUpload = rejectBadUpload(file, "pdf");
+        if (badUpload) return badUpload;
+
         let docx: Uint8Array;
         try {
             docx = await pdfToDocx(new Uint8Array(await file.arrayBuffer()));
@@ -46,7 +51,7 @@ export const POST = metered(async (req: NextRequest) => {
             headers: {
                 "Content-Type":
                     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-                "Content-Disposition": `attachment; filename="${base}.docx"`,
+                "Content-Disposition": contentDisposition(`${base}.docx`),
             },
         });
     } catch (error) {

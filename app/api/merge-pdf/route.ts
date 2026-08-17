@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import { metered } from "@/lib/metered";
 import { PDFDocument, degrees } from "pdf-lib";
+import { rejectBadUpload, contentDisposition } from "@/lib/uploads";
 
 export const POST = metered(async (req: NextRequest) => {
   try {
@@ -17,6 +18,10 @@ export const POST = metered(async (req: NextRequest) => {
 
     if (!files || files.length === 0) {
       return NextResponse.json({ error: "No PDF files provided." }, { status: 400 });
+    }
+    for (const candidate of files) {
+      const badUpload = rejectBadUpload(candidate, "pdf");
+      if (badUpload) return badUpload;
     }
 
     const mergedPdf = await PDFDocument.create();
@@ -64,7 +69,7 @@ export const POST = metered(async (req: NextRequest) => {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="merged_document.pdf"`,
+        "Content-Disposition": contentDisposition(`merged_document.pdf`),
       },
     });
   } catch (error) {

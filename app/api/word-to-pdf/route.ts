@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { metered } from "@/lib/metered";
 import { docxToPdf } from "@/lib/docx-to-pdf";
+import { rejectBadUpload, contentDisposition } from "@/lib/uploads";
 
 export const runtime = "nodejs";
 
@@ -34,6 +35,10 @@ export const POST = metered(async (req: NextRequest) => {
             return NextResponse.json({ error: "No Word file provided." }, { status: 400 });
         }
 
+        // Size and type are checked here, before anything reads the bytes.
+        const badUpload = rejectBadUpload(file, "word");
+        if (badUpload) return badUpload;
+
         const name = file.name.toLowerCase();
         if (!name.endsWith(".docx")) {
             // .doc is the old binary format — a different problem entirely.
@@ -63,7 +68,7 @@ export const POST = metered(async (req: NextRequest) => {
             status: 200,
             headers: {
                 "Content-Type": "application/pdf",
-                "Content-Disposition": `attachment; filename="${base}.pdf"`,
+                "Content-Disposition": contentDisposition(`${base}.pdf`),
             },
         });
     } catch (error) {

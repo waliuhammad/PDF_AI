@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import { metered } from "@/lib/metered";
 import { PDFDocument } from "pdf-lib";
+import { rejectBadUpload } from "@/lib/uploads";
 
 export const POST = metered(async (req: NextRequest) => {
   try {
@@ -19,6 +20,10 @@ export const POST = metered(async (req: NextRequest) => {
     if (!file) {
       return NextResponse.json({ error: "No PDF file uploaded" }, { status: 400 });
     }
+
+    // Size and type are checked here, before anything reads the bytes.
+    const badUpload = rejectBadUpload(file, "pdf");
+    if (badUpload) return badUpload;
 
     const arrayBuffer = await file.arrayBuffer();
     const srcDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });

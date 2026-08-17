@@ -3,6 +3,7 @@ import { readFormData } from "@/lib/api";
 import { metered } from "@/lib/metered";
 import { extractPageLines } from "@/lib/pdf-text";
 import pptxgen from "pptxgenjs";
+import { rejectBadUpload, contentDisposition } from "@/lib/uploads";
 
 // renders every page into a slide,
 // so the platform default is not enough.
@@ -22,6 +23,10 @@ export const POST = metered(async (req: NextRequest) => {
         { status: 400 }
       );
     }
+
+    // Size and type are checked here, before anything reads the bytes.
+    const badUpload = rejectBadUpload(file, "pdf");
+    if (badUpload) return badUpload;
 
     const buffer = Buffer.from(await file.arrayBuffer());
 
@@ -126,7 +131,7 @@ export const POST = metered(async (req: NextRequest) => {
       status: 200,
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-        "Content-Disposition": `attachment; filename="${file.name.replace(/\.[^/.]+$/, "")}-converted.pptx"`,
+        "Content-Disposition": contentDisposition(`${file.name.replace(/\.[^/.]+$/, "")}-converted.pptx`),
       },
     });
   } catch (err) {

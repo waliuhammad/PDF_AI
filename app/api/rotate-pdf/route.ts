@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import { metered } from "@/lib/metered";
 import { PDFDocument, degrees } from "pdf-lib";
+import { rejectBadUpload, contentDisposition } from "@/lib/uploads";
 
 /**
  * Rotation is a change to one number in each page's dictionary, so pdf-lib does
@@ -26,6 +27,10 @@ export const POST = metered(async (req: NextRequest) => {
         if (!file) {
             return NextResponse.json({ error: "No PDF file provided." }, { status: 400 });
         }
+
+        // Size and type are checked here, before anything reads the bytes.
+        const badUpload = rejectBadUpload(file, "pdf");
+        if (badUpload) return badUpload;
 
         if (!Number.isFinite(rotation) || rotation % 90 !== 0) {
             return NextResponse.json(
@@ -75,7 +80,7 @@ export const POST = metered(async (req: NextRequest) => {
             status: 200,
             headers: {
                 "Content-Type": "application/pdf",
-                "Content-Disposition": `attachment; filename="${base}_rotated.pdf"`,
+                "Content-Disposition": contentDisposition(`${base}_rotated.pdf`),
             },
         });
     } catch (error) {
