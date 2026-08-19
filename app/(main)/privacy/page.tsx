@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { ContentPage, Section } from "@/components/marketing/content-page";
 
 export const metadata: Metadata = {
-    title: "Privacy Policy | PDFAI",
+    title: "Privacy Policy",
     description:
         "Learn how PDFAI collects, uses, protects, and processes your personal information and documents.",
 };

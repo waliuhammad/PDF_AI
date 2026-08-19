@@ -4,7 +4,7 @@ import { ContentPage, Section } from "@/components/marketing/content-page";
 import { tools } from "@/lib/tools";
 
 export const metadata: Metadata = {
-    title: "About | PDFAI",
+    title: "About",
     description: "What PDFAI is and how it handles your documents.",
 };
 

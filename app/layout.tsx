@@ -24,12 +24,12 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   // Each tool sets only its own title; this frames it.
   title: {
-    default: "PDFAI — Every PDF tool you need, in one place",
-    template: "%s | PDFAI",
+    default: "PDF_AI — Every PDF tool you need, in one place",
+    template: "%s | PDF_AI",
   },
   description: "Every PDF tool you need, in one place.",
   openGraph: {
-    siteName: "PDFAI",
+    siteName: "PDF_AI",
     type: "website",
     url: siteUrl,
   },
