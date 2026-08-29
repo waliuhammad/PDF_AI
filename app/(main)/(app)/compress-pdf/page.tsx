@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { FileText, X, FileArchive, Download, Loader2, CheckCircle2 } from "lucide-react";
+import { FileText, X, FileArchive, Download, Loader2, CheckCircle2, ChevronDown } from "lucide-react";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 // aliased: this component already has state called errorMessage, which would
 // shadow the import and turn the call below into calling a string.
@@ -182,22 +182,37 @@ export default function CompressPdfPage() {
                 <label className="text-xs uppercase tracking-wider font-semibold text-slate-600 dark:text-[#9ca3af] block mb-1.5">
                   Select Compression Level & Target Size
                 </label>
-                <select
-                  value={selectedOption?.targetKB || ""}
-                  onChange={(e) => {
-                    const opt = options.find((o) => o.targetKB === Number(e.target.value));
-                    if (opt) setSelectedOption(opt);
-                    setDone(false);
-                    setErrorMessage(null);
-                  }}
-                  className="w-full max-w-full bg-card border border-card rounded-xl px-3 sm:px-3.5 py-2.5 sm:py-3 text-fg text-xs sm:text-sm focus:outline-none focus:border-slate-900 dark:border-white cursor-pointer"
-                >
-                  {options.map((opt) => (
-                    <option key={opt.targetKB} value={opt.targetKB} className="bg-card text-fg">
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+                {/* The chevron is ours rather than the browser's. Chrome anchors
+                    the native one to the border box and ignores padding-right,
+                    so it sat hard against the rounded corner and no amount of
+                    padding moved it — appearance-none is the only way to give
+                    it room. pr-9 keeps the option text from running underneath. */}
+                <div className="relative">
+                  <select
+                    value={selectedOption?.targetKB || ""}
+                    onChange={(e) => {
+                      const opt = options.find((o) => o.targetKB === Number(e.target.value));
+                      if (opt) setSelectedOption(opt);
+                      setDone(false);
+                      setErrorMessage(null);
+                    }}
+                    className="w-full max-w-full appearance-none bg-card border border-card rounded-xl pl-3 sm:pl-3.5 pr-9 sm:pr-10 py-2.5 sm:py-3 text-fg text-xs sm:text-sm focus:outline-none focus:border-slate-900 dark:border-white cursor-pointer"
+                  >
+                    {options.map((opt) => (
+                      <option key={opt.targetKB} value={opt.targetKB} className="bg-card text-fg">
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* pointer-events-none so the whole control still opens the
+                      menu, including the arrow itself. */}
+                  <ChevronDown
+                    size={16}
+                    aria-hidden="true"
+                    className="pointer-events-none absolute right-3 sm:right-3.5 top-1/2 -translate-y-1/2 text-muted"
+                  />
+                </div>
               </div>
             </div>
 
