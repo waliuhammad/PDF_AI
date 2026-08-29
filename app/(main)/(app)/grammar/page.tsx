@@ -1,11 +1,34 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
-import { CheckCheck, Sparkles, Copy, Loader2, FileText, X, ArrowRight } from "lucide-react";
+import { downloadBlob } from "@/lib/download";
+import {
+    CheckCheck,
+    Sparkles,
+    Copy,
+    Loader2,
+    FileText,
+    X,
+    ArrowRight,
+    Download,
+    ChevronDown,
+    FileDown,
+} from "lucide-react";
 import { errorMessage } from "@/lib/errors";
 import { diffWords, countEdits } from "@/lib/text-diff";
 import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
+
+// Normalizes text coming back from the API: turns literal "\n" sequences
+// (backslash + n as two characters) into real line breaks, and collapses
+// stray carriage returns from Windows-origin PDFs.
+function cleanText(raw: string): string {
+    return raw
+        .replace(/\\r\\n/g, "\n")
+        .replace(/\\n/g, "\n")
+        .replace(/\r\n/g, "\n")
+        .trim();
+}
 
 export default function GrammarCheckerPage() {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -27,10 +50,26 @@ export default function GrammarCheckerPage() {
     const [error, setError] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
 
+    // Controls the format dropdown attached to the Download button.
+    const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+    const downloadMenuRef = useRef<HTMLDivElement>(null);
+
     const formatSize = (bytes: number) => {
         if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
         return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
     };
+
+    // Close the download menu on outside click.
+    useEffect(() => {
+        if (!showDownloadMenu) return;
+        const handleClickOutside = (e: MouseEvent) => {
+            if (downloadMenuRef.current && !downloadMenuRef.current.contains(e.target as Node)) {
+                setShowDownloadMenu(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [showDownloadMenu]);
 
     const handleFile = (fileList: FileList | null) => {
         if (!fileList || fileList.length === 0) return;
@@ -69,11 +108,45 @@ if (!res.ok) {
     );
 }
 
-            const result = data.correctedText || data.reply || data.response || data.message || JSON.stringify(data);
-            setCorrectedText(result);
+            // Log the raw shape once so it's easy to check in DevTools
+            // console exactly what the AI microservice actually returned,
+            // without ever rendering that raw object as if it were text.
+            console.log("Grammar API response:", data);
+
+            // Only ever read an actual text field — never fall back to
+            // dumping the raw API response, which is what was surfacing
+            // the success flag / page count / downloadable flag as if it
+            // were the corrected text. Checks a few common shapes since
+            // the underlying AI service's exact field name isn't fixed.
+            const rawResult =
+                (typeof data.correctedText === "string" && data.correctedText) ||
+                (typeof data.reply === "string" && data.reply) ||
+                (typeof data.response === "string" && data.response) ||
+                (typeof data.text === "string" && data.text) ||
+                (typeof data.result === "string" && data.result) ||
+                (typeof data?.result?.correctedText === "string" && data.result.correctedText) ||
+                (typeof data?.result?.text === "string" && data.result.text) ||
+                (typeof data?.data?.correctedText === "string" && data.data.correctedText) ||
+                (typeof data?.data?.text === "string" && data.data.text) ||
+                "";
+
+            const rawOriginal =
+                (typeof data.originalText === "string" && data.originalText) ||
+                (typeof data?.result?.originalText === "string" && data.result.originalText) ||
+                (typeof data?.data?.originalText === "string" && data.data.originalText) ||
+                "";
+
+            if (!rawResult) {
+                setError("No corrected text was returned for this document.");
+                setCorrectedText(null);
+                setOriginalText(null);
+                return;
+            }
+
+            setCorrectedText(cleanText(rawResult));
             // Only present once the AI service returns it. Without it the diff
             // view is hidden rather than shown empty.
-            setOriginalText(typeof data.originalText === "string" ? data.originalText : null);
+            setOriginalText(rawOriginal ? cleanText(rawOriginal) : null);
         } catch (err) {
       if (wasCancelled(err, signal)) return;
             setError(errorMessage(err, "Something went wrong connecting to the server."));
@@ -87,6 +160,107 @@ if (!res.ok) {
         navigator.clipboard.writeText(correctedText);
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
+    };
+
+    // Base filename (without extension) used to name downloaded files.
+    const baseName = (fileMeta?.name || "document").replace(/\.pdf$/i, "");
+
+    const downloadAsTxt = () => {
+        if (!correctedText) return;
+        const blob = new Blob([correctedText], { type: "text/plain;charset=utf-8" });
+        downloadBlob(blob, `${baseName}_corrected.txt`);
+        setShowDownloadMenu(false);
+    };
+
+    const downloadAsPdf = async () => {
+        if (!correctedText) return;
+
+        // Loaded on demand so it doesn't add weight until someone actually
+        // exports a PDF.
+        const { jsPDF } = await import("jspdf");
+        const doc = new jsPDF({ unit: "mm", format: "a4" });
+
+        // Pull real page dimensions instead of hardcoding them, so
+        // pagination works correctly regardless of format/orientation.
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+
+        const marginX = 15;
+        const marginTop = 20;
+        const marginBottom = 20; // reserved space at bottom for the footer
+        const maxWidth = pageWidth - marginX * 2;
+        const lineHeight = 6;
+
+        let cursorY = marginTop;
+        let pageNumber = 1;
+
+        const drawHeader = () => {
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold");
+            doc.text("Corrected Text", marginX, cursorY);
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(10);
+            cursorY += 10;
+        };
+
+        const drawFooter = () => {
+            const pageCount = doc.getNumberOfPages();
+            doc.setFontSize(9);
+            doc.setTextColor(120);
+            doc.text(
+                `Page ${pageNumber} of ${pageCount}`,
+                pageWidth - marginX,
+                pageHeight - 10,
+                { align: "right" }
+            );
+            doc.setTextColor(0);
+            doc.setFontSize(10);
+        };
+
+        const addNewPage = () => {
+            doc.addPage();
+            pageNumber += 1;
+            cursorY = marginTop;
+        };
+
+        drawHeader();
+
+        // Split on blank lines first so paragraph breaks are preserved,
+        // then wrap each paragraph to the page width.
+        const paragraphs = correctedText.split(/\n{2,}/);
+
+        paragraphs.forEach((paragraph, pIndex) => {
+            const wrapped = doc.splitTextToSize(paragraph, maxWidth);
+
+            wrapped.forEach((line: string) => {
+                // Check BEFORE drawing so a line never gets clipped at the
+                // bottom edge — it rolls to a new page instead.
+                if (cursorY + lineHeight > pageHeight - marginBottom) {
+                    addNewPage();
+                }
+                doc.text(line, marginX, cursorY);
+                cursorY += lineHeight;
+            });
+
+            // Gap between paragraphs, except after the last one.
+            if (pIndex < paragraphs.length - 1) {
+                cursorY += lineHeight * 0.6;
+                if (cursorY + lineHeight > pageHeight - marginBottom) {
+                    addNewPage();
+                }
+            }
+        });
+
+        // Add footers to every page now that the total page count is known.
+        const totalPages = doc.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            pageNumber = i;
+            drawFooter();
+        }
+
+        doc.save(`${baseName}_corrected.pdf`);
+        setShowDownloadMenu(false);
     };
 
     return (
@@ -173,14 +347,50 @@ if (!res.ok) {
                                 Corrected Result
                             </span>
                             {correctedText && (
-                                <button
-                                    type="button"
-                                    onClick={handleCopy}
-                                    className="text-muted hover:text-[var(--primary)] flex items-center gap-1 text-xs"
-                                >
-                                    <Copy size={13} />
-                                    {copied ? "Copied" : "Copy"}
-                                </button>
+                                <div className="flex items-center gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={handleCopy}
+                                        className="text-muted hover:text-[var(--primary)] flex items-center gap-1 text-xs"
+                                    >
+                                        <Copy size={13} />
+                                        {copied ? "Copied" : "Copy"}
+                                    </button>
+
+                                    {/* Split button: Download opens a small format menu */}
+                                    <div className="relative" ref={downloadMenuRef}>
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowDownloadMenu((prev) => !prev)}
+                                            className="text-muted hover:text-[var(--primary)] flex items-center gap-1 text-xs"
+                                        >
+                                            <Download size={13} />
+                                            Download
+                                            <ChevronDown size={11} className={`transition-transform ${showDownloadMenu ? "rotate-180" : ""}`} />
+                                        </button>
+
+                                        {showDownloadMenu && (
+                                            <div className="absolute right-0 mt-2 w-40 rounded-xl border border-card bg-card shadow-lg z-20 overflow-hidden">
+                                                <button
+                                                    type="button"
+                                                    onClick={downloadAsTxt}
+                                                    className="w-full text-left px-3.5 py-2.5 text-xs font-semibold hover:bg-white/5 flex items-center gap-2 transition-colors text-fg"
+                                                >
+                                                    <FileText size={14} />
+                                                    Download as .TXT
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={downloadAsPdf}
+                                                    className="w-full text-left px-3.5 py-2.5 text-xs font-semibold hover:bg-white/5 flex items-center gap-2 border-t border-white/10 transition-colors text-fg"
+                                                >
+                                                    <FileDown size={14} />
+                                                    Download as .PDF
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
                             )}
                         </div>
                         {/* Only offered once the original is available to compare
