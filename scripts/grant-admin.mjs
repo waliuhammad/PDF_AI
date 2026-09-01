@@ -5,10 +5,16 @@
  *     node scripts/grant-admin.mjs someone@example.com --revoke
  *     node scripts/grant-admin.mjs --list
  *
- * The claim is what lib/firebase/require-admin.ts checks. Nothing reads it
- * today — the screens that did were the payment ones, removed with the payment
- * provider — but the claim and this script outlive any one provider, so they
- * stay ready for whatever replaces them.
+ * Nothing in the product reads this claim today. The screens that did were the
+ * Payoneer payment ones, and the guard that checked it — lib/firebase/
+ * require-admin.ts — went with them rather than sitting unimported: a module
+ * that looks like a security boundary but protects nothing is the kind of thing
+ * that later gets wired to a route it was never written for.
+ *
+ * The claim itself lives on the account, not in that file, so it survives the
+ * deletion and this script still sets it. Whatever admin surface comes next
+ * writes its own check against its own needs; the old one is in git history if
+ * it turns out to have been the right shape after all.
  *
  * The claim is deliberately not something the app can grant itself. Anything in
  * the running product that could hand out admin becomes a way to grant yourself
