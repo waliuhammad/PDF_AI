@@ -3,13 +3,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import { metered } from "@/lib/metered";
 import { rejectBadUpload } from "@/lib/uploads";
+import { relayToAiService } from "@/lib/ai-service";
 
 // OCR over every page — measured about 11s,
 // so the platform default is not enough.
 export const maxDuration = 60;
 
-const AI_SERVICE =
-  process.env.AI_SERVICE_URL || "http://localhost:8001";
 
 export const POST = metered(async (req: NextRequest) => {
   try {
@@ -42,25 +41,16 @@ export const POST = metered(async (req: NextRequest) => {
     const badUpload = rejectBadUpload(upload, "pdf");
     if (badUpload) return badUpload;
 
-    const response = await fetch(`${AI_SERVICE}/api/ocr`, {
-      method: "POST",
-      body: formData,
-    });
-
-    const data = await response.json();
-
-    return NextResponse.json(data, {
-      status: response.status,
-    });
-  } catch {
+    // Every failure mode is separated inside relayToAiService: an unreachable
+    // service, a service that answered with something other than JSON, and a
+    // real error from the service itself all used to arrive here as the same
+    // "Unable to connect" message.
+    return await relayToAiService("/api/ocr", formData, "ocr");
+  } catch (err) {
+    console.error("[ocr] failed before the AI service was called", err);
     return NextResponse.json(
-      {
-        success: false,
-        message: "Unable to connect to AI Service.",
-      },
-      {
-        status: 500,
-      }
+      { success: false, message: "Something went wrong. Please try again." },
+      { status: 500 }
     );
   }
 }, { signInMessage: "Please sign in to use AI features." });

@@ -81,6 +81,12 @@ export const POST = metered(async (req: NextRequest) => {
     const pages = pdfDoc.getPages();
 
     annotations.forEach((ann) => {
+      // Integer-checked, not just range-checked. The two comparisons below are
+      // both false for a missing or non-numeric pageIndex, so such an
+      // annotation passed the guard, indexed the array with undefined and threw
+      // on the next line — one malformed entry failing the whole edit with a
+      // 500 rather than being skipped like an out-of-range one.
+      if (!Number.isInteger(ann.pageIndex)) return;
       if (ann.pageIndex < 0 || ann.pageIndex >= pages.length) return;
       const page = pages[ann.pageIndex];
       const { height } = page.getSize();

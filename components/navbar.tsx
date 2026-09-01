@@ -6,6 +6,7 @@ import { isToolPath } from "@/lib/tool-paths";
 import { useState, useEffect } from "react";
 import { Menu, X, FileText } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
+import { useAuth } from "@/hooks/useAuth";
 
 /** Root-relative, not bare hashes. This navbar renders on the content pages
  *  (/terms, /privacy, /about, …) as well as the landing page, and a bare
@@ -30,6 +31,22 @@ export function Navbar() {
   const [open, setOpen] = useState(false);
   const [activeHash, setActiveHash] = useState("");
   const pathname = usePathname();
+
+  /**
+   * Someone already signed in has no use for "Login" or "Start Free" — the
+   * first is a step they have finished and the second offers them a second
+   * account. They get one button through to their dashboard instead.
+   *
+   * `loading` counts as signed out on purpose. The session cookie is httpOnly,
+   * so the server cannot tell the browser who it is and every render starts
+   * signed out; treating the unresolved moment as signed in would make the
+   * first client render disagree with the server's HTML, which is a hydration
+   * mismatch. Firebase answers from IndexedDB in a few milliseconds, so what
+   * this costs is a brief flash of the signed-out buttons rather than a wrong
+   * one that has to be corrected.
+   */
+  const { user, loading } = useAuth();
+  const signedIn = !loading && user !== null;
 
   /**
    * Which link to underline.
@@ -206,19 +223,30 @@ export function Navbar() {
         <div className="hidden items-center gap-3 lg:flex">
           <ThemeToggle />
 
-          <Link
-            href="/login"
-            className="rounded-xl border border-border px-4 py-2 text-sm font-medium transition hover:border-primary hover:text-primary"
-          >
-            Login
-          </Link>
+          {signedIn ? (
+            <Link
+              href="/dashboard"
+              className="rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+            >
+              Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="rounded-xl border border-border px-4 py-2 text-sm font-medium transition hover:border-primary hover:text-primary"
+              >
+                Login
+              </Link>
 
-          <Link
-            href="/register"
-            className="rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-          >
-            Start Free
-          </Link>
+              <Link
+                href="/register"
+                className="rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+              >
+                Start Free
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile actions. The theme toggle sits in the bar itself, beside the
@@ -271,21 +299,33 @@ export function Navbar() {
               {/* The Appearance row lived here; the toggle is now in the header
                   bar above, visible without opening the menu. */}
               <div className="mt-4 flex flex-col gap-3">
-                <Link
-                  href="/login"
-                  onClick={() => setOpen(false)}
-                  className="rounded-xl border border-border py-3 text-center font-medium transition hover:border-primary hover:text-primary"
-                >
-                  Login
-                </Link>
+                {signedIn ? (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setOpen(false)}
+                    className="rounded-xl bg-primary py-3 text-center font-semibold text-primary-foreground transition hover:bg-primary/90"
+                  >
+                    Dashboard
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      onClick={() => setOpen(false)}
+                      className="rounded-xl border border-border py-3 text-center font-medium transition hover:border-primary hover:text-primary"
+                    >
+                      Login
+                    </Link>
 
-                <Link
-                  href="/register"
-                  onClick={() => setOpen(false)}
-                  className="rounded-xl bg-primary py-3 text-center font-semibold text-primary-foreground transition hover:bg-primary/90"
-                >
-                  Start Free
-                </Link>
+                    <Link
+                      href="/register"
+                      onClick={() => setOpen(false)}
+                      className="rounded-xl bg-primary py-3 text-center font-semibold text-primary-foreground transition hover:bg-primary/90"
+                    >
+                      Start Free
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
