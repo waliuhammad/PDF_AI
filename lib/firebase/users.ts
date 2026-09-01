@@ -14,8 +14,8 @@ export interface UserProfile {
     plan: PlanId | "paid";
     /**
      * When the paid period ends, in epoch milliseconds. Written when a payment
-     * is confirmed. Payoneer payments do not renew on their own, so without an
-     * expiry a single payment would grant the plan permanently.
+     * is confirmed. A plan granted by hand does not renew on its own, so
+     * without an expiry a single payment would grant it permanently.
      *
      * Absent on profiles that predate paid plans, which are free anyway.
      */

@@ -1,14 +1,14 @@
 /**
- * Grants (or removes) the admin claim used by the billing screens.
+ * Grants (or removes) the `admin` custom claim.
  *
  *     node scripts/grant-admin.mjs someone@example.com
  *     node scripts/grant-admin.mjs someone@example.com --revoke
  *     node scripts/grant-admin.mjs --list
  *
- * Confirming a payment is gated on a custom claim, and nothing in the product
- * could set one — the only instruction was a comment in a route saying to call
- * setCustomUserClaims. So no account had it, every admin call answered 403, and
- * a customer who paid could never be upgraded. This is that missing step.
+ * The claim is what lib/firebase/require-admin.ts checks. Nothing reads it
+ * today — the screens that did were the payment ones, removed with the payment
+ * provider — but the claim and this script outlive any one provider, so they
+ * stay ready for whatever replaces them.
  *
  * The claim is deliberately not something the app can grant itself. Anything in
  * the running product that could hand out admin becomes a way to grant yourself

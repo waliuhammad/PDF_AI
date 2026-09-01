@@ -15,8 +15,9 @@ import { getPlan } from "@/lib/plans";
  * which asks the server for a portal URL: cancelling, changing card and
  * invoices all live on the payment provider's hosted portal, not here.
  *
- * The portal endpoint does not exist yet, so a failed call says exactly
- * that — the same honesty as the checkout button and the contact form.
+ * The portal is Lemon Squeezy's. A customer whose plan did not come from a
+ * card subscription has nothing to manage there, so the endpoint says which
+ * case they are in and that message is shown as-is rather than guessed at.
  */
 export function BillingTab() {
     const { profile, loading } = useAuth();
@@ -40,10 +41,10 @@ export function BillingTab() {
                 return;
             }
 
-            setError(
-                data?.message ??
-                "Subscription management isn't connected yet. This button is ready for the backend."
-            );
+            // The endpoint explains itself — no card subscription, expired
+            // session, provider unreachable — so its message is preferred. The
+            // fallback only covers a response that carried none.
+            setError(data?.message ?? "Could not open the billing portal. Please try again.");
         } catch {
             setError("Could not reach the server. Please try again.");
         }
