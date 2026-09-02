@@ -18,6 +18,15 @@ export default function RotatePdfPage(): JSX.Element {
   // 0, not 90: a freshly opened file has not been turned yet, and starting at
   // a quarter turn meant the preview was already rotated before anyone asked.
   const [rotation, setRotation] = useState<number>(0);
+
+  /**
+   * Angles set on individual pages, keyed by 1-based page number.
+   *
+   * A page is only in here once it has been turned on its own. Everything else
+   * follows the document-wide angle above, so the common case — turn the whole
+   * thing — needs no per-page entries at all.
+   */
+  const [pageRotations, setPageRotations] = useState<Record<number, number>>({});
   const [mode, setMode] = useState<"all" | "custom">("all");
   const [pageNumber, setPageNumber] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -57,6 +66,7 @@ export default function RotatePdfPage(): JSX.Element {
       if (selectedFile.type === "application/pdf" || selectedFile.name.endsWith(".pdf")) {
         setFile(selectedFile);
         setRotation(0);
+        setPageRotations({});
         setMode("all");
         setPageNumber("");
         setError(null);
@@ -109,6 +119,7 @@ export default function RotatePdfPage(): JSX.Element {
     setPdfDoc(null);
     setNumPages(0);
     setRotation(0);
+    setPageRotations({});
     setMode("all");
     setPageNumber("");
     setError(null);
@@ -133,6 +144,27 @@ export default function RotatePdfPage(): JSX.Element {
   const turn = (delta: number): void => {
     setRotation((prev) => (prev + delta + 360) % 360);
   };
+
+  /**
+   * A quarter turn on one page, from its own icon.
+   *
+   * Starts from whatever that page is showing — its own angle if it has one,
+   * otherwise the document-wide one — so the first click continues from what is
+   * on screen rather than jumping back to zero first.
+   */
+  const turnPage = (pageNum: number): void => {
+    setPageRotations((prev) => {
+      const from = prev[pageNum] ?? rotation;
+      return { ...prev, [pageNum]: (from + 90) % 360 };
+    });
+  };
+
+  /** What a given page is showing, per-page angle winning over the global one. */
+  const angleFor = (pageNum: number): number =>
+    pageRotations[pageNum] ?? (mode === "all" || (mode === "custom" && pageNumber === String(pageNum)) ? rotation : 0);
+
+  /** True once any page has been turned on its own. */
+  const hasPerPage = Object.values(pageRotations).some((a) => a !== 0);
 
   useEffect(() => {
     if (!pdfDoc || numPages === 0) return;
@@ -178,7 +210,7 @@ export default function RotatePdfPage(): JSX.Element {
     const signal = begin();
     if (!file) return;
 
-    if (mode === "custom" && !pageNumber.trim()) {
+    if (!hasPerPage && mode === "custom" && !pageNumber.trim()) {
       setError("Please specify the exact page number you want to rotate.");
       return;
     }
@@ -189,9 +221,22 @@ export default function RotatePdfPage(): JSX.Element {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      formData.append("rotation", rotation.toString());
-      formData.append("mode", mode);
-      formData.append("pageNumber", pageNumber);
+
+      if (hasPerPage) {
+        // Send exactly what the preview shows: every page's own angle, taken
+        // from angleFor so a page that was never touched still carries the
+        // document-wide turn rather than silently coming back upright.
+        const angles: Record<number, number> = {};
+        for (let page = 1; page <= numPages; page++) {
+          const angle = angleFor(page);
+          if (angle !== 0) angles[page] = angle;
+        }
+        formData.append("rotations", JSON.stringify(angles));
+      } else {
+        formData.append("rotation", rotation.toString());
+        formData.append("mode", mode);
+        formData.append("pageNumber", pageNumber);
+      }
 
       const res = await fetch("/api/rotate-pdf", {
         method: "POST",
@@ -343,8 +388,11 @@ export default function RotatePdfPage(): JSX.Element {
                 <span className="text-sm font-extrabold text-fg tabular-nums">{rotation}°</span>
                 <button
                   type="button"
-                  onClick={() => setRotation(0)}
-                  disabled={rotation === 0}
+                  onClick={() => {
+                    setRotation(0);
+                    setPageRotations({});
+                  }}
+                  disabled={rotation === 0 && !hasPerPage}
                   className="text-[11px] font-bold text-muted hover:text-fg disabled:opacity-40 disabled:hover:text-muted transition-colors"
                 >
                   Reset
@@ -378,8 +426,8 @@ export default function RotatePdfPage(): JSX.Element {
 
               <div className="w-full max-h-[340px] sm:max-h-[420px] overflow-y-auto space-y-3 sm:space-y-4 pr-1">
                 {Array.from({ length: numPages }, (_, i) => i + 1).map((pageNum) => {
-                  const isTargetRotated = mode === "all" || (mode === "custom" && pageNumber === String(pageNum));
-                  const currentDegrees = isTargetRotated ? rotation : 0;
+                  const currentDegrees = angleFor(pageNum);
+                  const ownAngle = pageRotations[pageNum] !== undefined;
 
                   return (
                     <div
@@ -390,9 +438,28 @@ export default function RotatePdfPage(): JSX.Element {
                         <span className="font-semibold truncate">
                           Page {pageNum} of {numPages}
                         </span>
-                        <span className="bg-card border border-card px-2 py-0.5 rounded text-fg font-mono shrink-0">
-                          {currentDegrees}°
-                        </span>
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className={`px-2 py-0.5 rounded font-mono border ${ownAngle
+                            ? "bg-[var(--primary)]/10 border-[var(--primary)]/30 text-[var(--primary)]"
+                            : "bg-card border-card text-fg"
+                            }`}>
+                            {currentDegrees}°
+                          </span>
+
+                          {/* Turns this page alone. Once used, the page keeps its
+                              own angle and stops following the document-wide
+                              buttons — which is the point of turning it. */}
+                          <button
+                            type="button"
+                            onClick={() => turnPage(pageNum)}
+                            aria-label={`Rotate page ${pageNum} right 90 degrees`}
+                            title={`Rotate page ${pageNum}`}
+                            className="h-7 w-7 flex items-center justify-center rounded-md border border-card bg-card text-fg hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors"
+                          >
+                            <RotateCw className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
                       <div className="w-full h-56 sm:h-80 flex items-center justify-center overflow-hidden bg-slate-100 dark:bg-black/60 rounded-lg p-2">
                         <canvas
@@ -428,7 +495,7 @@ export default function RotatePdfPage(): JSX.Element {
           <button
             type="button"
             onClick={handleRotateAndDownload}
-            disabled={loading || rotation === 0}
+            disabled={loading || (rotation === 0 && !hasPerPage)}
             className="w-full py-3.5 sm:py-4 px-4 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-[13px] sm:text-base shadow-lg disabled:opacity-60 flex items-center justify-center gap-2 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
           >
             {loading ? (
@@ -439,8 +506,8 @@ export default function RotatePdfPage(): JSX.Element {
             <span>
               {loading
                 ? "Processing document..."
-                : rotation === 0
-                  ? "Turn the page to save it"
+                : rotation === 0 && !hasPerPage
+                  ? "Turn a page to save it"
                   : "Save & Download PDF"}
             </span>
           </button>
