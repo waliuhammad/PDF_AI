@@ -72,7 +72,21 @@ export default function RegisterPage() {
                     <div className="mb-4 px-3 py-2 rounded-lg bg-red-50 text-[var(--primary)] text-xs">{error}</div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-2.5">
+                {/*
+                    autoComplete is off across this form on purpose. Every field
+                    starts empty in state, but the browser was filling the phone
+                    and password from whatever it had saved for this site — so a
+                    fresh visitor met a sign-up form that already had someone
+                    else's details in it, styled in the browser's autofill
+                    colour. Signing up is the one form where nothing should be
+                    pre-filled; the country code is the exception because it is
+                    our default rather than a remembered value.
+
+                    The password gets "new-password" instead of "off": Chrome
+                    ignores "off" on password fields and only stops offering a
+                    saved credential when told the field is for a new one.
+                */}
+                <form onSubmit={handleSubmit} className="space-y-2.5" autoComplete="off">
                     <div>
                         <label className="text-sm text-fg mb-0.5 block">Full name</label>
                         <div className="relative">
@@ -80,6 +94,7 @@ export default function RegisterPage() {
                             <input
                                 type="text"
                                 required
+                                autoComplete="off"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
                                 placeholder="Your name"
@@ -95,6 +110,7 @@ export default function RegisterPage() {
                             <input
                                 type="email"
                                 required
+                                autoComplete="off"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 placeholder="you@example.com"
@@ -112,6 +128,7 @@ export default function RegisterPage() {
                                 <input
                                     type="tel"
                                     required
+                                    autoComplete="off"
                                     value={phoneNumber}
                                     onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ""))}
                                     placeholder="300 1234567"
@@ -129,6 +146,7 @@ export default function RegisterPage() {
                                 type={showPassword ? "text" : "password"}
                                 required
                                 minLength={6}
+                                autoComplete="new-password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Create a password"
