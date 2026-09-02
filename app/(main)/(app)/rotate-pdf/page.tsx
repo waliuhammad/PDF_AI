@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, JSX } from "react";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
-import { FileText, Trash2, RotateCw, RotateCcw, Download, Layers, Loader2 } from "lucide-react";
+import { FileText, Trash2, RotateCw, Download, Loader2 } from "lucide-react";
 import { errorName } from "@/lib/errors";
 // Type-only, so it adds nothing to the bundle — the library itself still
 // arrives through the dynamic import below.
@@ -15,9 +15,6 @@ export default function RotatePdfPage(): JSX.Element {
   const { begin, cancel } = useCancellableRun();
   const [pdfDoc, setPdfDoc] = useState<PdfjsLib.PDFDocumentProxy | null>(null);
   const [numPages, setNumPages] = useState<number>(0);
-  // 0, not 90: a freshly opened file has not been turned yet, and starting at
-  // a quarter turn meant the preview was already rotated before anyone asked.
-  const [rotation, setRotation] = useState<number>(0);
 
   /**
    * Angles set on individual pages, keyed by 1-based page number.
@@ -28,18 +25,6 @@ export default function RotatePdfPage(): JSX.Element {
    */
   const [pageRotations, setPageRotations] = useState<Record<number, number>>({});
 
-  /**
-   * What is in the angle box, kept as text while it is being typed.
-   *
-   * Separate from `rotation` because a half-typed "-" or "" is not a number,
-   * and forcing it through the numeric state would fight the person typing.
-   * It commits on a valid entry and is overwritten whenever the buttons move
-   * the angle, so the two never drift apart.
-   */
-  const [angleText, setAngleText] = useState<string>("0");
-  const [angleHint, setAngleHint] = useState<string | null>(null);
-  const [mode, setMode] = useState<"all" | "custom">("all");
-  const [pageNumber, setPageNumber] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [libLoading, setLibLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -76,12 +61,7 @@ export default function RotatePdfPage(): JSX.Element {
       const selectedFile = fileList[0];
       if (selectedFile.type === "application/pdf" || selectedFile.name.endsWith(".pdf")) {
         setFile(selectedFile);
-        setRotation(0);
         setPageRotations({});
-        setAngleText("0");
-        setAngleHint(null);
-        setMode("all");
-        setPageNumber("");
         setError(null);
 
         if (!pdfjsLib) {
@@ -131,77 +111,11 @@ export default function RotatePdfPage(): JSX.Element {
     setFile(null);
     setPdfDoc(null);
     setNumPages(0);
-    setRotation(0);
     setPageRotations({});
-    setAngleText("0");
-    setAngleHint(null);
-    setMode("all");
-    setPageNumber("");
     setError(null);
   };
 
-  /**
-   * Turn the preview a quarter at a time, either way.
-   *
-   * It used to be one button cycling 90 -> 180 -> 270 -> 360 -> 90, which could
-   * only go clockwise and never passed through 0: three clicks to undo one, and
-   * no way to say "leave it alone". Reset made that worse by going to 90, so
-   * resetting still rotated the document.
-   *
-   * Kept in 0-359 so 270 and -90 are the same state rather than two, and so the
-   * label reads as an angle rather than an accumulating total.
-   *
-   * A PDF stores page rotation as one of 0, 90, 180 or 270 — it is a property of
-   * the page, not a transform — so quarter turns are the whole range available.
-   * An arbitrary angle would mean rasterising each page into an image and losing
-   * the text with it.
-   */
-  const turn = (delta: number): void => {
-    setRotation((prev) => {
-      const next = (prev + delta + 360) % 360;
-      setAngleText(String(next));
-      return next;
-    });
-    setAngleHint(null);
-  };
 
-  /**
-   * Takes a typed angle.
-   *
-   * Negatives and values past a full turn are accepted and folded into 0-359,
-   * so -90 and 270 are the same instruction and 450 is 90 — the arithmetic
-   * someone doing this in their head would expect.
-   *
-   * Anything that is not a quarter turn is refused rather than quietly snapped.
-   * A PDF stores rotation as one of four values, so 45 has no representation:
-   * rounding it to 90 would hand back a document turned twice as far as asked,
-   * which is worse than being told why it cannot be done.
-   */
-  const commitAngle = (raw: string): void => {
-    const trimmed = raw.trim();
-
-    if (trimmed === "" || trimmed === "-") {
-      setAngleHint(null);
-      return;
-    }
-
-    const value = Number(trimmed);
-
-    if (!Number.isFinite(value)) {
-      setAngleHint("Enter a number of degrees.");
-      return;
-    }
-
-    if (!Number.isInteger(value) || value % 90 !== 0) {
-      setAngleHint("PDF pages turn in quarters — use 0, 90, 180 or 270.");
-      return;
-    }
-
-    const normalised = ((value % 360) + 360) % 360;
-    setRotation(normalised);
-    setAngleText(String(normalised));
-    setAngleHint(null);
-  };
 
   /**
    * A quarter turn on one page, from its own icon.
@@ -211,15 +125,11 @@ export default function RotatePdfPage(): JSX.Element {
    * on screen rather than jumping back to zero first.
    */
   const turnPage = (pageNum: number): void => {
-    setPageRotations((prev) => {
-      const from = prev[pageNum] ?? rotation;
-      return { ...prev, [pageNum]: (from + 90) % 360 };
-    });
+    setPageRotations((prev) => ({ ...prev, [pageNum]: ((prev[pageNum] ?? 0) + 90) % 360 }));
   };
 
-  /** What a given page is showing, per-page angle winning over the global one. */
-  const angleFor = (pageNum: number): number =>
-    pageRotations[pageNum] ?? (mode === "all" || (mode === "custom" && pageNumber === String(pageNum)) ? rotation : 0);
+  /** What a given page is showing. Untouched pages are simply not in the map. */
+  const angleFor = (pageNum: number): number => pageRotations[pageNum] ?? 0;
 
   /** True once any page has been turned on its own. */
   const hasPerPage = Object.values(pageRotations).some((a) => a !== 0);
@@ -268,10 +178,6 @@ export default function RotatePdfPage(): JSX.Element {
     const signal = begin();
     if (!file) return;
 
-    if (!hasPerPage && mode === "custom" && !pageNumber.trim()) {
-      setError("Please specify the exact page number you want to rotate.");
-      return;
-    }
 
     setLoading(true);
     setError(null);
@@ -280,21 +186,15 @@ export default function RotatePdfPage(): JSX.Element {
       const formData = new FormData();
       formData.append("file", file);
 
-      if (hasPerPage) {
         // Send exactly what the preview shows: every page's own angle, taken
-        // from angleFor so a page that was never touched still carries the
-        // document-wide turn rather than silently coming back upright.
-        const angles: Record<number, number> = {};
-        for (let page = 1; page <= numPages; page++) {
-          const angle = angleFor(page);
-          if (angle !== 0) angles[page] = angle;
-        }
-        formData.append("rotations", JSON.stringify(angles));
-      } else {
-        formData.append("rotation", rotation.toString());
-        formData.append("mode", mode);
-        formData.append("pageNumber", pageNumber);
+      // from angleFor so a page that was never touched still carries the
+      // document-wide turn rather than silently coming back upright.
+      const angles: Record<number, number> = {};
+      for (let page = 1; page <= numPages; page++) {
+        const angle = angleFor(page);
+        if (angle !== 0) angles[page] = angle;
       }
+      formData.append("rotations", JSON.stringify(angles));
 
       const res = await fetch("/api/rotate-pdf", {
         method: "POST",
@@ -376,122 +276,9 @@ export default function RotatePdfPage(): JSX.Element {
             </button>
           </div>
 
-          {/* Rotation settings */}
-          <div className="bg-card border border-card rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-card">
-              <RotateCw className="w-4 h-4 text-fg shrink-0" />
-              <span className="text-[13px] sm:text-sm font-extrabold text-fg">Rotation Settings</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setMode("all")}
-                className={`w-full px-4 py-3 sm:py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${mode === "all"
-                  ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
-                  : "bg-card border border-card text-muted hover:text-slate-900 dark:hover:text-white"
-                  }`}
-              >
-                <Layers className="w-4 h-4 shrink-0" />
-                <span>Whole Document</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("custom")}
-                className={`w-full px-4 py-3 sm:py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${mode === "custom"
-                  ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
-                  : "bg-card border border-card text-muted hover:text-slate-900 dark:hover:text-white"
-                  }`}
-              >
-                <FileText className="w-4 h-4 shrink-0" />
-                <span>Specific Page</span>
-              </button>
-            </div>
-
-            {mode === "custom" && (
-              <div className="pt-1">
-                <label className="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-muted block mb-1">
-                  Target Page (1 – {numPages || 1})
-                </label>
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  min="1"
-                  max={numPages || 1}
-                  placeholder="e.g. 1"
-                  value={pageNumber}
-                  onChange={(e) => setPageNumber(e.target.value)}
-                  className="w-full bg-card border border-card rounded-xl px-3 py-3 sm:py-2.5 text-base sm:text-sm text-fg placeholder-slate-400 focus:outline-none focus:border-slate-900 dark:focus:border-white transition"
-                />
-                <p className="text-[11px] text-muted mt-1.5">Enter the exact page number you wish to rotate.</p>
-              </div>
-            )}
-
-            <div className="flex items-stretch gap-2.5 sm:gap-3 pt-1">
-              <button
-                type="button"
-                onClick={() => turn(-90)}
-                aria-label="Rotate left 90 degrees"
-                title="Rotate left"
-                className="flex-1 flex items-center justify-center gap-2 py-3.5 sm:py-3 px-4 rounded-xl bg-[var(--background-secondary)] hover:bg-slate-100 dark:hover:bg-slate-800 border border-card text-[13px] sm:text-sm font-bold text-fg transition shadow-sm"
-              >
-                <RotateCcw className="w-4 h-4 shrink-0" />
-                <span>Left</span>
-              </button>
-
-              {/* The angle sits between the two controls that change it, and is
-                  typed into directly for anyone who knows the number they want
-                  rather than clicking round to it. */}
-              <div className="shrink-0 w-[92px] flex flex-col items-center justify-center rounded-xl border border-card px-2 py-1">
-                <div className="flex items-baseline gap-0.5">
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={angleText}
-                    onChange={(e) => {
-                      setAngleText(e.target.value);
-                      commitAngle(e.target.value);
-                    }}
-                    onBlur={() => setAngleText(String(rotation))}
-                    aria-label="Rotation in degrees"
-                    className="w-11 bg-transparent text-center text-sm font-extrabold text-fg tabular-nums focus:outline-none"
-                  />
-                  <span className="text-sm font-extrabold text-fg">°</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setRotation(0);
-                    setPageRotations({});
-                    setAngleText("0");
-                    setAngleHint(null);
-                  }}
-                  disabled={rotation === 0 && !hasPerPage}
-                  className="text-[11px] font-bold text-muted hover:text-fg disabled:opacity-40 disabled:hover:text-muted transition-colors"
-                >
-                  Reset
-                </button>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => turn(90)}
-                aria-label="Rotate right 90 degrees"
-                title="Rotate right"
-                className="flex-1 flex items-center justify-center gap-2 py-3.5 sm:py-3 px-4 rounded-xl bg-[var(--background-secondary)] hover:bg-slate-100 dark:hover:bg-slate-800 border border-card text-[13px] sm:text-sm font-bold text-fg transition shadow-sm"
-              >
-                <RotateCw className="w-4 h-4 shrink-0" />
-                <span>Right</span>
-              </button>
-            </div>
-
-            {angleHint && (
-              <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium pt-1.5">
-                {angleHint}
-              </p>
-            )}
-          </div>
-
+          {/* The whole-document controls are gone: every page carries its own
+              rotate icon in the preview below, which covers turning one page and
+              turning all of them without a second way to say it. */}
           {/* Page preview */}
           {numPages > 0 && (
             <div className="bg-card border border-card rounded-2xl p-3 sm:p-5 shadow-sm">
@@ -499,9 +286,14 @@ export default function RotatePdfPage(): JSX.Element {
                 <span className="text-[10px] sm:text-xs font-extrabold text-fg uppercase tracking-wider">
                   Page Preview ({numPages} Total)
                 </span>
-                <span className="text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-0.5 rounded-md bg-card border border-card text-fg shrink-0">
-                  Rotation: {rotation}°
-                </span>
+                <button
+                  type="button"
+                  onClick={() => setPageRotations({})}
+                  disabled={!hasPerPage}
+                  className="text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-1 rounded-md bg-card border border-card text-muted hover:text-fg disabled:opacity-40 disabled:hover:text-muted shrink-0 transition-colors"
+                >
+                  Reset all
+                </button>
               </div>
 
               <div className="w-full max-h-[340px] sm:max-h-[420px] overflow-y-auto space-y-3 sm:space-y-4 pr-1">
@@ -575,7 +367,7 @@ export default function RotatePdfPage(): JSX.Element {
           <button
             type="button"
             onClick={handleRotateAndDownload}
-            disabled={loading || (rotation === 0 && !hasPerPage)}
+            disabled={loading || !hasPerPage}
             className="w-full py-3.5 sm:py-4 px-4 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-[13px] sm:text-base shadow-lg disabled:opacity-60 flex items-center justify-center gap-2 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
           >
             {loading ? (
@@ -586,7 +378,7 @@ export default function RotatePdfPage(): JSX.Element {
             <span>
               {loading
                 ? "Processing document..."
-                : rotation === 0 && !hasPerPage
+                : !hasPerPage
                   ? "Turn a page to save it"
                   : "Save & Download PDF"}
             </span>
