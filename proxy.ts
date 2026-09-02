@@ -27,7 +27,7 @@ import {
 // /checkout is here so an anonymous visitor is sent to sign in and returned to
 // the same plan afterwards, rather than reaching a checkout page that quotes a
 // plan it cannot tell them they are already on.
-const PROTECTED = ["/dashboard", "/documents", "/settings", "/checkout"];
+const PROTECTED = ["/dashboard", "/settings", "/checkout"];
 
 export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
@@ -74,7 +74,6 @@ function redirectToLogin(request: NextRequest) {
 export const config = {
     matcher: [
         "/dashboard/:path*",
-        "/documents/:path*",
         "/settings/:path*",
         "/checkout",
         "/checkout/:path*",

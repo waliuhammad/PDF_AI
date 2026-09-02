@@ -14,7 +14,6 @@ export interface PlanUsage {
     used: number;
     limit: number;
     plan: string;
-    storageLimitGb: number;
 }
 
 interface PlanUsageValue {
@@ -66,7 +65,6 @@ export function PlanUsageProvider({
                     used: data.used,
                     limit: data.limit,
                     plan: data.plan,
-                    storageLimitGb: data.storageLimitGb,
                 });
                 setUnavailable(false);
             } else {

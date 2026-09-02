@@ -38,7 +38,6 @@ export function usePlanUsage() {
                     used: data.used,
                     limit: data.limit,
                     plan: data.plan,
-                    storageLimitGb: data.storageLimitGb,
                 });
                 setUnavailable(false);
             } else {

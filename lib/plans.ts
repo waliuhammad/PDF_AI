@@ -50,7 +50,6 @@ export const PLANS: Plan[] = [
         description: "Perfect for trying basic PDF tools.",
         features: [
             "10 operations per 24 hours",
-            "2 GB cloud storage",
             "Basic PDF tools",
             "Limited OCR",
             "Limited AI summary",
@@ -73,7 +72,6 @@ export const PLANS: Plan[] = [
         features: [
             "Everything in Free",
             "30 operations per 24 hours",
-            "5 GB cloud storage",
             "Advanced PDF tools",
             "Unlimited OCR",
             "Unlimited AI summary",
@@ -96,7 +94,6 @@ export const PLANS: Plan[] = [
         features: [
             "Everything in Pro",
             "100 operations per 24 hours",
-            "10 GB cloud storage",
             "Priority processing",
             "Team collaboration",
             "Advanced security",
