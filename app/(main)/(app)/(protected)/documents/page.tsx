@@ -9,6 +9,7 @@ import {
     ChevronDown,
 } from "lucide-react";
 import { DocumentCard } from "@/components/documents/document-card";
+import { StorageFullNotice } from "@/components/dashboard/storage-full-notice";
 import { DocumentRow } from "@/components/documents/document-row";
 import { UploadModal } from "@/components/documents/upload-modal";
 import { useLibrary } from "@/lib/store";
@@ -110,10 +111,17 @@ export default function DocumentsPage() {
                 </button>
             </div>
 
-            {storageError && (
-                <div className="mb-4 rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-600 dark:text-red-400">
-                    {storageError}
-                </div>
+            {/* Shown when an upload was refused, and also whenever the library
+                is already at its limit — someone who is full should not have to
+                attempt an upload to find out, or to be told what they can do
+                about it. */}
+            {storageLimitGb !== null && (storageError || storageUsedGb >= storageLimitGb) && (
+                <StorageFullNotice
+                    usedGb={storageUsedGb}
+                    limitGb={storageLimitGb}
+                    plan={planName}
+                    detail={storageError ?? undefined}
+                />
             )}
 
             {/* Toolbar */}
@@ -244,9 +252,8 @@ export default function DocumentsPage() {
                             storageUsedGb + incomingGb > storageLimitGb
                         ) {
                             setStorageError(
-                                `That upload needs ${(storageUsedGb + incomingGb).toFixed(2)} GB, ` +
-                                `over your ${storageLimitGb} GB ${planName} storage. ` +
-                                `Remove some documents or upgrade for more space.`
+                                `That upload would need ${(storageUsedGb + incomingGb).toFixed(2)} GB, ` +
+                                `over your ${storageLimitGb} GB ${planName} allowance.`
                             );
                             return;
                         }
