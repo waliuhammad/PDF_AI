@@ -23,11 +23,18 @@ export function formatFileSize(bytes: number) {
 export function formatStorageUsed(gigabytes: number) {
   // One stored record without a sizeMb turns the whole sum into NaN, which
   // would otherwise be printed as "NaN GB".
-  if (!Number.isFinite(gigabytes)) return "0 KB"
+  if (!Number.isFinite(gigabytes)) return "0 MB"
 
   const bytes = gigabytes * 1024 * 1024 * 1024
 
-  if (bytes <= 0) return "0 KB"
+  // Empty reads "0 MB", not "0 KB". The allowance beside it is quoted in GB,
+  // and kilobytes are two steps away from that — "0 KB / 2 GB" asks the reader
+  // to hold three units at once to see that they have used nothing. Megabytes
+  // are the unit a document library is actually measured in, so that is where
+  // the empty case sits. Anything genuinely stored still steps down to KB or B
+  // below a megabyte, which is what keeps the figure moving as soon as the
+  // first small file is added.
+  if (bytes <= 0) return "0 MB"
   if (bytes < 1024) return `${Math.round(bytes)} B`
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
   if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
