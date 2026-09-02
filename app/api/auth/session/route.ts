@@ -6,6 +6,7 @@ import {
     SESSION_COOKIE,
     SESSION_MAX_AGE_MS,
 } from "@/lib/firebase/admin";
+import { SESSION_HINT_COOKIE } from "@/lib/session-hint";
 import { rateLimit, SESSION_LIMIT } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
@@ -71,6 +72,25 @@ export async function POST(req: NextRequest) {
             path: "/",
             maxAge: SESSION_MAX_AGE_MS / 1000,
         });
+        // A readable companion to the cookie above, carrying nothing but "1".
+        //
+        // The marketing pages are prerendered, so they cannot ask the server who
+        // is visiting without becoming dynamic and losing their cache. The only
+        // other way to know was Firebase Auth in the browser, which put ~290KB
+        // of SDK on every public page to decide one button's label.
+        //
+        // Not httpOnly, because being readable is the entire point. It grants
+        // nothing: forging it changes a link's wording and the destination still
+        // checks the real session. The session cookie beside it stays httpOnly.
+        response.cookies.set({
+            name: SESSION_HINT_COOKIE,
+            value: "1",
+            httpOnly: false,
+            secure: process.env.NODE_ENV === "production",
+            sameSite: "lax",
+            path: "/",
+            maxAge: SESSION_MAX_AGE_MS / 1000,
+        });
         return response;
     } catch (error) {
         // The true reason stays in the server log; the browser gets a
@@ -87,6 +107,17 @@ export async function DELETE() {
         name: SESSION_COOKIE,
         value: "",
         httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        maxAge: 0,
+    });
+    // Cleared with it, or the header would keep offering a dashboard to
+    // somebody who has just signed out.
+    response.cookies.set({
+        name: SESSION_HINT_COOKIE,
+        value: "",
+        httpOnly: false,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         path: "/",

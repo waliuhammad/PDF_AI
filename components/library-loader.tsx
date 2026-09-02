@@ -1,44 +1,37 @@
 "use client";
 
-import { useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
-import { useLibrary } from "@/lib/store";
-import { loadLibrary } from "@/lib/firebase/library";
+import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
+import { hasSessionHint } from "@/lib/session-hint";
 
 /**
- * Bridges auth to the library store: when a user signs in, their
- * documents are loaded from Firestore into the store; when
- * they sign out, it empties. Renders nothing — mount it once inside the
- * signed-in layout.
+ * Loads the document library, but only for someone who has one.
+ *
+ * This is mounted in the layout the twenty-one PDF tools share, and those tools
+ * work without an account. The loader needs Firebase Auth and Firestore, so
+ * importing it here meant every anonymous visitor to /merge-pdf downloaded both
+ * SDKs — around 86KB of auth alone — to synchronise a library they do not have.
+ *
+ * The real loader now lives behind a dynamic import that only runs when the
+ * session hint cookie is present, so the SDKs are fetched by the people they
+ * are for. A stale hint costs one wasted import and a load that finds nothing;
+ * a missing one costs an unsynchronised library until the next navigation,
+ * which is the same as being signed out.
  */
+const LibraryLoaderInner = dynamic(
+    () => import("./library-loader-inner").then((m) => m.LibraryLoaderInner),
+    { ssr: false }
+);
+
 export function LibraryLoader() {
-    const { user, loading } = useAuth();
-    const hydrate = useLibrary((s) => s.hydrate);
+    const [signedIn, setSignedIn] = useState(false);
 
     useEffect(() => {
-        if (loading) return;
+        // Read after mount: prerendering has no cookies, so deciding during
+        // render would make the first client pass disagree with the HTML.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setSignedIn(hasSessionHint());
+    }, []);
 
-        if (!user) {
-            hydrate(null, []);
-            return;
-        }
-
-        let cancelled = false;
-
-        loadLibrary(user.uid)
-            .then(({ documents }) => {
-                if (!cancelled) hydrate(user.uid, documents);
-            })
-            .catch((err) => {
-                console.error("Failed to load library:", err);
-                // Signed in but unreadable: keep uid so new work still saves.
-                if (!cancelled) hydrate(user.uid, []);
-            });
-
-        return () => {
-            cancelled = true;
-        };
-    }, [user, loading, hydrate]);
-
-    return null;
+    return signedIn ? <LibraryLoaderInner /> : null;
 }

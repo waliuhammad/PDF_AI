@@ -6,7 +6,7 @@ import { isToolPath } from "@/lib/tool-paths";
 import { useState, useEffect } from "react";
 import { Menu, X, FileText } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
-import { useAuth } from "@/hooks/useAuth";
+import { hasSessionHint } from "@/lib/session-hint";
 
 /** Root-relative, not bare hashes. This navbar renders on the content pages
  *  (/terms, /privacy, /about, …) as well as the landing page, and a bare
@@ -27,7 +27,7 @@ const navLinks = [
 /** "/#tools" -> "#tools". The hash alone is what the DOM and the URL bar use. */
 const hashOf = (href: string) => href.slice(href.indexOf("#"));
 
-export function Navbar() {
+export function Navbar({ signedIn: signedInProp }: { signedIn?: boolean } = {}) {
   const [open, setOpen] = useState(false);
   const [activeHash, setActiveHash] = useState("");
   const pathname = usePathname();
@@ -37,16 +37,28 @@ export function Navbar() {
    * first is a step they have finished and the second offers them a second
    * account. They get one button through to their dashboard instead.
    *
-   * `loading` counts as signed out on purpose. The session cookie is httpOnly,
-   * so the server cannot tell the browser who it is and every render starts
-   * signed out; treating the unresolved moment as signed in would make the
-   * first client render disagree with the server's HTML, which is a hydration
-   * mismatch. Firebase answers from IndexedDB in a few milliseconds, so what
-   * this costs is a brief flash of the signed-out buttons rather than a wrong
-   * one that has to be corrected.
+   * This used to ask Firebase Auth, which meant every page carrying this header
+   * — including the prerendered marketing pages — shipped the SDK, around
+   * 290KB, to decide one button's wording. It reads a cookie now: no SDK, and
+   * the pages stay static.
+   *
+   * Read after mount rather than during render. The server has no cookies to
+   * read while prerendering, so a first client render that already knew would
+   * disagree with the HTML and hydrate wrong. The cost is a brief flash of the
+   * signed-out buttons, which is what it was before.
+   *
+   * `signedIn` overrides it where the caller already knows — the tool pages
+   * resolve auth for their own layout, so they should not make this guess
+   * again.
    */
-  const { user, loading } = useAuth();
-  const signedIn = !loading && user !== null;
+  const [hinted, setHinted] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setHinted(hasSessionHint());
+  }, []);
+
+  const signedIn = signedInProp ?? hinted;
 
   /**
    * Which link to underline.

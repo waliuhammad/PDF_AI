@@ -77,7 +77,6 @@ export const PLANS: Plan[] = [
             "Advanced PDF tools",
             "Unlimited OCR",
             "Unlimited AI summary",
-            "Unlimited AI chat with PDF",
             "AI grammar & writing",
             "AI translation",
             "Faster processing",
