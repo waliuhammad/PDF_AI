@@ -1,17 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
+import { AiRunButton } from "@/components/tools/ai-run-button";
+import { ResultActions } from "@/components/tools/result-actions";
 import { downloadBlob } from "@/lib/download";
-import {
-  FileText,
-  X,
-  Copy,
-  Sparkles,
-  Download,
-  ChevronDown,
-  FileDown,
-} from "lucide-react";
+import { FileText, X, Sparkles } from "lucide-react";
 import { errorMessage } from "@/lib/errors";
 import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
@@ -22,28 +16,11 @@ export default function SummarizePdfPage() {
   const [processing, setProcessing] = useState(false);
   const [summary, setSummary] = useState<string[] | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-
-  // Controls the format dropdown attached to the Download button.
-  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
-  const downloadMenuRef = useRef<HTMLDivElement>(null);
 
   const formatSize = (bytes: number) => {
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
-
-  // Close the download menu on outside click.
-  useEffect(() => {
-    if (!showDownloadMenu) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (downloadMenuRef.current && !downloadMenuRef.current.contains(e.target as Node)) {
-        setShowDownloadMenu(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showDownloadMenu]);
 
   const handleFile = (fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return;
@@ -99,13 +76,6 @@ export default function SummarizePdfPage() {
     }
   };
 
-  const handleCopy = () => {
-    if (!summary) return;
-    navigator.clipboard.writeText(summary.join("\n"));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-
   // Base filename (without extension) used to name downloaded files.
   const baseName = (fileMeta?.name || "document").replace(/\.pdf$/i, "");
 
@@ -114,7 +84,6 @@ export default function SummarizePdfPage() {
     const content = summary.map((line) => `• ${line}`).join("\n");
     const blob = new Blob([content], { type: "text/plain;charset=utf-8" });
     downloadBlob(blob, `${baseName}_summary.txt`);
-    setShowDownloadMenu(false);
   };
 
   const downloadAsPdf = async () => {
@@ -196,7 +165,6 @@ export default function SummarizePdfPage() {
     }
 
     doc.save(`${baseName}_summary.pdf`);
-    setShowDownloadMenu(false);
   };
 
   return (
@@ -261,50 +229,11 @@ export default function SummarizePdfPage() {
                   <span className="text-sm font-extrabold">AI Summary</span>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleCopy}
-                    className="py-2 px-3 rounded-xl border border-[#222430]/10 dark:border-white/20 bg-[var(--background-secondary)] text-[#222430] dark:text-white hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] transition-all shadow-sm flex items-center gap-1.5 text-xs font-bold"
-                  >
-                    <Copy size={14} />
-                    {copied ? "Copied" : "Copy"}
-                  </button>
-
-                  {/* Split button: Download opens a small format menu */}
-                  <div className="relative" ref={downloadMenuRef}>
-                    <button
-                      type="button"
-                      onClick={() => setShowDownloadMenu((prev) => !prev)}
-                      className="py-2 px-3 rounded-xl border border-[#222430]/10 dark:border-white/20 bg-[var(--background-secondary)] text-[#222430] dark:text-white hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] transition-all shadow-sm flex items-center gap-1.5 text-xs font-bold"
-                    >
-                      <Download size={14} />
-                      Download
-                      <ChevronDown size={12} className={`transition-transform ${showDownloadMenu ? "rotate-180" : ""}`} />
-                    </button>
-
-                    {showDownloadMenu && (
-                      <div className="absolute right-0 mt-2 w-40 rounded-xl border border-[#222430]/15 dark:border-white/20 bg-[var(--background-secondary)] shadow-lg z-20 overflow-hidden">
-                        <button
-                          type="button"
-                          onClick={downloadAsTxt}
-                          className="w-full text-left px-3.5 py-2.5 text-xs font-semibold hover:bg-[#222430]/5 dark:hover:bg-white/10 flex items-center gap-2 transition-colors"
-                        >
-                          <FileText size={14} />
-                          Download as .TXT
-                        </button>
-                        <button
-                          type="button"
-                          onClick={downloadAsPdf}
-                          className="w-full text-left px-3.5 py-2.5 text-xs font-semibold hover:bg-[#222430]/5 dark:hover:bg-white/10 flex items-center gap-2 border-t border-[#222430]/10 dark:border-white/10 transition-colors"
-                        >
-                          <FileDown size={14} />
-                          Download as .PDF
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <ResultActions
+                  text={(summary ?? []).join("\n")}
+                  onDownloadTxt={downloadAsTxt}
+                  onDownloadPdf={downloadAsPdf}
+                />
               </div>
 
               <ul className="space-y-2">
@@ -319,20 +248,12 @@ export default function SummarizePdfPage() {
           )}
 
           <div className="mt-8 flex justify-center">
-            <button
-              type="button"
+            <AiRunButton
+              label={summary ? "Regenerate Summary" : "Summarize with AI"}
+              loadingLabel={summary ? "Regenerating..." : "Summarizing..."}
+              loading={processing}
               onClick={handleSummarize}
-              disabled={processing}
-              className="py-3 px-8 rounded-xl border border-[#222430]/20 bg-[#222430] text-white hover:bg-[#2f3242] dark:bg-[#2b1b3d] dark:text-white dark:hover:bg-[#382451] font-bold text-sm shadow-lg disabled:opacity-40 flex items-center justify-center gap-2 transition-all cursor-pointer"
-            >
-              {!summary
-                ? processing
-                  ? "Summarizing..."
-                  : "Summarize with AI"
-                : processing
-                  ? "Regenerating..."
-                  : "Regenerate Summary"}
-            </button>
+            />
           </div>
         </>
       )}

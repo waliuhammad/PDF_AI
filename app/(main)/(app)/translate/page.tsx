@@ -1,20 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
+import { AiRunButton } from "@/components/tools/ai-run-button";
+import { ResultActions } from "@/components/tools/result-actions";
 import { downloadBlob } from "@/lib/download";
-import {
-  Languages,
-  Sparkles,
-  Copy,
-  Loader2,
-  FileText,
-  X,
-  ArrowRight,
-  Download,
-  ChevronDown,
-  FileDown,
-} from "lucide-react";
+import { Languages, Sparkles, FileText, X } from "lucide-react";
 import LanguageSelect from "@/components/language-select";
 import { errorMessage } from "@/lib/errors";
 import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
@@ -28,28 +19,11 @@ export default function PdfTranslatorPage() {
   const [translatedText, setTranslatedText] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
-
-  // Controls the format dropdown attached to the Download button.
-  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
-  const downloadMenuRef = useRef<HTMLDivElement>(null);
 
   const formatSize = (bytes: number) => {
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
-
-  // Close the download menu on outside click.
-  useEffect(() => {
-    if (!showDownloadMenu) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (downloadMenuRef.current && !downloadMenuRef.current.contains(e.target as Node)) {
-        setShowDownloadMenu(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showDownloadMenu]);
 
   const handleFile = (fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return;
@@ -100,13 +74,6 @@ export default function PdfTranslatorPage() {
     }
   };
 
-  const handleCopy = () => {
-    if (!translatedText) return;
-    navigator.clipboard.writeText(translatedText);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
-  };
-
   // Base filename (without extension), plus target language, so repeat
   // translations of the same doc don't collide, e.g. "report_translated_Spanish.pdf".
   const baseName = (fileMeta?.name || "document").replace(/\.pdf$/i, "");
@@ -116,7 +83,6 @@ export default function PdfTranslatorPage() {
     if (!translatedText) return;
     const blob = new Blob([translatedText], { type: "text/plain;charset=utf-8" });
     downloadBlob(blob, `${downloadName}.txt`);
-    setShowDownloadMenu(false);
   };
 
   const downloadAsPdf = async () => {
@@ -149,7 +115,6 @@ export default function PdfTranslatorPage() {
     });
 
     doc.save(`${downloadName}.pdf`);
-    setShowDownloadMenu(false);
   };
 
   return (
@@ -218,23 +183,13 @@ export default function PdfTranslatorPage() {
             </div>
 
             <div className="pt-3 border-t border-[#222430]/10 dark:border-white/20 mt-3 flex justify-end">
-              <button
+              <AiRunButton
                 type="submit"
-                disabled={loading || !selectedFile}
-                className="px-6 py-2.5 rounded-xl border border-[#222430]/20 bg-[#222430] text-white hover:bg-[#2f3242] dark:bg-[#2b1b3d] dark:hover:bg-[#382451] text-sm font-bold shadow-lg disabled:opacity-40 flex items-center gap-2 transition-all cursor-pointer"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 size={15} className="animate-spin" />
-                    Translating...
-                  </>
-                ) : (
-                  <>
-                    Translate PDF
-                    <ArrowRight size={15} />
-                  </>
-                )}
-              </button>
+                label="Translate PDF"
+                loadingLabel="Translating..."
+                loading={loading}
+                disabled={!selectedFile}
+              />
             </div>
           </div>
 
@@ -246,50 +201,11 @@ export default function PdfTranslatorPage() {
                 Translated Result
               </span>
               {translatedText && (
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={handleCopy}
-                    className="py-1.5 px-2.5 rounded-lg border border-[#222430]/10 dark:border-white/20 bg-[var(--background-secondary)] text-[#222430] dark:text-white hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] transition-all shadow-sm flex items-center gap-1 text-xs font-bold"
-                  >
-                    <Copy size={13} />
-                    {copied ? "Copied" : "Copy"}
-                  </button>
-
-                  {/* Split button: Download opens a small format menu */}
-                  <div className="relative" ref={downloadMenuRef}>
-                    <button
-                      type="button"
-                      onClick={() => setShowDownloadMenu((prev) => !prev)}
-                      className="py-1.5 px-2.5 rounded-lg border border-[#222430]/10 dark:border-white/20 bg-[var(--background-secondary)] text-[#222430] dark:text-white hover:bg-[#222430] hover:text-white dark:hover:bg-white dark:hover:text-[#222430] transition-all shadow-sm flex items-center gap-1 text-xs font-bold"
-                    >
-                      <Download size={13} />
-                      Download
-                      <ChevronDown size={11} className={`transition-transform ${showDownloadMenu ? "rotate-180" : ""}`} />
-                    </button>
-
-                    {showDownloadMenu && (
-                      <div className="absolute right-0 mt-2 w-40 rounded-xl border border-[#222430]/15 dark:border-white/20 bg-[var(--background-secondary)] shadow-lg z-20 overflow-hidden">
-                        <button
-                          type="button"
-                          onClick={downloadAsTxt}
-                          className="w-full text-left px-3.5 py-2.5 text-xs font-semibold hover:bg-[#222430]/5 dark:hover:bg-white/10 flex items-center gap-2 transition-colors"
-                        >
-                          <FileText size={14} />
-                          Download as .TXT
-                        </button>
-                        <button
-                          type="button"
-                          onClick={downloadAsPdf}
-                          className="w-full text-left px-3.5 py-2.5 text-xs font-semibold hover:bg-[#222430]/5 dark:hover:bg-white/10 flex items-center gap-2 border-t border-[#222430]/10 dark:border-white/10 transition-colors"
-                        >
-                          <FileDown size={14} />
-                          Download as .PDF
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                <ResultActions
+                  text={translatedText}
+                  onDownloadTxt={downloadAsTxt}
+                  onDownloadPdf={downloadAsPdf}
+                />
               )}
             </div>
             <div className="w-full flex-1 rounded-xl bg-[#222430]/5 dark:bg-black/20 p-4 border border-[#222430]/10 dark:border-white/10 overflow-y-auto max-h-[300px]">

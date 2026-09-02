@@ -1,20 +1,11 @@
 "use client";
 
-import { useMemo, useRef, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
+import { AiRunButton } from "@/components/tools/ai-run-button";
+import { ResultActions } from "@/components/tools/result-actions";
 import { downloadBlob } from "@/lib/download";
-import {
-    CheckCheck,
-    Sparkles,
-    Copy,
-    Loader2,
-    FileText,
-    X,
-    ArrowRight,
-    Download,
-    ChevronDown,
-    FileDown,
-} from "lucide-react";
+import { CheckCheck, Sparkles, FileText, X } from "lucide-react";
 import { errorMessage } from "@/lib/errors";
 import { diffWords, countEdits } from "@/lib/text-diff";
 import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
@@ -48,28 +39,11 @@ export default function GrammarCheckerPage() {
     const editCount = useMemo(() => (diff ? countEdits(diff) : 0), [diff]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [copied, setCopied] = useState(false);
-
-    // Controls the format dropdown attached to the Download button.
-    const [showDownloadMenu, setShowDownloadMenu] = useState(false);
-    const downloadMenuRef = useRef<HTMLDivElement>(null);
 
     const formatSize = (bytes: number) => {
         if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
         return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
     };
-
-    // Close the download menu on outside click.
-    useEffect(() => {
-        if (!showDownloadMenu) return;
-        const handleClickOutside = (e: MouseEvent) => {
-            if (downloadMenuRef.current && !downloadMenuRef.current.contains(e.target as Node)) {
-                setShowDownloadMenu(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [showDownloadMenu]);
 
     const handleFile = (fileList: FileList | null) => {
         if (!fileList || fileList.length === 0) return;
@@ -155,13 +129,6 @@ if (!res.ok) {
         }
     };
 
-    const handleCopy = () => {
-        if (!correctedText) return;
-        navigator.clipboard.writeText(correctedText);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1500);
-    };
-
     // Base filename (without extension) used to name downloaded files.
     const baseName = (fileMeta?.name || "document").replace(/\.pdf$/i, "");
 
@@ -169,7 +136,6 @@ if (!res.ok) {
         if (!correctedText) return;
         const blob = new Blob([correctedText], { type: "text/plain;charset=utf-8" });
         downloadBlob(blob, `${baseName}_corrected.txt`);
-        setShowDownloadMenu(false);
     };
 
     const downloadAsPdf = async () => {
@@ -260,7 +226,6 @@ if (!res.ok) {
         }
 
         doc.save(`${baseName}_corrected.pdf`);
-        setShowDownloadMenu(false);
     };
 
     return (
@@ -318,24 +283,13 @@ if (!res.ok) {
                         </div>
 
                         <div className="pt-3 border-t border-white/5 mt-3 flex justify-end">
-                            <button
-                                type="button"
+                            <AiRunButton
+                                label="Check Grammar"
+                                loadingLabel="Analyzing PDF..."
+                                loading={loading}
+                                disabled={!selectedFile}
                                 onClick={handleCheckGrammar}
-                                disabled={loading || !selectedFile}
-                                className="px-6 py-2.5 rounded-full bg-[var(--primary)] text-white text-sm font-medium hover:opacity-90 transition-colors disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-purple-900/20"
-                            >
-                                {loading ? (
-                                    <>
-                                        <Loader2 size={15} className="animate-spin" />
-                                        Analyzing PDF...
-                                    </>
-                                ) : (
-                                    <>
-                                        Check Grammar
-                                        <ArrowRight size={15} />
-                                    </>
-                                )}
-                            </button>
+                            />
                         </div>
                     </div>
 
@@ -347,50 +301,11 @@ if (!res.ok) {
                                 Corrected Result
                             </span>
                             {correctedText && (
-                                <div className="flex items-center gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={handleCopy}
-                                        className="text-muted hover:text-[var(--primary)] flex items-center gap-1 text-xs"
-                                    >
-                                        <Copy size={13} />
-                                        {copied ? "Copied" : "Copy"}
-                                    </button>
-
-                                    {/* Split button: Download opens a small format menu */}
-                                    <div className="relative" ref={downloadMenuRef}>
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowDownloadMenu((prev) => !prev)}
-                                            className="text-muted hover:text-[var(--primary)] flex items-center gap-1 text-xs"
-                                        >
-                                            <Download size={13} />
-                                            Download
-                                            <ChevronDown size={11} className={`transition-transform ${showDownloadMenu ? "rotate-180" : ""}`} />
-                                        </button>
-
-                                        {showDownloadMenu && (
-                                            <div className="absolute right-0 mt-2 w-40 rounded-xl border border-card bg-card shadow-lg z-20 overflow-hidden">
-                                                <button
-                                                    type="button"
-                                                    onClick={downloadAsTxt}
-                                                    className="w-full text-left px-3.5 py-2.5 text-xs font-semibold hover:bg-white/5 flex items-center gap-2 transition-colors text-fg"
-                                                >
-                                                    <FileText size={14} />
-                                                    Download as .TXT
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={downloadAsPdf}
-                                                    className="w-full text-left px-3.5 py-2.5 text-xs font-semibold hover:bg-white/5 flex items-center gap-2 border-t border-white/10 transition-colors text-fg"
-                                                >
-                                                    <FileDown size={14} />
-                                                    Download as .PDF
-                                                </button>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
+                                <ResultActions
+                                    text={correctedText}
+                                    onDownloadTxt={downloadAsTxt}
+                                    onDownloadPdf={downloadAsPdf}
+                                />
                             )}
                         </div>
                         {/* Only offered once the original is available to compare
