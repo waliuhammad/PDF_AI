@@ -26,6 +26,21 @@ export default function CompressPdfPage() {
   const [compressedSize, setCompressedSize] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  /**
+   * The finished file, held until the reader asks for it.
+   *
+   * Compressing used to download the result the instant it arrived, so the
+   * saving was reported after the file had already been written to disk —
+   * there was no way to see "reduced to 1.2 MB, -45%" and decide against it.
+   * Keeping the blob here separates the two: compress, look, then download.
+   *
+   * It also fixes what the Download button did. It was wired to
+   * executeCompress, so it re-uploaded and re-compressed the same PDF for a
+   * file the browser was already holding — a second round trip, and a second
+   * operation off the daily allowance, to produce bytes that already existed.
+   */
+  const [compressedBlob, setCompressedBlob] = useState<Blob | null>(null);
+
   const formatSize = (bytes: number) => {
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
@@ -73,6 +88,7 @@ export default function CompressPdfPage() {
     setSelectedOption(fileOptions[2]); // Default to Medium Compression
     setDone(false);
     setCompressedSize(null);
+    setCompressedBlob(null);
     setErrorMessage(null);
   };
 
@@ -99,8 +115,7 @@ export default function CompressPdfPage() {
 
       const blob = await response.blob();
       setCompressedSize(blob.size);
-
-      downloadBlob(blob, `compressed_${rawFile.name}`);
+      setCompressedBlob(blob);
 
       setDone(true);
     } catch (err) {
@@ -109,6 +124,12 @@ export default function CompressPdfPage() {
     } finally {
       setProcessing(false);
     }
+  };
+
+  /** Hands over the file already in memory — no second trip to the server. */
+  const handleDownload = () => {
+    if (!compressedBlob || !rawFile) return;
+    downloadBlob(compressedBlob, `compressed_${rawFile.name}`);
   };
 
   const calculateSavings = () => {
@@ -160,6 +181,8 @@ export default function CompressPdfPage() {
                 setFileDetails(null);
                 setRawFile(null);
                 setDone(false);
+                setCompressedSize(null);
+                setCompressedBlob(null);
                 setErrorMessage(null);
               }}
               className="w-full sm:w-auto py-1.5 px-3.5 rounded-xl border border-card bg-[var(--background-secondary)] hover:bg-card text-slate-600 dark:text-[#9ca3af] hover:text-fg font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors shrink-0"
@@ -233,6 +256,8 @@ export default function CompressPdfPage() {
                       setFileDetails(null);
                       setRawFile(null);
                       setDone(false);
+                      setCompressedSize(null);
+                      setCompressedBlob(null);
                       setErrorMessage(null);
                     }}
                     className="w-full sm:w-auto shrink-0 py-2.5 sm:py-3 px-5 sm:px-6 rounded-2xl border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-fg font-bold text-xs transition-colors"
@@ -277,19 +302,26 @@ export default function CompressPdfPage() {
                   <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-2">
                     <button
                       type="button"
-                      onClick={() => setDone(false)}
+                      onClick={() => {
+                        setDone(false);
+                        setCompressedBlob(null);
+                        setCompressedSize(null);
+                      }}
                       className="w-full sm:w-auto shrink-0 py-2.5 sm:py-3 px-5 sm:px-6 rounded-2xl border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-fg font-bold text-xs transition-colors"
                     >
                       Compress Again
                     </button>
+                    {/* Downloads what is already in memory. It used to call
+                        executeCompress, which compressed the file a second time
+                        and spent another operation to get the same bytes back. */}
                     <button
                       type="button"
-                      onClick={executeCompress}
-                      disabled={processing}
+                      onClick={handleDownload}
+                      disabled={!compressedBlob}
                       className="w-full sm:flex-1 py-3 sm:py-3.5 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-xs sm:text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
                     >
-                      {processing ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
-                      {processing ? "Downloading..." : "Download Compressed PDF"}
+                      <Download size={18} />
+                      Download Compressed PDF
                     </button>
                   </div>
                 </div>
