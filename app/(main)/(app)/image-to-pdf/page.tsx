@@ -10,7 +10,7 @@
 
 import React, { useState, useRef, JSX } from "react";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
-import { Trash2, UploadCloud, Sparkles, Loader2, Image as Plus, Sliders, Type } from "lucide-react";
+import { Trash2, UploadCloud, Sparkles, Loader2, Image as Plus, Sliders, Type, ChevronDown } from "lucide-react";
 import { loadJsPdf } from "@/lib/pdf-libs";
 import { errorMessage } from "@/lib/errors";
 import { claimOperation, releaseOperation } from "@/lib/claim-operation";
@@ -652,15 +652,28 @@ export default function ImageToPdf(): JSX.Element {
                         <div className="grid grid-cols-2 gap-2">
                           <div>
                             <label className="text-[10px] text-muted uppercase">Font</label>
-                            <select
-                              value={t.fontFamily}
-                              onChange={(e) => handleUpdateTextAnnotation(t.id, { fontFamily: e.target.value })}
-                              className="w-full bg-[var(--background-secondary)] border border-card rounded-lg px-2 py-1 text-xs text-fg mt-0.5 focus:outline-none"
-                            >
-                              <option value="helvetica">Helvetica</option>
-                              <option value="times">Times New Roman</option>
-                              <option value="courier">Courier</option>
-                            </select>
+                            {/* Same reason as the other two dropdowns: Chrome
+                                anchors the native chevron to the border box and
+                                ignores padding-right. Smaller offsets than the
+                                full-size selects because this control is too. */}
+                            <div className="relative mt-0.5">
+                              <select
+                                value={t.fontFamily}
+                                onChange={(e) => handleUpdateTextAnnotation(t.id, { fontFamily: e.target.value })}
+                                className="w-full appearance-none bg-[var(--background-secondary)] border border-card rounded-lg pl-2 pr-6 py-1 text-xs text-fg focus:outline-none cursor-pointer"
+                              >
+                                <option value="helvetica">Helvetica</option>
+                                <option value="times">Times New Roman</option>
+                                <option value="courier">Courier</option>
+                              </select>
+
+                              {/* pointer-events-none so the arrow still opens the menu. */}
+                              <ChevronDown
+                                size={12}
+                                aria-hidden="true"
+                                className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-muted"
+                              />
+                            </div>
                           </div>
                           <div>
                             <label className="text-[10px] text-muted uppercase">Size (pt)</label>

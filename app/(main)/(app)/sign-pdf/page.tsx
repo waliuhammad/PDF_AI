@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { FileText, Trash2, Download, PenLine, Loader2, CheckCircle2 } from "lucide-react";
+import { FileText, Trash2, Download, PenLine, Loader2, CheckCircle2, ChevronDown } from "lucide-react";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import type * as PdfjsLib from "pdfjs-dist";
 import { loadPdfjs } from "@/lib/pdf-libs";
@@ -435,7 +435,7 @@ export default function SignPdfPage() {
                   type="text"
                   value={signatureText}
                   onChange={(e) => setSignatureText(e.target.value)}
-                  placeholder="e.g. Maniha Iman"
+                  placeholder="e.g. Your Name"
                   className="w-full px-3.5 py-3 sm:py-2.5 rounded-xl border border-card bg-card text-base sm:text-sm text-fg focus:outline-none focus:border-slate-900 dark:focus:border-slate-100"
                 />
 
@@ -445,17 +445,33 @@ export default function SignPdfPage() {
                 <div className="mt-4 space-y-3">
                   <div>
                     <label className="text-xs text-muted block mb-1 font-medium">Font</label>
-                    <select
-                      value={fontFamily}
-                      onChange={(e) => setFontFamily(e.target.value as FontChoice)}
-                      className="w-full px-3 py-3 sm:py-2 rounded-xl border border-card bg-card text-base sm:text-sm text-fg focus:outline-none focus:border-slate-900 dark:focus:border-slate-100"
-                    >
-                      {FONT_OPTIONS.map((f) => (
-                        <option key={f.id} value={f.id}>
-                          {f.label}
-                        </option>
-                      ))}
-                    </select>
+                    {/* Same treatment as the compression dropdown: Chrome anchors
+                        the native chevron to the border box and ignores
+                        padding-right, so it sits hard against the rounded corner
+                        and no padding will move it. appearance-none turns it off
+                        and the arrow below takes its place, with pr-9 keeping the
+                        font name from running underneath. */}
+                    <div className="relative">
+                      <select
+                        value={fontFamily}
+                        onChange={(e) => setFontFamily(e.target.value as FontChoice)}
+                        className="w-full appearance-none pl-3 pr-9 sm:pr-10 py-3 sm:py-2 rounded-xl border border-card bg-card text-base sm:text-sm text-fg focus:outline-none focus:border-slate-900 dark:focus:border-slate-100 cursor-pointer"
+                      >
+                        {FONT_OPTIONS.map((f) => (
+                          <option key={f.id} value={f.id}>
+                            {f.label}
+                          </option>
+                        ))}
+                      </select>
+
+                      {/* pointer-events-none so the whole control still opens the
+                          menu, including the arrow itself. */}
+                      <ChevronDown
+                        size={16}
+                        aria-hidden="true"
+                        className="pointer-events-none absolute right-3 sm:right-3.5 top-1/2 -translate-y-1/2 text-muted"
+                      />
+                    </div>
                   </div>
 
                   <div>
