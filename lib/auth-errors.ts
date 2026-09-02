@@ -44,17 +44,16 @@ export function signInErrorMessage(error: unknown): string {
     if (code === "auth/network-request-failed") {
         return "Could not reach the server. Check your connection and try again.";
     }
-    // Nothing the visitor can do about either of these, so neither should ask
-    // them to check anything. They mean this deployment's domain is missing
-    // from the Firebase authorized list, or Google is switched off in the
-    // console — and with Google the only way in, both mean nobody can sign in
-    // at all. Saying so plainly is what gets it fixed; "check your details"
-    // sent people back to a form that was never the problem.
+    // A configuration fault, not a mistake by whoever is trying to sign in, so
+    // it must not send them back to the form to "check their details". It means
+    // this deployment's domain is missing from Firebase's authorized list, which
+    // stops the Google popup from opening at all — email and password still
+    // work, so that is what to point at.
     if (code === "auth/unauthorized-domain") {
-        return "Sign-in is not set up for this site's address yet. Please contact support — this is on our side, not yours.";
+        return "Google sign-in is not set up for this site's address yet. Use your email and password, or contact support.";
     }
     if (code === "auth/operation-not-allowed") {
-        return "Google sign-in is not switched on for this app yet. Please contact support.";
+        return "That sign-in method isn't enabled for this app yet.";
     }
 
     // auth/user-not-found, auth/wrong-password and auth/invalid-credential all
@@ -88,17 +87,16 @@ export function signUpErrorMessage(error: unknown): string {
     if (code === "auth/network-request-failed") {
         return "Could not reach the server. Check your connection and try again.";
     }
-    // Nothing the visitor can do about either of these, so neither should ask
-    // them to check anything. They mean this deployment's domain is missing
-    // from the Firebase authorized list, or Google is switched off in the
-    // console — and with Google the only way in, both mean nobody can sign in
-    // at all. Saying so plainly is what gets it fixed; "check your details"
-    // sent people back to a form that was never the problem.
+    // A configuration fault, not a mistake by whoever is trying to sign in, so
+    // it must not send them back to the form to "check their details". It means
+    // this deployment's domain is missing from Firebase's authorized list, which
+    // stops the Google popup from opening at all — email and password still
+    // work, so that is what to point at.
     if (code === "auth/unauthorized-domain") {
-        return "Sign-in is not set up for this site's address yet. Please contact support — this is on our side, not yours.";
+        return "Google sign-in is not set up for this site's address yet. Use your email and password, or contact support.";
     }
     if (code === "auth/operation-not-allowed") {
-        return "Google sign-up is not switched on for this app yet. Please contact support.";
+        return "That sign-up method isn't enabled for this app yet.";
     }
 
     return "Could not create your account. Please check your details and try again.";
