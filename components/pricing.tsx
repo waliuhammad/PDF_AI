@@ -140,8 +140,16 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                     max-w-5xl
                     items-stretch
                 ">
+                    {/* The card wrapper takes h-full only from md up, where this
+                        is a grid and 100% resolves against the row. Below that it
+                        is the horizontal carousel above, whose own height comes
+                        from its tallest card — so height:100% has nothing
+                        definite to measure against, falls back to the content
+                        height, and in doing so overrides the items-stretch that
+                        would have equalised them. Free carries one feature fewer
+                        than Pro and Business, so it alone came up short. */}
                     {PLANS.map((plan, index) => (
-                        <div key={plan.id} className="w-[82vw] sm:w-[320px] md:w-auto shrink-0 md:shrink snap-center h-full flex">
+                        <div key={plan.id} className="w-[82vw] sm:w-[320px] md:w-auto shrink-0 md:shrink snap-center md:h-full flex">
                             <Reveal delay={index * 100} className="h-full w-full flex">
                                 <div className={`
                                     relative flex h-full w-full flex-col rounded-2xl bg-card p-5 sm:p-7
