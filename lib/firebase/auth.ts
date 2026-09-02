@@ -3,6 +3,8 @@ import {
     updateProfile,
     signInWithPopup,
     GoogleAuthProvider,
+    GithubAuthProvider,
+    OAuthProvider,
     type AuthProvider,
     type User,
 } from "firebase/auth";
@@ -82,20 +84,28 @@ export async function registerWithEmail(input: RegisterInput) {
 }
 
 /**
- * Google is the only social provider. Facebook, GitHub, X and Apple were
- * removed from the sign-in pages, and their providers go with them rather than
- * staying here to build something nothing can ask for.
+ * The three providers the sign-in pages offer. Facebook and X are not among
+ * them and have no builder here — a provider nothing can ask for is a provider
+ * that only rots.
  *
- * Still a union of one, and still passed in rather than assumed, so the pages
- * and this module keep the shape they had — adding a provider back means adding
- * it to the union and the switch, not rewriting the call sites.
+ * Each must also be switched on in the Firebase console, and Apple additionally
+ * needs a paid Apple Developer account and a Services ID before it will work at
+ * all. Where one is not enabled Firebase answers auth/operation-not-allowed,
+ * which the pages turn into "that sign-in method isn't enabled for this app
+ * yet" rather than a raw error code.
  */
-export type SocialProviderId = "google";
+export type SocialProviderId = "google" | "github" | "apple";
 
 function buildProvider(id: SocialProviderId): AuthProvider {
     switch (id) {
         case "google":
             return new GoogleAuthProvider();
+        case "github":
+            return new GithubAuthProvider();
+        // Apple is an OIDC provider rather than one Firebase names, so it is
+        // built from its issuer rather than a dedicated class.
+        case "apple":
+            return new OAuthProvider("apple.com");
     }
 }
 
