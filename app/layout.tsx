@@ -3,20 +3,9 @@ import DevPlanSwitcher from "@/components/dev/DevPlanSwitcher";
 import { TestPlanProvider } from "@/components/dev/TestPlanProvider";
 import type { Metadata } from "next";
 import { getSiteUrl } from "@/lib/site-url";
-import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "../components/theme-provider";
 import { LocaleProvider } from "@/components/locale-provider";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 const siteUrl = getSiteUrl();
 
@@ -43,7 +32,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className="h-full antialiased"
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>

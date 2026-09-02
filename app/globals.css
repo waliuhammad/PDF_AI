@@ -115,7 +115,19 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: 'Inter', sans-serif;
+  /*
+   * Inter first for anyone who already has it, then the platform's own UI face
+   * rather than the generic sans-serif.
+   *
+   * Nothing loads Inter, so this has always resolved to a fallback — and the
+   * fallback was the browser default, which is Times on some setups rather than
+   * anything that matches the design. The layout did load Geist and Geist Mono,
+   * two files and 52KB on every uncached visit, but nothing ever referenced
+   * their variables: they came with create-next-app and this rule overrode them
+   * anyway. They are gone, and the stack below says what the page actually
+   * renders in. Loading Inter for real is a design decision, not a cleanup one.
+   */
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
