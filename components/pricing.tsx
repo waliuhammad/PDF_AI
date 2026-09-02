@@ -116,6 +116,15 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                 </div>
 
                 {/* Pricing Cards Carousel for Mobile / Grid for Desktop */}
+                {/* One reveal for the whole row rather than one per card. The
+                    cards live in an overflow-x-auto scroller, and an
+                    IntersectionObserver clips against that scroller as well as
+                    the viewport — so a card scrolled off to the right never
+                    counts as visible however the root margin is set. Business
+                    sat at opacity 0, twenty pixels below its neighbours, until
+                    someone happened to swipe to it, which is what made the row
+                    look uneven. The row itself is always on screen. */}
+                <Reveal>
                 <div className="
                     flex
                     overflow-x-auto
@@ -148,9 +157,8 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                         height, and in doing so overrides the items-stretch that
                         would have equalised them. Free carries one feature fewer
                         than Pro and Business, so it alone came up short. */}
-                    {PLANS.map((plan, index) => (
+                    {PLANS.map((plan) => (
                         <div key={plan.id} className="w-[82vw] sm:w-[320px] md:w-auto shrink-0 md:shrink snap-center md:h-full flex">
-                            <Reveal delay={index * 100} className="h-full w-full flex">
                                 <div className={`
                                     relative flex h-full w-full flex-col rounded-2xl bg-card p-5 sm:p-7
                                     shadow-sm transition-all duration-200
@@ -267,10 +275,10 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                                     </div>
 
                                 </div>
-                            </Reveal>
                         </div>
                     ))}
                 </div>
+                </Reveal>
 
                 {/* Reviews */}
                 <div

@@ -254,6 +254,10 @@ body {
   .reveal {
     opacity: 1 !important;
     transform: none !important;
+    /* Tailwind v4 writes translate-y-* to the `translate` property, not to
+       `transform`, so resetting only `transform` left the 20px offset in place
+       and the reveals landed low instead of not moving at all. */
+    translate: none !important;
     transition: none !important;
   }
 
