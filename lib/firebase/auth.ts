@@ -4,7 +4,6 @@ import {
     signInWithPopup,
     GoogleAuthProvider,
     GithubAuthProvider,
-    OAuthProvider,
     type AuthProvider,
     type User,
 } from "firebase/auth";
@@ -84,17 +83,17 @@ export async function registerWithEmail(input: RegisterInput) {
 }
 
 /**
- * The three providers the sign-in pages offer. Facebook and X are not among
- * them and have no builder here — a provider nothing can ask for is a provider
- * that only rots.
+ * The two providers the sign-in pages offer. Facebook, X and Apple are not
+ * among them and have no builder here — a provider nothing can ask for is a
+ * provider that only rots. Apple in particular was removed rather than left
+ * switched off: it needs a paid Apple Developer account behind it, and until
+ * that exists its button only ever produced auth/operation-not-allowed.
  *
- * Each must also be switched on in the Firebase console, and Apple additionally
- * needs a paid Apple Developer account and a Services ID before it will work at
- * all. Where one is not enabled Firebase answers auth/operation-not-allowed,
- * which the pages turn into "that sign-in method isn't enabled for this app
- * yet" rather than a raw error code.
+ * Both must be switched on in the Firebase console. Where one is not, Firebase
+ * answers auth/operation-not-allowed, which the pages turn into "that sign-in
+ * method isn't enabled for this app yet" rather than a raw error code.
  */
-export type SocialProviderId = "google" | "github" | "apple";
+export type SocialProviderId = "google" | "github";
 
 function buildProvider(id: SocialProviderId): AuthProvider {
     switch (id) {
@@ -102,10 +101,6 @@ function buildProvider(id: SocialProviderId): AuthProvider {
             return new GoogleAuthProvider();
         case "github":
             return new GithubAuthProvider();
-        // Apple is an OIDC provider rather than one Firebase names, so it is
-        // built from its issuer rather than a dedicated class.
-        case "apple":
-            return new OAuthProvider("apple.com");
     }
 }
 
@@ -158,7 +153,7 @@ export async function confirmReset(oobCode: string, newPassword: string) {
 
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
 
-/** True when the account signs in with a password (rather than only Google/Facebook/Apple). */
+/** True when the account signs in with a password rather than only Google or GitHub. */
 export function hasPasswordProvider(user: User | null) {
     return !!user?.providerData.some((provider) => provider.providerId === "password");
 }

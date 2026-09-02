@@ -1,7 +1,7 @@
 "use client";
 
 import { FcGoogle } from "react-icons/fc";
-import { FaGithub, FaApple } from "react-icons/fa6";
+import { FaGithub } from "react-icons/fa6";
 import type { SocialProviderId } from "@/lib/firebase/auth";
 
 interface Provider {
@@ -12,22 +12,21 @@ interface Provider {
 
 /**
  * Google keeps its own colours — its mark is only itself in full colour, and a
- * monochrome version of it reads as a different brand. GitHub and Apple are
- * monochrome by design, so they follow the theme and stay legible in both.
+ * monochrome version of it reads as a different brand. GitHub's is monochrome
+ * by design, so it follows the theme and stays legible in both.
  */
 const providers: Provider[] = [
     { id: "google", label: "Google", icon: <FcGoogle size={20} /> },
     { id: "github", label: "GitHub", icon: <FaGithub size={20} className="text-fg" /> },
-    { id: "apple", label: "Apple", icon: <FaApple size={21} className="text-fg" /> },
 ];
 
 /**
  * The social half of the sign-in pages, below the email and password form.
  *
- * Three marks in a row, each taking a third of the width. That is wide enough
- * to be an easy target on a phone, which the previous five-across row was not —
- * and the accessible name is on the button rather than only in a `title`
- * tooltip, since a touchscreen never shows one of those.
+ * Two marks in a row, splitting the width between them. That is a far easier
+ * target on a phone than the five-across row this pattern once had, and the
+ * accessible name sits on the button rather than only in a `title` tooltip,
+ * since a touchscreen never shows one of those.
  *
  * The props are unchanged, so both pages call this exactly as they did.
  */
