@@ -43,8 +43,8 @@ export function HowItWorks() {
             className="
                 px-4
                 sm:px-6
-                py-12
-                sm:py-20
+                py-8
+                sm:py-12
                 bg-[var(--background-secondary)]
             "
         >

@@ -14,7 +14,7 @@ export function Hero() {
     // -z-10 and body has a solid background-color, so without a stacking
     // context here those blobs paint behind the page itself and never show.
     return (
-        <section id="hero" className="relative isolate overflow-hidden py-8 sm:py-14 lg:py-20">
+        <section id="hero" className="relative isolate overflow-hidden py-8 sm:py-10 lg:py-14">
 
             {/* Background */}
             <div className="absolute inset-0 -z-10 overflow-hidden">

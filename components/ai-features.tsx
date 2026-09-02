@@ -41,7 +41,7 @@ const features = [
 
 export function AIFeatures() {
     return (
-        <section className="relative overflow-hidden py-10 sm:py-16 px-4 sm:px-6">
+        <section className="relative overflow-hidden py-8 sm:py-12 px-4 sm:px-6">
             <div className="absolute inset-0 bg-background" />
             <div className="absolute left-1/2 top-16 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/10 blur-[120px]" />
 

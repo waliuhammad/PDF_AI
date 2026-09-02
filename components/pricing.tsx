@@ -18,7 +18,7 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
         useState<BillingCycle>("monthly");
 
     return (
-        <section id="pricing" className="px-4 sm:px-6 py-12 sm:py-22">
+        <section id="pricing" className="px-4 sm:px-6 py-8 sm:py-12">
             <div className="max-w-6xl mx-auto">
 
                 {/* Heading */}

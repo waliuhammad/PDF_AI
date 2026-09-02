@@ -29,7 +29,7 @@ export function CTA() {
 
     return (
 
-        <section className="px-4 sm:px-6 py-12 sm:py-20">
+        <section className="px-4 sm:px-6 py-8 sm:py-12">
 
             <Reveal>
 <div className="relative
