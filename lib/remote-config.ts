@@ -25,15 +25,18 @@ const DEFAULTS = {
     maintenance_banner: "",
     ai_tools_enabled: "true",
 
-    weekly_free_plan_all: "2",
-    weekly_pro_plan_all: "20",
-    weekly_business_plan_all: "50",
-    monthly_free_plan_all: "2",
-    monthly_pro_plan_all: "20",
-    monthly_business_plan_all: "50",
-    yearly_free_plan_all: "2",
-    yearly_pro_plan_all: "20",
-    yearly_business_plan_all: "50",
+    // 5 / 30 / 100 per 24 hours, matching what the pricing cards advertise.
+    // A Console value still wins over these — see the note on getAppConfig —
+    // so changing them here only fixes a deployment that has none set.
+    weekly_free_plan_all: "5",
+    weekly_pro_plan_all: "30",
+    weekly_business_plan_all: "100",
+    monthly_free_plan_all: "5",
+    monthly_pro_plan_all: "30",
+    monthly_business_plan_all: "100",
+    yearly_free_plan_all: "5",
+    yearly_pro_plan_all: "30",
+    yearly_business_plan_all: "100",
 
     // Storage allowance per plan, in gigabytes. Same story as the operation
     // limits: tunable from the Console without a deploy.
