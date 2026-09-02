@@ -49,7 +49,7 @@ export const PLANS: Plan[] = [
         yearlyPrice: 0,
         description: "Perfect for trying basic PDF tools.",
         features: [
-            "5 operations per 24 hours",
+            "10 operations per 24 hours",
             "2 GB cloud storage",
             "Basic PDF tools",
             "Limited OCR",

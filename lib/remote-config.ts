@@ -25,16 +25,18 @@ const DEFAULTS = {
     maintenance_banner: "",
     ai_tools_enabled: "true",
 
-    // 5 / 30 / 100 per 24 hours, matching what the pricing cards advertise.
+    // 10 / 30 / 100 per 24 hours, matching what the pricing cards advertise.
+    // Free is 10 rather than 5 because Remote Config already serves 10 for it,
+    // and the number a customer is shown has to be the number they get.
     // A Console value still wins over these — see the note on getAppConfig —
     // so changing them here only fixes a deployment that has none set.
-    weekly_free_plan_all: "5",
+    weekly_free_plan_all: "10",
     weekly_pro_plan_all: "30",
     weekly_business_plan_all: "100",
-    monthly_free_plan_all: "5",
+    monthly_free_plan_all: "10",
     monthly_pro_plan_all: "30",
     monthly_business_plan_all: "100",
-    yearly_free_plan_all: "5",
+    yearly_free_plan_all: "10",
     yearly_pro_plan_all: "30",
     yearly_business_plan_all: "100",
 
