@@ -19,6 +19,28 @@ export const POST = metered(async (req: NextRequest) => {
     const signatureImage = formData.get("signatureImage") as string | null;
     const targetPageNum = parseInt(formData.get("pageNumber") as string) || 1;
     const position = formData.get("position") as string || "right";
+
+    /**
+     * Free placement, as fractions of the page from its top-left corner to the
+     * signature's. Sent by the preview, where the signature is dragged.
+     *
+     * Fractions rather than points because the preview is drawn at a fraction
+     * of the real page and pages differ in size — a number in preview pixels
+     * would land somewhere else on every document. Anything missing or
+     * unparseable falls back to the left/centre/right placement below, so an
+     * older client keeps working.
+     */
+    // Read as text first and checked for emptiness before any arithmetic.
+    // Number(null) is 0, so a request that sends no coordinates at all would
+    // otherwise look like a deliberate placement at the top-left corner — and
+    // silently override the left/centre/right the caller did ask for.
+    const xField = formData.get("x");
+    const yField = formData.get("y");
+    const rawX = typeof xField === "string" && xField.trim() !== "" ? Number(xField) : NaN;
+    const rawY = typeof yField === "string" && yField.trim() !== "" ? Number(yField) : NaN;
+    const hasPoint =
+      Number.isFinite(rawX) && Number.isFinite(rawY) &&
+      rawX >= 0 && rawX <= 1 && rawY >= 0 && rawY <= 1;
     const signScope = formData.get("signScope") as string || "specific"; // "specific" or "all"
 
     if (!file) {
@@ -95,32 +117,47 @@ export const POST = metered(async (req: NextRequest) => {
     const pagesToSign = signScope === "all" ? pages : [pages[Math.max(0, Math.min(targetPageNum - 1, pages.length - 1))]];
 
     for (const targetPage of pagesToSign) {
-      const { width } = targetPage.getSize();
+      const { width, height } = targetPage.getSize();
+      // Narrowed to the image itself rather than a boolean, so the drawImage
+      // call below knows it cannot be null.
+      const image = signMode === "draw" ? embeddedImage : null;
+
+      const boxWidth = image ? imgWidth : textWidth;
+      const boxHeight = image ? imgHeight : fontSize;
+
       let signX = margin;
+      // PDF coordinates start at the bottom-left and count upwards, while the
+      // fraction counts down from the top, so the y is inverted here rather
+      // than in the browser — the preview should not have to think in PDF.
+      let boxBottom = signY;
 
-      if (signMode === "draw" && embeddedImage) {
-        if (position === "center") {
-          signX = (width - imgWidth) / 2;
-        } else if (position === "right") {
-          signX = width - imgWidth - margin;
-        }
+      if (hasPoint) {
+        signX = clamp(rawX * width, 0, Math.max(0, width - boxWidth));
+        boxBottom = clamp(
+          height - rawY * height - boxHeight,
+          0,
+          Math.max(0, height - boxHeight)
+        );
+      } else if (position === "center") {
+        signX = (width - boxWidth) / 2;
+      } else if (position === "right") {
+        signX = width - boxWidth - margin;
+      }
 
-        targetPage.drawImage(embeddedImage, {
+      if (image) {
+        targetPage.drawImage(image, {
           x: signX,
-          y: signY,
+          y: boxBottom,
           width: imgWidth,
           height: imgHeight,
         });
       } else {
-        if (position === "center") {
-          signX = (width - textWidth) / 2;
-        } else if (position === "right") {
-          signX = width - textWidth - margin;
-        }
-
         targetPage.drawText(text, {
+          // drawText places the baseline, which is the bottom of the box the
+          // fraction describes. The old call added 15 to lift it off the
+          // page edge; a placed signature is already where it was put.
+          y: hasPoint ? boxBottom : boxBottom + 15,
           x: signX,
-          y: signY + 15,
           size: fontSize,
           font,
           color: signatureColor,
@@ -142,3 +179,7 @@ export const POST = metered(async (req: NextRequest) => {
     return NextResponse.json({ error: "Failed to sign document." }, { status: 500 });
   }
 });
+/** Keeps a placement inside the page whatever arrives from the browser. */
+function clamp(value: number, min: number, max: number): number {
+    return Math.min(Math.max(value, min), max);
+}

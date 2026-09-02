@@ -14,6 +14,16 @@ import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
  * the signed file agree. `css` is the nearest browser equivalent for the
  * canvas preview; the id is what the route maps back to a StandardFont.
  */
+/**
+ * The preview is drawn at 0.8 of the real page. The signature has to be scaled
+ * by the same amount or it would sit at the right spot while looking a size it
+ * will not be — which is exactly the thing a placement tool must not do.
+ */
+const PREVIEW_SCALE = 0.8;
+
+/** The signature image's size on the page, in PDF points. Matches the route. */
+const IMAGE_SIZE = { width: 150, height: 50 };
+
 const FONT_OPTIONS = [
   { id: "helvetica-oblique", label: "Signature (italic)", css: "italic 1em Helvetica, Arial, sans-serif" },
   { id: "helvetica", label: "Sans", css: "1em Helvetica, Arial, sans-serif" },
@@ -48,6 +58,29 @@ export default function SignPdfPage() {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pdfDocProxy, setPdfDocProxy] = useState<PdfjsLib.PDFDocumentProxy | null>(null);
   const [position, setPosition] = useState<"left" | "center" | "right">("right");
+
+  /**
+   * Where the signature sits, as a fraction of the page.
+   *
+   * Fractions rather than pixels because the preview is drawn at 0.8 scale and
+   * every page can be a different size — a coordinate in preview pixels means
+   * nothing to the PDF. 0..1 from the top-left of the page to the top-left of
+   * the signature travels between the two without either needing to know the
+   * other's dimensions.
+   *
+   * Starts near the bottom-left, which is where the old fixed placement put it.
+   */
+  const [sigPos, setSigPos] = useState<{ x: number; y: number }>({ x: 0.07, y: 0.88 });
+  const [dragging, setDragging] = useState(false);
+
+  /**
+   * The signature's size in preview pixels, written during each render.
+   *
+   * The drag needs it to centre the signature under the pointer and to stop it
+   * being dropped half off the page, and the presets need it to work out what
+   * "right" means for this particular signature.
+   */
+  const sigSizeRef = useRef({ w: 120, h: 40 });
   const [signScope, setSignScope] = useState<"specific" | "all">("specific");
 
   // Drawing states
@@ -68,6 +101,93 @@ export default function SignPdfPage() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const previewCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const renderTaskRef = useRef<PdfjsLib.RenderTask | null>(null);
+
+  const clamp = (value: number, min: number, max: number) =>
+    Math.min(Math.max(value, min), max);
+
+  /**
+   * Turns a pointer event into a page fraction, centred on the cursor.
+   *
+   * Centred rather than grabbed-by-corner so a click is also a placement: point
+   * at where the signature should go and it goes there, which is the whole
+   * gesture for someone who just wants it in a particular spot.
+   *
+   * The canvas is drawn at its own pixel size but displayed at whatever the
+   * layout gives it, so the two are reconciled before anything is measured —
+   * without that, every drop lands progressively further from the cursor the
+   * more the canvas is scaled down.
+   */
+  const positionFromPointer = (clientX: number, clientY: number) => {
+    const canvas = previewCanvasRef.current;
+    if (!canvas) return null;
+
+    const rect = canvas.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return null;
+
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const { w, h } = sigSizeRef.current;
+
+    const px = (clientX - rect.left) * scaleX - w / 2;
+    const py = (clientY - rect.top) * scaleY - h / 2;
+
+    // Clamped so a signature can never be dropped hanging off the page.
+    return {
+      x: clamp(px / canvas.width, 0, Math.max(0, 1 - w / canvas.width)),
+      y: clamp(py / canvas.height, 0, Math.max(0, 1 - h / canvas.height)),
+    };
+  };
+
+  const handleDragStart = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    const next = positionFromPointer(e.clientX, e.clientY);
+    if (!next) return;
+    // Capture, so a fast drag that leaves the canvas keeps being tracked
+    // instead of the signature sticking where the pointer left.
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setDragging(true);
+    setSigPos(next);
+  };
+
+  const handleDragMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (!dragging) return;
+    const next = positionFromPointer(e.clientX, e.clientY);
+    if (next) setSigPos(next);
+  };
+
+  const handleDragEnd = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+    setDragging(false);
+  };
+
+  /**
+   * The three presets, kept as shortcuts now that placement is free.
+   *
+   * They set the same fractions a drag would, so pressing one and then dragging
+   * carries on from where it left rather than fighting two ideas of position.
+   */
+  const applyPreset = (preset: "left" | "center" | "right") => {
+    setPosition(preset);
+
+    const canvas = previewCanvasRef.current;
+    if (!canvas) return;
+
+    const margin = 30 * PREVIEW_SCALE;
+    const { w } = sigSizeRef.current;
+
+    const x =
+      preset === "left"
+        ? margin
+        : preset === "center"
+          ? (canvas.width - w) / 2
+          : canvas.width - w - margin;
+
+    setSigPos((prev) => ({
+      ...prev,
+      x: clamp(x / canvas.width, 0, Math.max(0, 1 - w / canvas.width)),
+    }));
+  };
 
   const formatSize = (bytes: number) => {
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
@@ -124,7 +244,7 @@ export default function SignPdfPage() {
         const page = await pdfDocProxy.getPage(currentPage);
         if (isCancelled) return;
 
-        const viewport = page.getViewport({ scale: 0.8 });
+        const viewport = page.getViewport({ scale: PREVIEW_SCALE });
         const canvas = previewCanvasRef.current;
         if (!canvas) return;
         const context = canvas.getContext("2d");
@@ -140,40 +260,46 @@ export default function SignPdfPage() {
         const hasSignature = mode === "type" ? signatureText.trim().length > 0 : canvasRef.current !== null;
 
         if (hasSignature) {
-          const margin = 30;
-          const sigY = canvas.height - 35;
-          let sigX = margin;
+          // Top-left of the signature, from the fractions the drag maintains.
+          const sigX = sigPos.x * canvas.width;
+          const sigTop = sigPos.y * canvas.height;
 
           if (mode === "type" && signatureText.trim()) {
             // Was a fixed "italic 18px cursive", so neither the face nor the
             // size chosen in the panel showed here. The CSS shorthand carries
-            // style and family together, with 1em swapped for the real size.
+            // style and family together, with 1em swapped for the real size —
+            // scaled, so the preview shows the size the PDF will get.
             const face =
               FONT_OPTIONS.find((f) => f.id === fontFamily)?.css ?? FONT_OPTIONS[0].css;
-            context.font = face.replace("1em", `${fontSize}px`);
+            const previewFontPx = fontSize * PREVIEW_SCALE;
+            context.font = face.replace("1em", `${previewFontPx}px`);
             context.fillStyle = penColor;
-            const metrics = context.measureText(signatureText);
-            const textWidth = metrics.width;
+            const textWidth = context.measureText(signatureText).width;
 
-            if (position === "center") {
-              sigX = (canvas.width - textWidth) / 2;
-            } else if (position === "right") {
-              sigX = canvas.width - textWidth - margin;
-            }
+            sigSizeRef.current = { w: textWidth, h: previewFontPx };
 
-            context.fillText(signatureText, sigX, sigY);
+            // fillText draws from the baseline, which sits at the bottom of the
+            // box the fractions describe.
+            context.fillText(signatureText, sigX, sigTop + previewFontPx);
           } else if (mode === "draw" && canvasRef.current) {
-            const drawCanvas = canvasRef.current;
-            const imgWidth = 120;
-            const imgHeight = 40;
+            const imgWidth = IMAGE_SIZE.width * PREVIEW_SCALE;
+            const imgHeight = IMAGE_SIZE.height * PREVIEW_SCALE;
 
-            if (position === "center") {
-              sigX = (canvas.width - imgWidth) / 2;
-            } else if (position === "right") {
-              sigX = canvas.width - imgWidth - margin;
-            }
+            sigSizeRef.current = { w: imgWidth, h: imgHeight };
 
-            context.drawImage(drawCanvas, sigX, sigY - imgHeight + 10, imgWidth, imgHeight);
+            context.drawImage(canvasRef.current, sigX, sigTop, imgWidth, imgHeight);
+          }
+
+          // A dashed box while dragging, so the thing being moved is visible
+          // even where the signature is faint against the page under it.
+          if (dragging) {
+            const { w, h } = sigSizeRef.current;
+            context.save();
+            context.strokeStyle = "#6d5de0";
+            context.setLineDash([5, 4]);
+            context.lineWidth = 1.5;
+            context.strokeRect(sigX - 3, sigTop - 3, w + 6, h + 6);
+            context.restore();
           }
         }
       } catch (err) {
@@ -190,7 +316,7 @@ export default function SignPdfPage() {
     return () => {
       isCancelled = true;
     };
-  }, [pdfDocProxy, currentPage, signatureText, mode, position, penColor, fontFamily, fontSize]);
+  }, [pdfDocProxy, currentPage, signatureText, mode, sigPos, dragging, penColor, fontFamily, fontSize]);
 
   useEffect(() => {
     if (mode === "draw" && canvasRef.current) {
@@ -273,6 +399,10 @@ export default function SignPdfPage() {
       formData.append("signMode", mode);
       formData.append("pageNumber", String(currentPage));
       formData.append("position", position);
+      // The fractions the preview has been showing. position stays for older
+      // clients and as the fallback if these ever fail to parse.
+      formData.append("x", String(sigPos.x));
+      formData.append("y", String(sigPos.y));
       formData.append("signScope", signScope);
 
       if (mode === "type") {
@@ -395,11 +525,21 @@ export default function SignPdfPage() {
                 </div>
               </div>
               <div className="flex justify-center bg-slate-200/50 dark:bg-black/40 rounded-xl p-2 overflow-hidden border border-card">
+                {/* touch-none so a drag on a phone moves the signature instead
+                    of scrolling the page out from under it. */}
                 <canvas
                   ref={previewCanvasRef}
-                  className="rounded shadow max-h-52 sm:max-h-72 max-w-full object-contain"
+                  onPointerDown={handleDragStart}
+                  onPointerMove={handleDragMove}
+                  onPointerUp={handleDragEnd}
+                  onPointerCancel={handleDragEnd}
+                  className={`rounded shadow max-h-52 sm:max-h-72 max-w-full object-contain touch-none ${dragging ? "cursor-grabbing" : "cursor-grab"
+                    }`}
                 />
               </div>
+              <p className="text-[11px] text-muted mt-2 text-center">
+                Drag on the page to place your signature anywhere, or use the presets below.
+              </p>
             </div>
           )}
 
@@ -599,7 +739,7 @@ export default function SignPdfPage() {
                     <button
                       key={pos}
                       type="button"
-                      onClick={() => setPosition(pos)}
+                      onClick={() => applyPreset(pos)}
                       className={`py-2.5 sm:py-2 px-1 text-[11px] sm:text-xs font-semibold rounded-xl border uppercase tracking-wider transition-all ${position === pos
                         ? "bg-slate-900/5 dark:bg-slate-800 border-slate-900 dark:border-slate-100 text-fg"
                         : "border-card bg-card text-muted"
