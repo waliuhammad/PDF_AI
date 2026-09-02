@@ -27,6 +27,17 @@ export default function RotatePdfPage(): JSX.Element {
    * thing — needs no per-page entries at all.
    */
   const [pageRotations, setPageRotations] = useState<Record<number, number>>({});
+
+  /**
+   * What is in the angle box, kept as text while it is being typed.
+   *
+   * Separate from `rotation` because a half-typed "-" or "" is not a number,
+   * and forcing it through the numeric state would fight the person typing.
+   * It commits on a valid entry and is overwritten whenever the buttons move
+   * the angle, so the two never drift apart.
+   */
+  const [angleText, setAngleText] = useState<string>("0");
+  const [angleHint, setAngleHint] = useState<string | null>(null);
   const [mode, setMode] = useState<"all" | "custom">("all");
   const [pageNumber, setPageNumber] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -67,6 +78,8 @@ export default function RotatePdfPage(): JSX.Element {
         setFile(selectedFile);
         setRotation(0);
         setPageRotations({});
+        setAngleText("0");
+        setAngleHint(null);
         setMode("all");
         setPageNumber("");
         setError(null);
@@ -120,6 +133,8 @@ export default function RotatePdfPage(): JSX.Element {
     setNumPages(0);
     setRotation(0);
     setPageRotations({});
+    setAngleText("0");
+    setAngleHint(null);
     setMode("all");
     setPageNumber("");
     setError(null);
@@ -142,7 +157,50 @@ export default function RotatePdfPage(): JSX.Element {
    * the text with it.
    */
   const turn = (delta: number): void => {
-    setRotation((prev) => (prev + delta + 360) % 360);
+    setRotation((prev) => {
+      const next = (prev + delta + 360) % 360;
+      setAngleText(String(next));
+      return next;
+    });
+    setAngleHint(null);
+  };
+
+  /**
+   * Takes a typed angle.
+   *
+   * Negatives and values past a full turn are accepted and folded into 0-359,
+   * so -90 and 270 are the same instruction and 450 is 90 — the arithmetic
+   * someone doing this in their head would expect.
+   *
+   * Anything that is not a quarter turn is refused rather than quietly snapped.
+   * A PDF stores rotation as one of four values, so 45 has no representation:
+   * rounding it to 90 would hand back a document turned twice as far as asked,
+   * which is worse than being told why it cannot be done.
+   */
+  const commitAngle = (raw: string): void => {
+    const trimmed = raw.trim();
+
+    if (trimmed === "" || trimmed === "-") {
+      setAngleHint(null);
+      return;
+    }
+
+    const value = Number(trimmed);
+
+    if (!Number.isFinite(value)) {
+      setAngleHint("Enter a number of degrees.");
+      return;
+    }
+
+    if (!Number.isInteger(value) || value % 90 !== 0) {
+      setAngleHint("PDF pages turn in quarters — use 0, 90, 180 or 270.");
+      return;
+    }
+
+    const normalised = ((value % 360) + 360) % 360;
+    setRotation(normalised);
+    setAngleText(String(normalised));
+    setAngleHint(null);
   };
 
   /**
@@ -381,16 +439,32 @@ export default function RotatePdfPage(): JSX.Element {
                 <span>Left</span>
               </button>
 
-              {/* The angle sits between the two controls that change it, so the
-                  reading and the buttons are one group rather than a number
-                  buried in a label. */}
-              <div className="shrink-0 min-w-[76px] flex flex-col items-center justify-center rounded-xl border border-card px-3">
-                <span className="text-sm font-extrabold text-fg tabular-nums">{rotation}°</span>
+              {/* The angle sits between the two controls that change it, and is
+                  typed into directly for anyone who knows the number they want
+                  rather than clicking round to it. */}
+              <div className="shrink-0 w-[92px] flex flex-col items-center justify-center rounded-xl border border-card px-2 py-1">
+                <div className="flex items-baseline gap-0.5">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={angleText}
+                    onChange={(e) => {
+                      setAngleText(e.target.value);
+                      commitAngle(e.target.value);
+                    }}
+                    onBlur={() => setAngleText(String(rotation))}
+                    aria-label="Rotation in degrees"
+                    className="w-11 bg-transparent text-center text-sm font-extrabold text-fg tabular-nums focus:outline-none"
+                  />
+                  <span className="text-sm font-extrabold text-fg">°</span>
+                </div>
                 <button
                   type="button"
                   onClick={() => {
                     setRotation(0);
                     setPageRotations({});
+                    setAngleText("0");
+                    setAngleHint(null);
                   }}
                   disabled={rotation === 0 && !hasPerPage}
                   className="text-[11px] font-bold text-muted hover:text-fg disabled:opacity-40 disabled:hover:text-muted transition-colors"
@@ -410,6 +484,12 @@ export default function RotatePdfPage(): JSX.Element {
                 <span>Right</span>
               </button>
             </div>
+
+            {angleHint && (
+              <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium pt-1.5">
+                {angleHint}
+              </p>
+            )}
           </div>
 
           {/* Page preview */}
