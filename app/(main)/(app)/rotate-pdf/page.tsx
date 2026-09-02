@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, JSX } from "react";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
-import { FileText, Trash2, RotateCw, Download, Layers, Loader2 } from "lucide-react";
+import { FileText, Trash2, RotateCw, RotateCcw, Download, Layers, Loader2 } from "lucide-react";
 import { errorName } from "@/lib/errors";
 // Type-only, so it adds nothing to the bundle — the library itself still
 // arrives through the dynamic import below.
@@ -15,7 +15,9 @@ export default function RotatePdfPage(): JSX.Element {
   const { begin, cancel } = useCancellableRun();
   const [pdfDoc, setPdfDoc] = useState<PdfjsLib.PDFDocumentProxy | null>(null);
   const [numPages, setNumPages] = useState<number>(0);
-  const [rotation, setRotation] = useState<number>(90);
+  // 0, not 90: a freshly opened file has not been turned yet, and starting at
+  // a quarter turn meant the preview was already rotated before anyone asked.
+  const [rotation, setRotation] = useState<number>(0);
   const [mode, setMode] = useState<"all" | "custom">("all");
   const [pageNumber, setPageNumber] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
@@ -54,7 +56,7 @@ export default function RotatePdfPage(): JSX.Element {
       const selectedFile = fileList[0];
       if (selectedFile.type === "application/pdf" || selectedFile.name.endsWith(".pdf")) {
         setFile(selectedFile);
-        setRotation(90);
+        setRotation(0);
         setMode("all");
         setPageNumber("");
         setError(null);
@@ -106,19 +108,30 @@ export default function RotatePdfPage(): JSX.Element {
     setFile(null);
     setPdfDoc(null);
     setNumPages(0);
-    setRotation(90);
+    setRotation(0);
     setMode("all");
     setPageNumber("");
     setError(null);
   };
 
-  const handleRotatePreview = (): void => {
-    setRotation((prev) => {
-      if (prev === 90) return 180;
-      if (prev === 180) return 270;
-      if (prev === 270) return 360;
-      return 90;
-    });
+  /**
+   * Turn the preview a quarter at a time, either way.
+   *
+   * It used to be one button cycling 90 -> 180 -> 270 -> 360 -> 90, which could
+   * only go clockwise and never passed through 0: three clicks to undo one, and
+   * no way to say "leave it alone". Reset made that worse by going to 90, so
+   * resetting still rotated the document.
+   *
+   * Kept in 0-359 so 270 and -90 are the same state rather than two, and so the
+   * label reads as an angle rather than an accumulating total.
+   *
+   * A PDF stores page rotation as one of 0, 90, 180 or 270 — it is a property of
+   * the page, not a transform — so quarter turns are the whole range available.
+   * An arbitrary angle would mean rasterising each page into an image and losing
+   * the text with it.
+   */
+  const turn = (delta: number): void => {
+    setRotation((prev) => (prev + delta + 360) % 360);
   };
 
   useEffect(() => {
@@ -311,21 +324,42 @@ export default function RotatePdfPage(): JSX.Element {
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 sm:gap-3 pt-1">
+            <div className="flex items-stretch gap-2.5 sm:gap-3 pt-1">
               <button
                 type="button"
-                onClick={handleRotatePreview}
-                className="w-full sm:flex-1 flex items-center justify-center gap-2 py-3.5 sm:py-3 px-4 rounded-xl bg-[var(--background-secondary)] hover:bg-slate-100 dark:hover:bg-slate-800 border border-card text-[13px] sm:text-sm font-bold text-fg transition shadow-sm"
+                onClick={() => turn(-90)}
+                aria-label="Rotate left 90 degrees"
+                title="Rotate left"
+                className="flex-1 flex items-center justify-center gap-2 py-3.5 sm:py-3 px-4 rounded-xl bg-[var(--background-secondary)] hover:bg-slate-100 dark:hover:bg-slate-800 border border-card text-[13px] sm:text-sm font-bold text-fg transition shadow-sm"
+              >
+                <RotateCcw className="w-4 h-4 shrink-0" />
+                <span>Left</span>
+              </button>
+
+              {/* The angle sits between the two controls that change it, so the
+                  reading and the buttons are one group rather than a number
+                  buried in a label. */}
+              <div className="shrink-0 min-w-[76px] flex flex-col items-center justify-center rounded-xl border border-card px-3">
+                <span className="text-sm font-extrabold text-fg tabular-nums">{rotation}°</span>
+                <button
+                  type="button"
+                  onClick={() => setRotation(0)}
+                  disabled={rotation === 0}
+                  className="text-[11px] font-bold text-muted hover:text-fg disabled:opacity-40 disabled:hover:text-muted transition-colors"
+                >
+                  Reset
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => turn(90)}
+                aria-label="Rotate right 90 degrees"
+                title="Rotate right"
+                className="flex-1 flex items-center justify-center gap-2 py-3.5 sm:py-3 px-4 rounded-xl bg-[var(--background-secondary)] hover:bg-slate-100 dark:hover:bg-slate-800 border border-card text-[13px] sm:text-sm font-bold text-fg transition shadow-sm"
               >
                 <RotateCw className="w-4 h-4 shrink-0" />
-                <span>Rotate ({rotation}°)</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setRotation(90)}
-                className="w-full sm:w-auto py-3 px-4 rounded-xl border border-card text-muted hover:text-slate-900 dark:hover:text-white font-bold text-xs transition-colors"
-              >
-                Reset
+                <span>Right</span>
               </button>
             </div>
           </div>
@@ -389,10 +423,12 @@ export default function RotatePdfPage(): JSX.Element {
             </div>
           )}
 
+          {/* Nothing to save at 0°: the file would come back byte-for-byte as it
+              went out, having spent one of the day's operations to do it. */}
           <button
             type="button"
             onClick={handleRotateAndDownload}
-            disabled={loading}
+            disabled={loading || rotation === 0}
             className="w-full py-3.5 sm:py-4 px-4 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-[13px] sm:text-base shadow-lg disabled:opacity-60 flex items-center justify-center gap-2 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
           >
             {loading ? (
@@ -400,7 +436,13 @@ export default function RotatePdfPage(): JSX.Element {
             ) : (
               <Download className="w-5 h-5 shrink-0" />
             )}
-            <span>{loading ? "Processing document..." : "Save & Download PDF"}</span>
+            <span>
+              {loading
+                ? "Processing document..."
+                : rotation === 0
+                  ? "Turn the page to save it"
+                  : "Save & Download PDF"}
+            </span>
           </button>
         </div>
       )}
