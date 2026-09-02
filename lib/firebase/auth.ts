@@ -1,13 +1,6 @@
 import {
-    createUserWithEmailAndPassword,
-    updateProfile,
     signInWithPopup,
     GoogleAuthProvider,
-    FacebookAuthProvider,
-    GithubAuthProvider,
-    TwitterAuthProvider,
-    OAuthProvider,
-    type AuthProvider,
     type User,
 } from "firebase/auth";
 import { getFirebaseAuth, getDb } from "./client";
@@ -35,14 +28,6 @@ async function startServerSession(user: User) {
     } catch (err) {
         console.error("Could not start a server session:", err);
     }
-}
-
-export interface RegisterInput {
-    fullName: string;
-    email: string;
-    password: string;
-    phoneDialCode: string;
-    phoneNumber: string;
 }
 
 /**
@@ -74,48 +59,23 @@ async function createUserDocIfNotExists(user: User, extra?: Record<string, unkno
     }
 }
 
-export async function registerWithEmail(input: RegisterInput) {
-    const credential = await createUserWithEmailAndPassword(getFirebaseAuth(), input.email, input.password);
-    await updateProfile(credential.user, { displayName: input.fullName });
-    await createUserDocIfNotExists(credential.user, {
-        fullName: input.fullName,
-        phone: `${input.phoneDialCode}${input.phoneNumber}`,
-    });
-    await startServerSession(credential.user);
-    return credential.user;
-}
-
-export type SocialProviderId = "google" | "facebook" | "github" | "twitter" | "apple";
-
-function buildProvider(id: SocialProviderId): AuthProvider {
-    switch (id) {
-        case "google":
-            return new GoogleAuthProvider();
-        case "facebook":
-            return new FacebookAuthProvider();
-        case "github":
-            return new GithubAuthProvider();
-        case "twitter":
-            return new TwitterAuthProvider();
-        case "apple":
-            return new OAuthProvider("apple.com");
-    }
-}
-
 /**
- * Each provider must also be enabled in the Firebase console; if it isn't,
- * Firebase returns auth/operation-not-allowed, which the caller surfaces.
+ * Signing in and signing up, which are the same call.
+ *
+ * Google returns an existing account or a new one and does not say which, so
+ * the profile document is created only if it is missing and both pages can use
+ * this one function. Email, phone and the Facebook, GitHub, X and Apple
+ * providers were removed with the forms that offered them; a union of five
+ * provider ids and the switch that built them served a choice the interface no
+ * longer gives anyone.
+ *
+ * Google must be enabled in the Firebase console. If it is not, Firebase
+ * returns auth/operation-not-allowed and the caller surfaces it — which is now
+ * the difference between a working product and no way in at all.
  */
-export async function signInWithSocial(id: SocialProviderId) {
-    const credential = await signInWithPopup(getFirebaseAuth(), buildProvider(id));
+export async function signInWithGoogle() {
+    const credential = await signInWithPopup(getFirebaseAuth(), new GoogleAuthProvider());
     await createUserDocIfNotExists(credential.user);
-    await startServerSession(credential.user);
-    return credential.user;
-}
-import { signInWithEmailAndPassword } from "firebase/auth";
-
-export async function signInWithEmail(email: string, password: string) {
-    const credential = await signInWithEmailAndPassword(getFirebaseAuth(), email, password);
     await startServerSession(credential.user);
     return credential.user;
 }
