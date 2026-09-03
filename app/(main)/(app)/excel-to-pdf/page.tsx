@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useRef, JSX } from "react";
-import { UploadCard } from "@/components/tools/upload-card";
+import { DownloadNotice } from "@/components/download-notice";
+import { notifyToolSuccess } from "@/lib/tool-success";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import {
   FileSpreadsheet,
   Trash2,
   Download,
-  ShieldCheck,
   Sparkles,
   Layers,
   Sliders,
@@ -175,6 +176,7 @@ export default function ExcelToPdf(): JSX.Element {
         : "spreadsheet-export.pdf";
 
       doc.save(outputName);
+      notifyToolSuccess();
     } catch (err) {
       // The operation was claimed before the work started, so give it back.
       void releaseOperation();
@@ -191,9 +193,9 @@ export default function ExcelToPdf(): JSX.Element {
     : [];
 
   return (
-    <div className="min-h-screen bg-background text-fg antialiased selection:bg-slate-900 dark:selection:bg-slate-700 selection:text-white flex flex-col items-center md:justify-center px-3 py-4 md:p-6">
+    <div className="w-full text-fg antialiased selection:bg-slate-900 dark:selection:bg-slate-700 selection:text-white px-4 sm:px-6 py-6 sm:py-10">
 
-      <div className="w-full max-w-4xl space-y-5 md:space-y-8 md:bg-card md:border md:border-card md:p-8 md:rounded-3xl md:shadow-xl dark:md:shadow-2xl md:backdrop-blur-xl">
+      <div className="w-full max-w-4xl mx-auto space-y-5 md:space-y-8">
 
         {/* Tool Header */}
         <div className="text-center space-y-1.5 md:space-y-2">
@@ -459,13 +461,9 @@ export default function ExcelToPdf(): JSX.Element {
         )}
 
         {/* Security Notice */}
-        <div className="pt-1 md:pt-2 flex items-center justify-center space-x-1.5 text-slate-500 text-[10px] md:text-xs text-center">
-          <ShieldCheck className="w-4 h-4 text-slate-400 shrink-0" />
+        <DownloadNotice message="Spreadsheet converted and downloaded." />
 
-          <span>
-            Secure client-side spreadsheet range restriction • No file retention
-          </span>
-        </div>
+        <SecureNote />
 
       </div>
     </div>

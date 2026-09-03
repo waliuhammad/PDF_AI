@@ -4,7 +4,7 @@ import { PenLine } from "lucide-react";
 import { ContentPage } from "@/components/marketing/content-page";
 
 export const metadata: Metadata = {
-    title: "Blog | PDFAI",
+    title: "Blog",
     description: "Product updates and writing from the PDFAI team.",
 };
 

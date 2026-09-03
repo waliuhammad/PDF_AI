@@ -9,7 +9,9 @@
 
 
 import React, { useState, useRef, useEffect } from "react";
-import { Upload, FileText, X, Scissors, Download, Loader2 } from "lucide-react";
+import { DownloadNotice } from "@/components/download-notice";
+import { FileText, X, Scissors, Download, Loader2 } from "lucide-react";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { loadPdfLib, loadPdfjs } from "@/lib/pdf-libs";
 // aliased: this component already has state called errorMessage, which would
 // shadow the import and turn the call below into calling a string.
@@ -23,7 +25,6 @@ export default function SplitPdfPage() {
   const [fileDetails, setFileDetails] = useState<{ name: string; size: string } | null>(null);
   const [pageCount, setPageCount] = useState<number>(0);
   const [thumbnails, setThumbnails] = useState<string[]>([]);
-  const [isDragging, setIsDragging] = useState(false);
   const [splitMode, setSplitMode] = useState<"range" | "every">("range");
   const [fromPage, setFromPage] = useState("1");
   const [toPage, setToPage] = useState("1");
@@ -34,7 +35,6 @@ export default function SplitPdfPage() {
   const [selectingFrom, setSelectingFrom] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const inputRef = useRef<HTMLInputElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   // Custom scrollbar thumb dragging states
@@ -312,53 +312,12 @@ export default function SplitPdfPage() {
         </p>
       </div>
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept="application/pdf"
-        hidden
-        onChange={(e) => handleFile(e.target.files)}
-      />
-
       {!fileDetails ? (
-        <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsDragging(true);
-          }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={(e) => {
-            e.preventDefault();
-            setIsDragging(false);
-            handleFile(e.dataTransfer.files);
-          }}
-          onClick={() => inputRef.current?.click()}
-          // Without these this was a bare div: not tabbable, no key handler,
-          // and the file input behind it is display:none so it cannot be
-          // reached either. That left no way at all to choose a file without
-          // a mouse. Same treatment the shared UploadCard already has.
-          // No aria-label: role=button takes its name from its own text, and an
-          // aria-label would override the visible wording that voice-control
-          // users say out loud.
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              inputRef.current?.click();
-            }
-          }}
-          className={`cursor-pointer rounded-3xl sm:rounded-[32px] px-6 py-10 sm:p-16 h-[240px] sm:h-[380px] flex flex-col items-center justify-center text-center transition-all bg-[var(--background-secondary)] border border-card shadow-lg sm:shadow-xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${isDragging ? "border-slate-400 dark:border-white scale-[1.01]" : "hover:border-slate-300 dark:hover:border-[#333a4a]"
-            }`}
-        >
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[var(--background-secondary)] mx-auto flex items-center justify-center mb-3 sm:mb-4 text-fg shadow-sm border border-card">
-            <Upload className="w-6 h-6 sm:w-[26px] sm:h-[26px]" />
-          </div>
-          <p className="text-[var(--primary)] font-semibold text-[15px] sm:text-lg">Click to browse or drag &amp; drop PDFs</p>
-          <p className="text-slate-600 dark:text-[#9ca3af] text-[13px] sm:text-sm mt-1">
-            Upload a document to start splitting pages
-          </p>
-        </div>
+        <UploadCard
+          onFiles={handleFile}
+          title="Click to browse or drag & drop PDFs"
+          hint="Upload a document to start splitting pages"
+        />
       ) : (
         <div className="space-y-4 sm:space-y-6">
           {/* File summary */}
@@ -689,6 +648,10 @@ export default function SplitPdfPage() {
           </div>
         </div>
       )}
+
+      <DownloadNotice message="Document split and downloaded." />
+
+      <SecureNote />
     </div>
   );
 }

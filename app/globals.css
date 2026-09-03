@@ -115,7 +115,19 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
-  font-family: 'Inter', sans-serif;
+  /*
+   * Inter first for anyone who already has it, then the platform's own UI face
+   * rather than the generic sans-serif.
+   *
+   * Nothing loads Inter, so this has always resolved to a fallback — and the
+   * fallback was the browser default, which is Times on some setups rather than
+   * anything that matches the design. The layout did load Geist and Geist Mono,
+   * two files and 52KB on every uncached visit, but nothing ever referenced
+   * their variables: they came with create-next-app and this rule overrode them
+   * anyway. They are gone, and the stack below says what the page actually
+   * renders in. Loading Inter for real is a design decision, not a cleanup one.
+   */
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
@@ -254,6 +266,10 @@ body {
   .reveal {
     opacity: 1 !important;
     transform: none !important;
+    /* Tailwind v4 writes translate-y-* to the `translate` property, not to
+       `transform`, so resetting only `transform` left the 20px offset in place
+       and the reveals landed low instead of not moving at all. */
+    translate: none !important;
     transition: none !important;
   }
 
@@ -278,4 +294,21 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
   .animate-menu-in { animation: none; }
+}
+
+/* Star rating. The gold star sits on top of the outline and pops in on its own
+   beat, so a click fills the row left to right instead of switching all five on
+   at once — the fill is the feedback that the click registered. */
+@keyframes star-fill {
+  0%   { opacity: 0; transform: scale(0.4); }
+  60%  { opacity: 1; transform: scale(1.25); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+.animate-star-fill { animation: star-fill 0.36s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+@media (prefers-reduced-motion: reduce) {
+  /* Without the animation the star is simply already there, which is the
+     resting state of the keyframes anyway. */
+  .animate-star-fill { animation: none; }
 }

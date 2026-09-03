@@ -9,7 +9,8 @@
 
 
 import { useState, useRef, useEffect } from "react";
-import { UploadCard } from "@/components/tools/upload-card";
+import { DownloadNotice } from "@/components/download-notice";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import {
   FileText,
   FileSpreadsheet,
@@ -288,6 +289,10 @@ export default function PdfToWordPage() {
           </div>
         </div>
       )}
+
+      <DownloadNotice message="Document converted and downloaded." />
+
+      <SecureNote />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import { metered } from "@/lib/metered";
 import { extractPageCells } from "@/lib/pdf-text";
+import { rejectBadUpload } from "@/lib/uploads";
 
 export const POST = metered(async (req: NextRequest) => {
   try {
@@ -20,6 +21,10 @@ export const POST = metered(async (req: NextRequest) => {
         { status: 400 }
       );
     }
+
+    // Size and type are checked here, before anything reads the bytes.
+    const badUpload = rejectBadUpload(file, "pdf");
+    if (badUpload) return badUpload;
 
     const buffer = Buffer.from(await file.arrayBuffer());
 

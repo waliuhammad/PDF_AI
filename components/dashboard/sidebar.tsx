@@ -41,7 +41,6 @@ const SidebarLogout = dynamic(
 
 const navItems = [
     { key: "nav.dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { key: "nav.documents", href: "/documents", icon: FileText },
     { key: "nav.tools", href: "/tools", icon: Wrench },
     { key: "nav.settings", href: "/settings", icon: Settings },
 ] as const;

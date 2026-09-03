@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Star, Users } from "lucide-react";
+import { Check } from "lucide-react";
 import { Reveal } from "@/components/reveal";
 import { useState } from "react";
 import { PLANS, type BillingCycle } from "@/lib/plans";
@@ -18,32 +18,11 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
         useState<BillingCycle>("monthly");
 
     return (
-        <section id="pricing" className="px-4 sm:px-6 py-12 sm:py-22">
+        <section id="pricing" className="px-4 sm:px-6 py-8 sm:py-12">
             <div className="max-w-6xl mx-auto">
 
                 {/* Heading */}
                 <div className="text-center mb-6 sm:mb-10">
-                    <div
-                        className="
-                            inline-flex
-                            items-center
-                            gap-2
-                            rounded-full
-                            bg-card
-                            border
-                            border-border
-                            px-4.5
-                            py-2
-                            text-xs
-                            md:text-sm
-                            text-fg
-                            mb-5
-                        "
-                    >
-                        <Star size={15} fill="currentColor" className="text-yellow-400" />
-                        Rated 4.9/5 by 50,000+ users
-                    </div>
-
                     <Heading className="text-2xl sm:text-3xl md:text-4xl font-bold text-fg">
                         Simple pricing that scales with you
                     </Heading>
@@ -116,6 +95,15 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                 </div>
 
                 {/* Pricing Cards Carousel for Mobile / Grid for Desktop */}
+                {/* One reveal for the whole row rather than one per card. The
+                    cards live in an overflow-x-auto scroller, and an
+                    IntersectionObserver clips against that scroller as well as
+                    the viewport — so a card scrolled off to the right never
+                    counts as visible however the root margin is set. Business
+                    sat at opacity 0, twenty pixels below its neighbours, until
+                    someone happened to swipe to it, which is what made the row
+                    look uneven. The row itself is always on screen. */}
+                <Reveal>
                 <div className="
                     flex
                     overflow-x-auto
@@ -140,9 +128,16 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                     max-w-5xl
                     items-stretch
                 ">
-                    {PLANS.map((plan, index) => (
-                        <div key={plan.id} className="w-[82vw] sm:w-[320px] md:w-auto shrink-0 md:shrink snap-center h-full flex">
-                            <Reveal delay={index * 100} className="h-full w-full flex">
+                    {/* The card wrapper takes h-full only from md up, where this
+                        is a grid and 100% resolves against the row. Below that it
+                        is the horizontal carousel above, whose own height comes
+                        from its tallest card — so height:100% has nothing
+                        definite to measure against, falls back to the content
+                        height, and in doing so overrides the items-stretch that
+                        would have equalised them. Free carries one feature fewer
+                        than Pro and Business, so it alone came up short. */}
+                    {PLANS.map((plan) => (
+                        <div key={plan.id} className="w-[82vw] sm:w-[320px] md:w-auto shrink-0 md:shrink snap-center md:h-full flex">
                                 <div className={`
                                     relative flex h-full w-full flex-col rounded-2xl bg-card p-5 sm:p-7
                                     shadow-sm transition-all duration-200
@@ -259,74 +254,10 @@ export default function Pricing({ heading = "h2" }: { heading?: "h1" | "h2" }) {
                                     </div>
 
                                 </div>
-                            </Reveal>
                         </div>
                     ))}
                 </div>
-
-                {/* Reviews */}
-                <div
-                    className="
-                        mt-8
-                        md:mt-14
-                        mx-auto
-                        flex
-                        w-full
-                        max-w-xs
-                        flex-col
-                        items-center
-                        gap-3
-                        rounded-2xl
-                        bg-[var(--background-secondary)]
-                        px-5
-                        py-4
-                        text-xs
-                        text-muted
-                        md:w-auto
-                        md:max-w-none
-                        md:flex-row
-                        md:justify-center
-                        md:gap-7
-                        md:rounded-none
-                        md:bg-transparent
-                        md:px-0
-                        md:py-0
-                        md:text-sm
-                    "
-                >
-                    <div className="
-                        flex
-                        items-center
-                        gap-2
-                    ">
-                        <Users size={16} className="shrink-0 md:size-[18px]" />
-                        Trusted by 50,000+ creators
-                    </div>
-
-                    <span className="h-px w-10 bg-[var(--card-border)] md:hidden" />
-
-                    <div className="
-                        flex
-                        items-center
-                        gap-2
-                        text-yellow-400
-                    ">
-                        <div className="flex items-center gap-0.5 md:gap-2">
-                            {[1, 2, 3, 4, 5].map(star => (
-                                <Star
-                                    key={star}
-                                    size={15}
-                                    fill="currentColor"
-                                    className="md:size-[17px]"
-                                />
-                            ))}
-                        </div>
-
-                        <span className="text-muted ml-1 md:ml-1.5">
-                            4.9/5 average rating
-                        </span>
-                    </div>
-                </div>
+                </Reveal>
 
             </div>
         </section>

@@ -6,8 +6,9 @@
  * because the real charge amounts live with the payment provider — the
  * website only ever shows them.
  *
- * Yearly shows the per-month equivalent of the yearly charge, so the two
- * columns compare like for like: Pro bills $119.88/year = $9.99/month.
+ * The yearly column shows the per-month equivalent of the yearly charge, so
+ * the two columns compare like for like: Pro bills $124.99/year, shown as
+ * $10.42/month.
  */
 
 export type PlanId = "free" | "pro" | "business";
@@ -24,8 +25,12 @@ export interface Plan {
      * string that gains a currency symbol, a comma or a locale format silently
      * becomes NaN, and NaN is an invoice for nothing.
      *
-     * yearlyPrice is the per-month equivalent, matching the yearly column, so
-     * a one-time yearly invoice is twelve times this.
+     * monthlyPrice is one month. yearlyPrice is the whole year, not a twelfth
+     * of it: it used to hold the per-month equivalent and every caller
+     * multiplied by twelve, which meant the number in this file was not the
+     * number anyone was charged, and a plain edit to it — setting it to the
+     * yearly figure — would have billed twelve years. Both fields now mean
+     * exactly what a customer pays for that cycle.
      */
     monthlyPrice: number;
     yearlyPrice: number;
@@ -44,58 +49,47 @@ export const PLANS: Plan[] = [
         yearlyPrice: 0,
         description: "Perfect for trying basic PDF tools.",
         features: [
-            "10 operations per day",
-            "Basic PDF tools",
-            "1 OCR operation per day",
-            "1 AI summary operation per day",
-            "Fast and easy processing",
-            "Community support",
+            "Basic PDF conversions",
+            "Merge & split PDFs",
+            "Limited daily usage",
+            "Standard processing speed",
         ],
     },
     {
         id: "pro",
         name: "Pro",
         monthly: "$12.99",
-        yearly: "$9.99",
+        // The per-month equivalent of the $124.99 yearly charge, so the two
+        // columns compare like for like.
+        yearly: "$10.42",
         monthlyPrice: 12.99,
-        yearlyPrice: 9.99,
+        yearlyPrice: 124.99,
         description: "Advanced tools for professionals.",
         popular: true,
         features: [
-            "Everything in Free",
-            "50 operations per day",
-            "30 Advanced PDF operations per day",
-            "5 OCR operations per day",
-            "5 AI summaries per day",
-            "5 AI grammar & writing operations per day",
-            "5 AI translation operations per day",
-            "Faster processing",
-            "Ad-free experience",
-            "Priority support",
+            "Unlimited PDF tools",
+            "AI PDF Summary",
+            "OCR processing",
+            "Fast conversions",
+            "No advertisements",
         ],
     },
     {
         id: "business",
         name: "Business",
         monthly: "$38.99",
-        yearly: "$30.99",
+        // Per-month equivalent of the $374.99 yearly charge.
+        yearly: "$31.25",
         monthlyPrice: 38.99,
-        yearlyPrice: 30.99,
+        yearlyPrice: 374.99,
         description: "Powerful PDF workflow for teams.",
         features: [
             "Everything in Pro",
-            "100 operations per day",
-            "60 Advanced PDF operations per day",
-            "10 OCR operations per day",
-            "10 AI summaries per day",
-            "10 AI grammar & writing operations per day",
-            "10 AI translation operations per day",
             "Team collaboration",
-            "Up to 5 team members",
             "Priority processing",
+            "Team collaboration",
             "Advanced security",
-            "Ad-free experience",
-            "Priority support",
+            "Dedicated support",
         ],
     },
 ];

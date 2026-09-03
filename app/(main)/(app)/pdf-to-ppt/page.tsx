@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useRef, JSX } from "react";
-import { UploadCard } from "@/components/tools/upload-card";
-import { FileText, Trash2, Download, ShieldCheck, Menu, FileStack } from "lucide-react";
+import { DownloadNotice } from "@/components/download-notice";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
+import { FileText, Trash2, Download, Menu, FileStack } from "lucide-react";
 import { downloadUrl as saveFromUrl } from "@/lib/download";
 import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
@@ -90,9 +91,9 @@ export default function PdfToPpt(): JSX.Element {
   };
 
   return (
-    <div className="min-h-screen w-full bg-white dark:bg-slate-950 text-fg flex flex-col antialiased selection:bg-blue-500 selection:text-white">
+    <div className="fixed inset-0 overflow-y-auto bg-white dark:bg-[#1A1B24] text-fg flex flex-col antialiased selection:bg-blue-500 selection:text-white">
       {/* Top nav bar */}
-      <header className="w-full flex items-center justify-between px-4 sm:px-6 py-4 border-b border-card">
+      <header className="w-full flex items-center justify-between px-4 sm:px-6 py-4 border-b border-card bg-white dark:bg-[#1A1B24]">
         <span className="text-base sm:text-lg font-bold tracking-tight text-fg">PDFAI</span>
         <button
           type="button"
@@ -105,7 +106,7 @@ export default function PdfToPpt(): JSX.Element {
 
       {/* Main content */}
       <main className="flex-1 w-full flex flex-col items-center px-4 sm:px-6 pt-8 sm:pt-12">
-        <div className="w-full max-w-md sm:max-w-lg space-y-6 sm:space-y-8">
+        <div className="w-full max-w-2xl space-y-6 sm:space-y-8">
 
           <div className="text-center space-y-2 sm:space-y-3">
             <div className="w-10 h-10 sm:w-11 sm:h-11 mx-auto rounded-xl bg-[var(--background-secondary)] border border-card flex items-center justify-center">
@@ -184,9 +185,10 @@ export default function PdfToPpt(): JSX.Element {
             </button>
           )}
 
-          <div className="pt-1 flex items-center justify-center space-x-1.5 text-muted text-[10px] sm:text-xs text-center pb-8">
-            <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-            <span>Secure PDF conversion • No file retention</span>
+          <div className="pb-8">
+            <DownloadNotice message="Presentation converted and downloaded." />
+
+            <SecureNote />
           </div>
 
         </div>

@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
+import { DownloadNotice } from "@/components/download-notice";
 import { FileText, Trash2, Loader2, Download } from "lucide-react";
-import { UploadCard } from "@/components/tools/upload-card";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { downloadBlob } from "@/lib/download";
 import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
@@ -167,6 +168,10 @@ export default function WordToPdfPage() {
           </div>
         </div>
       )}
+
+      <DownloadNotice message="Document converted and downloaded." />
+
+      <SecureNote />
     </div>
   );
 }

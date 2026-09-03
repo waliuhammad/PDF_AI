@@ -1,7 +1,7 @@
 "use client";
 
 import { FcGoogle } from "react-icons/fc";
-import { FaFacebookF, FaGithub, FaXTwitter, FaApple } from "react-icons/fa6";
+import { FaGithub } from "react-icons/fa6";
 import type { SocialProviderId } from "@/lib/firebase/auth";
 
 interface Provider {
@@ -10,22 +10,32 @@ interface Provider {
     icon: React.ReactNode;
 }
 
-// Brand marks keep their own colour where they have one; the monochrome marks
-// follow the theme so they stay visible in both light and dark.
+/**
+ * Google keeps its own colours — its mark is only itself in full colour, and a
+ * monochrome version of it reads as a different brand. GitHub's is monochrome
+ * by design, so it follows the theme and stays legible in both.
+ */
 const providers: Provider[] = [
-    { id: "google", label: "Google", icon: <FcGoogle size={18} /> },
-    { id: "facebook", label: "Facebook", icon: <FaFacebookF size={17} className="text-[#1877F2]" /> },
-    { id: "github", label: "GitHub", icon: <FaGithub size={18} className="text-fg" /> },
-    { id: "twitter", label: "X", icon: <FaXTwitter size={17} className="text-fg" /> },
-    { id: "apple", label: "Apple", icon: <FaApple size={19} className="text-fg" /> },
+    { id: "google", label: "Google", icon: <FcGoogle size={20} /> },
+    { id: "github", label: "GitHub", icon: <FaGithub size={20} className="text-fg" /> },
 ];
 
+/**
+ * The social half of the sign-in pages, below the email and password form.
+ *
+ * Two marks in a row, splitting the width between them. That is a far easier
+ * target on a phone than the five-across row this pattern once had, and the
+ * accessible name sits on the button rather than only in a `title` tooltip,
+ * since a touchscreen never shows one of those.
+ *
+ * The props are unchanged, so both pages call this exactly as they did.
+ */
 export function SocialAuth({
     action,
     disabled,
     onSelect,
 }: {
-    /** Verb shown on each button, e.g. "Log in" -> "Log in with Google". */
+    /** Verb used in the accessible name, e.g. "Log in" -> "Log in with Google". */
     action: string;
     disabled?: boolean;
     onSelect: (id: SocialProviderId) => void;
@@ -38,10 +48,7 @@ export function SocialAuth({
                 <div className="flex-1 h-px bg-[var(--card-border)]" />
             </div>
 
-            {/* Bare brand marks in a row at every width — five stacked
-                full-width buttons push the rest of the form off the fold.
-                The provider name lives in the tooltip and the accessible name. */}
-            <div className="flex justify-center gap-2.5 sm:gap-3">
+            <div className="flex items-stretch gap-3">
                 {providers.map((provider) => (
                     <button
                         key={provider.id}
@@ -50,9 +57,9 @@ export function SocialAuth({
                         disabled={disabled}
                         aria-label={`${action} with ${provider.label}`}
                         title={`${action} with ${provider.label}`}
-                        className="h-12 w-12 flex items-center justify-center rounded-xl border border-card text-fg hover:bg-[var(--background-secondary)] hover:border-[var(--primary)] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                        className="flex-1 h-12 flex items-center justify-center rounded-xl border border-card bg-card text-fg transition-colors hover:bg-[var(--background-secondary)] hover:border-[var(--primary)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--primary)] disabled:opacity-60 disabled:cursor-not-allowed"
                     >
-                        <span className="w-5 flex items-center justify-center shrink-0">{provider.icon}</span>
+                        {provider.icon}
                     </button>
                 ))}
             </div>

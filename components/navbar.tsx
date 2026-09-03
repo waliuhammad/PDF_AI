@@ -1,9 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { isToolPath } from "@/lib/tool-paths";
 import { useState, useEffect } from "react";
 import { Menu, X, FileText } from "lucide-react";
 import { ThemeToggle } from "./theme-toggle";
+import { hasSessionHint } from "@/lib/session-hint";
 
 /** Root-relative, not bare hashes. This navbar renders on the content pages
  *  (/terms, /privacy, /about, …) as well as the landing page, and a bare
@@ -11,18 +14,69 @@ import { ThemeToggle } from "./theme-toggle";
  *  nothing at all. "/#tools" navigates home and lands on the section. */
 const navLinks = [
   { name: "Home", href: "/#hero" },
-  { name: "Tools", href: "/#tools" },
+  // `page` is the real route this link also stands for. The active state was
+  // decided purely by the landing page's hash, so on /tools — a page of its
+  // own, with no #tools section in it — nothing matched and no link was
+  // underlined at all. Same on /pricing.
+  { name: "Tools", href: "/#tools", page: "/tools" },
   { name: "How it Works", href: "/#how-it-works" },
-  { name: "Pricing", href: "/#pricing" },
+  { name: "Pricing", href: "/#pricing", page: "/pricing" },
   { name: "FAQ", href: "/#faq" },
 ];
 
 /** "/#tools" -> "#tools". The hash alone is what the DOM and the URL bar use. */
 const hashOf = (href: string) => href.slice(href.indexOf("#"));
 
-export function Navbar() {
+export function Navbar({ signedIn: signedInProp }: { signedIn?: boolean } = {}) {
   const [open, setOpen] = useState(false);
   const [activeHash, setActiveHash] = useState("");
+  const pathname = usePathname();
+
+  /**
+   * Someone already signed in has no use for "Login" or "Start Free" — the
+   * first is a step they have finished and the second offers them a second
+   * account. They get one button through to their dashboard instead.
+   *
+   * This used to ask Firebase Auth, which meant every page carrying this header
+   * — including the prerendered marketing pages — shipped the SDK, around
+   * 290KB, to decide one button's wording. It reads a cookie now: no SDK, and
+   * the pages stay static.
+   *
+   * Read after mount rather than during render. The server has no cookies to
+   * read while prerendering, so a first client render that already knew would
+   * disagree with the HTML and hydrate wrong. The cost is a brief flash of the
+   * signed-out buttons, which is what it was before.
+   *
+   * `signedIn` overrides it where the caller already knows — the tool pages
+   * resolve auth for their own layout, so they should not make this guess
+   * again.
+   */
+  const [hinted, setHinted] = useState(false);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setHinted(hasSessionHint());
+  }, []);
+
+  const signedIn = signedInProp ?? hinted;
+
+  /**
+   * Which link to underline.
+   *
+   * On the landing page the sections are what the visitor is looking at, so
+   * the hash decides. Anywhere else there are no sections to observe and the
+   * route is the only thing that says where they are.
+   */
+  const isActive = (item: (typeof navLinks)[number]) => {
+    if (pathname === "/") return activeHash === hashOf(item.href);
+
+    // A tool's own page is still "Tools" as far as the bar is concerned —
+    // /merge-pdf is not a section anywhere, so without this nothing lights up
+    // on any of the twenty-one tool pages.
+    if (item.page === "/tools") return isToolPath(pathname);
+
+    return item.page === pathname;
+  };
 
   const handleNavClick = (
     e: React.MouseEvent<HTMLAnchorElement>,
@@ -66,28 +120,68 @@ export function Navbar() {
 
     // getElementById, not querySelector — "/#tools" is not a valid selector.
     // On the content pages this finds nothing and the observer simply idles.
-    const sections = navLinks
-      .map((link) => document.getElementById(hashOf(link.href).slice(1)))
-      .filter(Boolean);
+    const ids = navLinks.map((link) => hashOf(link.href).slice(1));
+    const sections = ids
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveHash(`#${entry.target.id}`);
-          }
-        });
-      },
-      { threshold: 0.4 }
-    );
+    /**
+     * The section filling most of the screen is the one being read.
+     *
+     * This replaced an IntersectionObserver with a 0.4 threshold, which could
+     * not work here for two reasons. A threshold is a fraction of the section,
+     * and the tools section is nearly twice the viewport — 40% of it is never
+     * on screen at once, so it could never qualify. And the callback let every
+     * intersecting section set the hash, so the last one in the array won and
+     * nothing happened when a section left. Scrolling from the hero into the
+     * tools section left the underline on Home, which is what this fixes.
+     *
+     * Comparing visible height needs no threshold and no tuned band: it gives
+     * the same answer at every scroll position, including part-way between two
+     * sections.
+     */
+    const pickActive = () => {
+      const viewportHeight = window.innerHeight;
+      let winner = "";
+      let mostVisible = 0;
 
-    sections.forEach((section) => {
-      if (section) observer.observe(section);
-    });
+      for (const section of sections) {
+        const box = section.getBoundingClientRect();
+        const visible =
+          Math.min(box.bottom, viewportHeight) - Math.max(box.top, 0);
+
+        if (visible > mostVisible) {
+          mostVisible = visible;
+          winner = section.id;
+        }
+      }
+
+      if (winner) setActiveHash(`#${winner}`);
+    };
+
+    // One measurement per frame at most: five rects is cheap, but not once per
+    // scroll event.
+    let frame = 0;
+    const onScroll = () => {
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        pickActive();
+      });
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
+    // Through rAF rather than straight away, so the first paint is not a
+    // second render triggered from inside this effect.
+    const initial = requestAnimationFrame(pickActive);
 
     return () => {
       window.removeEventListener("hashchange", handleHashChange);
-      observer.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      cancelAnimationFrame(initial);
+      if (frame) cancelAnimationFrame(frame);
     };
   }, []);
 
@@ -112,7 +206,7 @@ export function Navbar() {
         {/* Desktop Navigation */}
         <nav className="hidden items-center gap-8 lg:flex">
           {navLinks.map((item) => {
-            const active = activeHash === hashOf(item.href);
+            const active = isActive(item);
 
             return (
               <Link
@@ -141,19 +235,30 @@ export function Navbar() {
         <div className="hidden items-center gap-3 lg:flex">
           <ThemeToggle />
 
-          <Link
-            href="/login"
-            className="rounded-xl border border-border px-4 py-2 text-sm font-medium transition hover:border-primary hover:text-primary"
-          >
-            Login
-          </Link>
+          {signedIn ? (
+            <Link
+              href="/dashboard"
+              className="rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+            >
+              Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="rounded-xl border border-border px-4 py-2 text-sm font-medium transition hover:border-primary hover:text-primary"
+              >
+                Login
+              </Link>
 
-          <Link
-            href="/register"
-            className="rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
-          >
-            Start Free
-          </Link>
+              <Link
+                href="/register"
+                className="rounded-xl bg-primary px-5 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+              >
+                Start Free
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile actions. The theme toggle sits in the bar itself, beside the
@@ -182,7 +287,7 @@ export function Navbar() {
           >
             <div className="space-y-1 px-4 py-4 sm:space-y-2 sm:px-6 sm:py-6">
               {navLinks.map((item) => {
-                const active = activeHash === hashOf(item.href);
+                const active = isActive(item);
 
                 return (
                   <Link
@@ -206,21 +311,33 @@ export function Navbar() {
               {/* The Appearance row lived here; the toggle is now in the header
                   bar above, visible without opening the menu. */}
               <div className="mt-4 flex flex-col gap-3">
-                <Link
-                  href="/login"
-                  onClick={() => setOpen(false)}
-                  className="rounded-xl border border-border py-3 text-center font-medium transition hover:border-primary hover:text-primary"
-                >
-                  Login
-                </Link>
+                {signedIn ? (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setOpen(false)}
+                    className="rounded-xl bg-primary py-3 text-center font-semibold text-primary-foreground transition hover:bg-primary/90"
+                  >
+                    Dashboard
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      onClick={() => setOpen(false)}
+                      className="rounded-xl border border-border py-3 text-center font-medium transition hover:border-primary hover:text-primary"
+                    >
+                      Login
+                    </Link>
 
-                <Link
-                  href="/register"
-                  onClick={() => setOpen(false)}
-                  className="rounded-xl bg-primary py-3 text-center font-semibold text-primary-foreground transition hover:bg-primary/90"
-                >
-                  Start Free
-                </Link>
+                    <Link
+                      href="/register"
+                      onClick={() => setOpen(false)}
+                      className="rounded-xl bg-primary py-3 text-center font-semibold text-primary-foreground transition hover:bg-primary/90"
+                    >
+                      Start Free
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { AppChrome } from "@/components/app-chrome";
-import { LibraryLoader } from "@/components/library-loader";
+import { RatingPrompt } from "@/components/rating-prompt";
 
 /**
  * Chrome for the signed-in app area. The PDF tools live here and stay usable
@@ -7,9 +7,10 @@ import { LibraryLoader } from "@/components/library-loader";
  * which is why AppChrome picks the frame from the session rather than this
  * layout assuming everyone here is signed in.
  *
- * LibraryLoader keeps the library store in sync with the signed-in user:
- * mounted here (rather than in (protected)) so a signed-in user's history
- * is already loaded even while they're on an open tool page.
+ * RatingPrompt sits here rather than in any one tool: this is the layout all
+ * twenty-one of them share, so mounting it once means a tool added tomorrow can
+ * ask for a rating without being told to. It renders nothing until someone has
+ * finished several files and is in a position to have an opinion.
  */
 export default function AppLayout({
     children,
@@ -18,8 +19,8 @@ export default function AppLayout({
 }) {
     return (
         <>
-            <LibraryLoader />
             <AppChrome>{children}</AppChrome>
+            <RatingPrompt />
         </>
     );
 }

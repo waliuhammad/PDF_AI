@@ -3,10 +3,7 @@ import {
     updateProfile,
     signInWithPopup,
     GoogleAuthProvider,
-    FacebookAuthProvider,
     GithubAuthProvider,
-    TwitterAuthProvider,
-    OAuthProvider,
     type AuthProvider,
     type User,
 } from "firebase/auth";
@@ -85,20 +82,25 @@ export async function registerWithEmail(input: RegisterInput) {
     return credential.user;
 }
 
-export type SocialProviderId = "google" | "facebook" | "github" | "twitter" | "apple";
+/**
+ * The two providers the sign-in pages offer. Facebook, X and Apple are not
+ * among them and have no builder here — a provider nothing can ask for is a
+ * provider that only rots. Apple in particular was removed rather than left
+ * switched off: it needs a paid Apple Developer account behind it, and until
+ * that exists its button only ever produced auth/operation-not-allowed.
+ *
+ * Both must be switched on in the Firebase console. Where one is not, Firebase
+ * answers auth/operation-not-allowed, which the pages turn into "that sign-in
+ * method isn't enabled for this app yet" rather than a raw error code.
+ */
+export type SocialProviderId = "google" | "github";
 
 function buildProvider(id: SocialProviderId): AuthProvider {
     switch (id) {
         case "google":
             return new GoogleAuthProvider();
-        case "facebook":
-            return new FacebookAuthProvider();
         case "github":
             return new GithubAuthProvider();
-        case "twitter":
-            return new TwitterAuthProvider();
-        case "apple":
-            return new OAuthProvider("apple.com");
     }
 }
 
@@ -151,7 +153,7 @@ export async function confirmReset(oobCode: string, newPassword: string) {
 
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
 
-/** True when the account signs in with a password (rather than only Google/Facebook/Apple). */
+/** True when the account signs in with a password rather than only Google or GitHub. */
 export function hasPasswordProvider(user: User | null) {
     return !!user?.providerData.some((provider) => provider.providerId === "password");
 }

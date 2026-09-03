@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useRef } from "react";
-import { FileText, Trash2, Download, Eye, EyeOff, Wand2, Copy, Check, Lock, ShieldCheck, Loader2 } from "lucide-react";
-import { UploadCard } from "@/components/tools/upload-card";
+import { DownloadNotice } from "@/components/download-notice";
+import { FileText, Trash2, Download, Eye, EyeOff, Wand2, Copy, Check, Lock, Loader2 } from "lucide-react";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { loadPdfjs } from "@/lib/pdf-libs";
 import { errorMessage } from "@/lib/errors";
 import { downloadBlob } from "@/lib/download";
@@ -150,7 +151,7 @@ export default function ProtectPdfPage() {
     };
 
     return (
-        <div className="max-w-xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-10">
+        <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-10">
             {/* Header — one copy, outside the branches. It used to be
                 duplicated in both the empty and the configured state. */}
             <div className="text-center mb-6 sm:mb-8">
@@ -173,12 +174,6 @@ export default function ProtectPdfPage() {
                         onFiles={handleFile}
                         title="Click to browse or drag & drop a PDF"
                         hint="Supports text documents and reports"
-                        note={
-                            <>
-                                <ShieldCheck size={14} className="text-[var(--primary)]" />
-                                <span>Secure PDF processing • No file retention</span>
-                            </>
-                        }
                     />
 
                     {error && (
@@ -356,12 +351,12 @@ export default function ProtectPdfPage() {
                         </button>
                     </div>
 
-                    <div className="flex items-center justify-center gap-2 text-[11px] sm:text-xs text-muted pt-3 border-t border-card text-center">
-                        <ShieldCheck size={16} className="text-purple-900 dark:text-cyan-400 shrink-0" />
-                        <span>Secure processing • Password encrypted securely</span>
-                    </div>
                 </form>
             )}
+
+            <DownloadNotice message="Document protected and downloaded." />
+
+            <SecureNote />
         </div>
     );
 }

@@ -12,7 +12,7 @@ import { useT } from "@/components/locale-provider";
  * every metered route — the conversions and the PDF utilities as well as the
  * AI features — so naming only the AI ones understated what the bar measures.
  *
- * The fetch lives in usePlanUsage so this and the dashboard storage tile
+ * The fetch lives in usePlanUsage so this and anything else needing the plan
  * answer from one request and cannot disagree about the current plan.
  */
 export function UsageMeter({

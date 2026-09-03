@@ -1,8 +1,10 @@
 "use client";
 
 import React, { useState, useRef, JSX } from "react";
-import { UploadCard } from "@/components/tools/upload-card";
-import { FileText, Trash2, Download, ShieldCheck, Sparkles, FileSpreadsheet } from "lucide-react";
+import { DownloadNotice } from "@/components/download-notice";
+import { notifyToolSuccess } from "@/lib/tool-success";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
+import { FileText, Trash2, Download, Sparkles, FileSpreadsheet } from "lucide-react";
 import { loadXlsx } from "@/lib/pdf-libs";
 import { errorMessage } from "@/lib/errors";
 import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
@@ -75,11 +77,12 @@ export default function PdfToExcel(): JSX.Element {
     const safeName = file ? file.name.replace(/\.[^/.]+$/, "") : "pdf-data";
     const outputName = `${safeName}-extracted.xlsx`;
     XLSX.writeFile(workbook, outputName);
+    notifyToolSuccess();
   };
 
   return (
-    <div className="min-h-screen bg-background text-fg antialiased selection:bg-slate-900 dark:selection:bg-blue-500 selection:text-white flex flex-col items-center md:justify-center px-3 py-4 md:p-6">
-      <div className="w-full max-w-4xl space-y-5 md:space-y-8 md:bg-card md:border md:border-card md:p-8 md:rounded-3xl md:shadow-2xl md:backdrop-blur-xl">
+    <div className="w-full text-fg antialiased selection:bg-slate-900 dark:selection:bg-blue-500 selection:text-white px-4 sm:px-6 py-6 sm:py-10">
+      <div className="w-full max-w-4xl mx-auto space-y-5 md:space-y-8">
 
         <div className="text-center space-y-1.5 md:space-y-2">
           <div className="flex justify-center mb-1 md:mb-0">
@@ -178,10 +181,9 @@ export default function PdfToExcel(): JSX.Element {
           </button>
         )}
 
-        <div className="pt-1 md:pt-2 flex items-center justify-center space-x-1.5 text-slate-500 dark:text-slate-500 text-[10px] md:text-xs text-center">
-          <ShieldCheck className="w-4 h-4 text-slate-400 shrink-0" />
-          <span>Secure PDF text extraction • No file retention</span>
-        </div>
+        <DownloadNotice message="Spreadsheet extracted and downloaded." />
+
+        <SecureNote />
 
       </div>
     </div>

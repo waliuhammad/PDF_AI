@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import { metered } from "@/lib/metered";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { rejectBadUpload, contentDisposition } from "@/lib/uploads";
 
 interface TextAnnotation {
   type: "text";
@@ -64,6 +65,10 @@ export const POST = metered(async (req: NextRequest) => {
       return NextResponse.json({ error: "No PDF file uploaded" }, { status: 400 });
     }
 
+    // Size and type are checked here, before anything reads the bytes.
+    const badUpload = rejectBadUpload(file, "pdf");
+    if (badUpload) return badUpload;
+
     const annotations: Annotation[] = annotationsRaw ? JSON.parse(annotationsRaw) : [];
     const arrayBuffer = await file.arrayBuffer();
     const pdfDoc = await PDFDocument.load(arrayBuffer, { ignoreEncryption: true });
@@ -76,6 +81,12 @@ export const POST = metered(async (req: NextRequest) => {
     const pages = pdfDoc.getPages();
 
     annotations.forEach((ann) => {
+      // Integer-checked, not just range-checked. The two comparisons below are
+      // both false for a missing or non-numeric pageIndex, so such an
+      // annotation passed the guard, indexed the array with undefined and threw
+      // on the next line — one malformed entry failing the whole edit with a
+      // 500 rather than being skipped like an out-of-range one.
+      if (!Number.isInteger(ann.pageIndex)) return;
       if (ann.pageIndex < 0 || ann.pageIndex >= pages.length) return;
       const page = pages[ann.pageIndex];
       const { height } = page.getSize();
@@ -139,7 +150,7 @@ export const POST = metered(async (req: NextRequest) => {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="edited_${file.name}"`,
+        "Content-Disposition": contentDisposition(`edited_${file.name}`),
       },
     });
   } catch (error) {

@@ -9,6 +9,7 @@
 
 
 import { useState, useRef, useEffect } from "react";
+import { DownloadNotice } from "@/components/download-notice";
 import {
   FileText,
   Download,
@@ -25,15 +26,13 @@ import {
   ArrowDownLeft,
   ArrowDown,
   ArrowDownRight,
-  ShieldCheck,
   Droplets,
   Loader2,
   Trash2,
-  CheckCircle2,
 } from "lucide-react";
 import type * as PdfjsLib from "pdfjs-dist";
 import { loadPdfjs } from "@/lib/pdf-libs";
-import { UploadCard } from "@/components/tools/upload-card";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { downloadBlob } from "@/lib/download";
 import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
@@ -76,7 +75,6 @@ export default function WatermarkPdfPage() {
 
   const [processing, setProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState(false);
 
   // PDF Preview State
   const [numPages, setNumPages] = useState<number>(0);
@@ -102,7 +100,6 @@ export default function WatermarkPdfPage() {
 
     setRawFile(f);
     setErrorMessage(null);
-    setSuccessMessage(false);
     setRenderedPages(null);
 
     try {
@@ -175,7 +172,6 @@ export default function WatermarkPdfPage() {
     cancel();
     setRawFile(null);
     setErrorMessage(null);
-    setSuccessMessage(false);
     setPdfDoc(null);
     setNumPages(0);
     setRenderedPages(null);
@@ -244,7 +240,6 @@ export default function WatermarkPdfPage() {
       const originalNameWithoutExt = rawFile.name.replace(/\.[^/.]+$/, "");
       downloadBlob(blob, `${originalNameWithoutExt}_watermarked.pdf`);
 
-      setSuccessMessage(true);
     } catch {
       setErrorMessage("An error occurred while creating the watermark.");
     } finally {
@@ -312,12 +307,6 @@ export default function WatermarkPdfPage() {
           onFiles={handlePdfFile}
           title="Click to browse or drag & drop a PDF"
           hint="Supports text documents and reports"
-          note={
-            <>
-              <ShieldCheck size={14} className="text-[var(--primary)]" />
-              <span>Secure PDF processing • No file retention</span>
-            </>
-          }
         />
       ) : (
         <div className="space-y-4 sm:space-y-6">
@@ -570,12 +559,6 @@ export default function WatermarkPdfPage() {
                 </div>
               )}
 
-              {successMessage && (
-                <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 text-[13px] font-semibold flex items-start gap-2">
-                  <CheckCircle2 size={16} className="shrink-0 mt-0.5" />
-                  <span>Watermark applied and downloaded.</span>
-                </div>
-              )}
 
               <button
                 type="button"
@@ -665,6 +648,10 @@ export default function WatermarkPdfPage() {
           </div>
         </div>
       )}
+
+      <DownloadNotice message="Watermark applied and downloaded." />
+
+      <SecureNote />
     </div>
   );
 }

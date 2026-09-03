@@ -4,6 +4,7 @@ import { metered } from "@/lib/metered";
 import AdmZip from "adm-zip";
 import { XMLParser } from "fast-xml-parser";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { rejectBadUpload, contentDisposition } from "@/lib/uploads";
 
 export const POST = metered(async (req: NextRequest) => {
   try {
@@ -22,6 +23,10 @@ export const POST = metered(async (req: NextRequest) => {
         { status: 400 }
       );
     }
+
+    // Size and type are checked here, before anything reads the bytes.
+    const badUpload = rejectBadUpload(file, "powerpoint");
+    if (badUpload) return badUpload;
 
     const arrayBuffer = await file.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
@@ -186,7 +191,7 @@ export const POST = metered(async (req: NextRequest) => {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="${file.name.replace(/\.[^/.]+$/, "")}-converted.pdf"`,
+        "Content-Disposition": contentDisposition(`${file.name.replace(/\.[^/.]+$/, "")}-converted.pdf`),
       },
     });
   } catch (err) {

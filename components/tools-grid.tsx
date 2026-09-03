@@ -30,7 +30,7 @@ export function ToolsGrid() {
     }, [searchQuery, activeCategory]);
 
     return (
-        <section id="tools" className="py-10 sm:py-16 px-4 sm:px-6">
+        <section id="tools" className="py-8 sm:py-12 px-4 sm:px-6">
             <div className="mx-auto max-w-7xl">
 
                 {/* Heading */}

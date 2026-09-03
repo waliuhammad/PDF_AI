@@ -8,6 +8,7 @@ import path from "path";
 import os from "os";
 import AdmZip from "adm-zip";
 import { withOwnPdfWorker } from "@/lib/pdf-worker-isolation";
+import { rejectBadUpload, contentDisposition } from "@/lib/uploads";
 
 // renders every page to a bitmap,
 // so the platform default is not enough.
@@ -34,6 +35,10 @@ export const POST = metered(async (req: NextRequest) => {
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
+
+    // Size and type are checked here, before anything reads the bytes.
+    const badUpload = rejectBadUpload(file, "pdf");
+    if (badUpload) return badUpload;
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
@@ -77,7 +82,7 @@ export const POST = metered(async (req: NextRequest) => {
           return new NextResponse(singlePage.content as unknown as BodyInit, {
             headers: {
               "Content-Type": "image/png",
-              "Content-Disposition": `attachment; filename="${file.name.replace(/\.[^/.]+$/, "")}_page_${pageNumberStr}.png"`,
+              "Content-Disposition": contentDisposition(`${file.name.replace(/\.[^/.]+$/, "")}_page_${pageNumberStr}.png`),
             },
           });
         }
@@ -98,7 +103,7 @@ export const POST = metered(async (req: NextRequest) => {
       return new NextResponse(zipBuffer as unknown as BodyInit, {
         headers: {
           "Content-Type": "application/zip",
-          "Content-Disposition": `attachment; filename="${file.name.replace(/\.[^/.]+$/, "")}_images.zip"`,
+          "Content-Disposition": contentDisposition(`${file.name.replace(/\.[^/.]+$/, "")}_images.zip`),
         },
       });
     }

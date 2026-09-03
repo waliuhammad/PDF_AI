@@ -1,7 +1,9 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import { Upload, FileText, X, FileArchive, Download, Loader2, CheckCircle2 } from "lucide-react";
+import React, { useState } from "react";
+import { DownloadNotice } from "@/components/download-notice";
+import { FileText, X, FileArchive, Download, Loader2, CheckCircle2, ChevronDown } from "lucide-react";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 // aliased: this component already has state called errorMessage, which would
 // shadow the import and turn the call below into calling a string.
 import { errorMessage as messageFrom } from "@/lib/errors";
@@ -18,14 +20,27 @@ export default function CompressPdfPage() {
   const [rawFile, setRawFile] = useState<File | null>(null);
   const { begin, cancel } = useCancellableRun();
   const [fileDetails, setFileDetails] = useState<{ name: string; size: number; formattedSize: string } | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
   const [options, setOptions] = useState<TargetOption[]>([]);
   const [selectedOption, setSelectedOption] = useState<TargetOption | null>(null);
   const [processing, setProcessing] = useState(false);
   const [done, setDone] = useState(false);
   const [compressedSize, setCompressedSize] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+
+  /**
+   * The finished file, held until the reader asks for it.
+   *
+   * Compressing used to download the result the instant it arrived, so the
+   * saving was reported after the file had already been written to disk —
+   * there was no way to see "reduced to 1.2 MB, -45%" and decide against it.
+   * Keeping the blob here separates the two: compress, look, then download.
+   *
+   * It also fixes what the Download button did. It was wired to
+   * executeCompress, so it re-uploaded and re-compressed the same PDF for a
+   * file the browser was already holding — a second round trip, and a second
+   * operation off the daily allowance, to produce bytes that already existed.
+   */
+  const [compressedBlob, setCompressedBlob] = useState<Blob | null>(null);
 
   const formatSize = (bytes: number) => {
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
@@ -74,6 +89,7 @@ export default function CompressPdfPage() {
     setSelectedOption(fileOptions[2]); // Default to Medium Compression
     setDone(false);
     setCompressedSize(null);
+    setCompressedBlob(null);
     setErrorMessage(null);
   };
 
@@ -100,8 +116,7 @@ export default function CompressPdfPage() {
 
       const blob = await response.blob();
       setCompressedSize(blob.size);
-
-      downloadBlob(blob, `compressed_${rawFile.name}`);
+      setCompressedBlob(blob);
 
       setDone(true);
     } catch (err) {
@@ -110,6 +125,12 @@ export default function CompressPdfPage() {
     } finally {
       setProcessing(false);
     }
+  };
+
+  /** Hands over the file already in memory — no second trip to the server. */
+  const handleDownload = () => {
+    if (!compressedBlob || !rawFile) return;
+    downloadBlob(compressedBlob, `compressed_${rawFile.name}`);
   };
 
   const calculateSavings = () => {
@@ -132,48 +153,12 @@ export default function CompressPdfPage() {
         </p>
       </div>
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept="application/pdf"
-        hidden
-        onChange={(e) => handleFile(e.target.files)}
-      />
-
       {!fileDetails ? (
-        <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setIsDragging(true);
-          }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={(e) => {
-            e.preventDefault();
-            setIsDragging(false);
-            handleFile(e.dataTransfer.files);
-          }}
-          onClick={() => inputRef.current?.click()}
-          // See split-pdf: a bare div with an onClick is unreachable without a
-          // mouse, and the input behind it is display:none.
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              inputRef.current?.click();
-            }
-          }}
-          className={`cursor-pointer rounded-2xl sm:rounded-[32px] p-5 sm:p-16 h-auto min-h-[200px] sm:h-[380px] flex flex-col items-center justify-center text-center transition-all bg-[var(--background-secondary)] border border-card shadow-xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--primary)] ${
-            isDragging ? "border-slate-900 dark:border-white scale-[1.01]" : "hover:border-slate-300 dark:hover:border-[#333a4a]"
-          }`}
-        >
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-[var(--background-secondary)] mx-auto flex items-center justify-center mb-3 sm:mb-4 text-fg shadow-sm border border-card">
-            <Upload size={22} className="sm:hidden" />
-            <Upload size={26} className="hidden sm:block" />
-          </div>
-          <p className="text-[var(--primary)] font-semibold text-sm sm:text-lg">Click to browse or drag & drop PDFs</p>
-          <p className="text-slate-600 dark:text-[#9ca3af] text-xs sm:text-sm mt-1">Upload a document to start compression</p>
-        </div>
+        <UploadCard
+          onFiles={handleFile}
+          title="Click to browse or drag & drop PDFs"
+          hint="Upload a document to start compression"
+        />
       ) : (
         <div className="space-y-4 sm:space-y-6">
           <div className="bg-card border border-card rounded-2xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4">
@@ -197,6 +182,8 @@ export default function CompressPdfPage() {
                 setFileDetails(null);
                 setRawFile(null);
                 setDone(false);
+                setCompressedSize(null);
+                setCompressedBlob(null);
                 setErrorMessage(null);
               }}
               className="w-full sm:w-auto py-1.5 px-3.5 rounded-xl border border-card bg-[var(--background-secondary)] hover:bg-card text-slate-600 dark:text-[#9ca3af] hover:text-fg font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors shrink-0"
@@ -219,22 +206,37 @@ export default function CompressPdfPage() {
                 <label className="text-xs uppercase tracking-wider font-semibold text-slate-600 dark:text-[#9ca3af] block mb-1.5">
                   Select Compression Level & Target Size
                 </label>
-                <select
-                  value={selectedOption?.targetKB || ""}
-                  onChange={(e) => {
-                    const opt = options.find((o) => o.targetKB === Number(e.target.value));
-                    if (opt) setSelectedOption(opt);
-                    setDone(false);
-                    setErrorMessage(null);
-                  }}
-                  className="w-full max-w-full bg-card border border-card rounded-xl px-3 sm:px-3.5 py-2.5 sm:py-3 text-fg text-xs sm:text-sm focus:outline-none focus:border-slate-900 dark:border-white cursor-pointer"
-                >
-                  {options.map((opt) => (
-                    <option key={opt.targetKB} value={opt.targetKB} className="bg-card text-fg">
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+                {/* The chevron is ours rather than the browser's. Chrome anchors
+                    the native one to the border box and ignores padding-right,
+                    so it sat hard against the rounded corner and no amount of
+                    padding moved it — appearance-none is the only way to give
+                    it room. pr-9 keeps the option text from running underneath. */}
+                <div className="relative">
+                  <select
+                    value={selectedOption?.targetKB || ""}
+                    onChange={(e) => {
+                      const opt = options.find((o) => o.targetKB === Number(e.target.value));
+                      if (opt) setSelectedOption(opt);
+                      setDone(false);
+                      setErrorMessage(null);
+                    }}
+                    className="w-full max-w-full appearance-none bg-card border border-card rounded-xl pl-3 sm:pl-3.5 pr-9 sm:pr-10 py-2.5 sm:py-3 text-fg text-xs sm:text-sm focus:outline-none focus:border-slate-900 dark:border-white cursor-pointer"
+                  >
+                    {options.map((opt) => (
+                      <option key={opt.targetKB} value={opt.targetKB} className="bg-card text-fg">
+                        {opt.label}
+                      </option>
+                    ))}
+                  </select>
+
+                  {/* pointer-events-none so the whole control still opens the
+                      menu, including the arrow itself. */}
+                  <ChevronDown
+                    size={16}
+                    aria-hidden="true"
+                    className="pointer-events-none absolute right-3 sm:right-3.5 top-1/2 -translate-y-1/2 text-muted"
+                  />
+                </div>
               </div>
             </div>
 
@@ -255,6 +257,8 @@ export default function CompressPdfPage() {
                       setFileDetails(null);
                       setRawFile(null);
                       setDone(false);
+                      setCompressedSize(null);
+                      setCompressedBlob(null);
                       setErrorMessage(null);
                     }}
                     className="w-full sm:w-auto shrink-0 py-2.5 sm:py-3 px-5 sm:px-6 rounded-2xl border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-fg font-bold text-xs transition-colors"
@@ -299,19 +303,26 @@ export default function CompressPdfPage() {
                   <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-2">
                     <button
                       type="button"
-                      onClick={() => setDone(false)}
+                      onClick={() => {
+                        setDone(false);
+                        setCompressedBlob(null);
+                        setCompressedSize(null);
+                      }}
                       className="w-full sm:w-auto shrink-0 py-2.5 sm:py-3 px-5 sm:px-6 rounded-2xl border border-card text-slate-600 dark:text-[#9ca3af] hover:text-slate-900 dark:hover:text-fg font-bold text-xs transition-colors"
                     >
                       Compress Again
                     </button>
+                    {/* Downloads what is already in memory. It used to call
+                        executeCompress, which compressed the file a second time
+                        and spent another operation to get the same bytes back. */}
                     <button
                       type="button"
-                      onClick={executeCompress}
-                      disabled={processing}
+                      onClick={handleDownload}
+                      disabled={!compressedBlob}
                       className="w-full sm:flex-1 py-3 sm:py-3.5 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-xs sm:text-sm shadow-lg disabled:opacity-60 flex items-center justify-center gap-2.5 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
                     >
-                      {processing ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />}
-                      {processing ? "Downloading..." : "Download Compressed PDF"}
+                      <Download size={18} />
+                      Download Compressed PDF
                     </button>
                   </div>
                 </div>
@@ -320,6 +331,10 @@ export default function CompressPdfPage() {
           </div>
         </div>
       )}
+
+      <DownloadNotice message="Document compressed and downloaded." />
+
+      <SecureNote />
     </div>
   );
 }

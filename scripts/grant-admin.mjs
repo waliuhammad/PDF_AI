@@ -1,14 +1,20 @@
 /**
- * Grants (or removes) the admin claim used by the billing screens.
+ * Grants (or removes) the `admin` custom claim.
  *
  *     node scripts/grant-admin.mjs someone@example.com
  *     node scripts/grant-admin.mjs someone@example.com --revoke
  *     node scripts/grant-admin.mjs --list
  *
- * Confirming a payment is gated on a custom claim, and nothing in the product
- * could set one — the only instruction was a comment in a route saying to call
- * setCustomUserClaims. So no account had it, every admin call answered 403, and
- * a customer who paid could never be upgraded. This is that missing step.
+ * Nothing in the product reads this claim today. The screens that did were the
+ * Payoneer payment ones, and the guard that checked it — lib/firebase/
+ * require-admin.ts — went with them rather than sitting unimported: a module
+ * that looks like a security boundary but protects nothing is the kind of thing
+ * that later gets wired to a route it was never written for.
+ *
+ * The claim itself lives on the account, not in that file, so it survives the
+ * deletion and this script still sets it. Whatever admin surface comes next
+ * writes its own check against its own needs; the old one is in git history if
+ * it turns out to have been the right shape after all.
  *
  * The claim is deliberately not something the app can grant itself. Anything in
  * the running product that could hand out admin becomes a way to grant yourself

@@ -9,8 +9,10 @@
 
 
 import React, { useState, useRef, JSX } from "react";
-import { UploadCard } from "@/components/tools/upload-card";
-import { Trash2, UploadCloud, Sparkles, Loader2, Image as Plus, Sliders, Type } from "lucide-react";
+import { DownloadNotice } from "@/components/download-notice";
+import { notifyToolSuccess } from "@/lib/tool-success";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
+import { Trash2, UploadCloud, Sparkles, Loader2, Image as Plus, Sliders, Type, ChevronDown } from "lucide-react";
 import { loadJsPdf } from "@/lib/pdf-libs";
 import { errorMessage } from "@/lib/errors";
 import { claimOperation, releaseOperation } from "@/lib/claim-operation";
@@ -381,6 +383,7 @@ export default function ImageToPdf(): JSX.Element {
       }
 
       pdf.save("combined-images-layout.pdf");
+      notifyToolSuccess();
     } catch (err) {
       // The operation was claimed before the work started, so give it back.
       void releaseOperation();
@@ -395,8 +398,8 @@ export default function ImageToPdf(): JSX.Element {
   const usedPages = Array.from(new Set(images.map((img) => img.page))).sort((a, b) => a - b);
 
   return (
-    <div className="min-h-screen bg-background text-fg antialiased selection:bg-slate-900 dark:selection:bg-blue-500 selection:text-white flex flex-col items-center md:justify-center px-3 py-4 md:p-6">
-      <div className="w-full max-w-4xl space-y-5 md:space-y-8 md:bg-card md:border md:border-card md:p-8 md:rounded-3xl md:shadow-xl dark:md:shadow-2xl md:backdrop-blur-xl">
+    <div className="w-full text-fg antialiased selection:bg-slate-900 dark:selection:bg-blue-500 selection:text-white px-4 sm:px-6 py-6 sm:py-10">
+      <div className="w-full max-w-4xl mx-auto space-y-5 md:space-y-8">
 
         <div className="text-center space-y-1.5 md:space-y-2">
           <div className="flex justify-center mb-1 md:mb-0">
@@ -652,15 +655,28 @@ export default function ImageToPdf(): JSX.Element {
                         <div className="grid grid-cols-2 gap-2">
                           <div>
                             <label className="text-[10px] text-muted uppercase">Font</label>
-                            <select
-                              value={t.fontFamily}
-                              onChange={(e) => handleUpdateTextAnnotation(t.id, { fontFamily: e.target.value })}
-                              className="w-full bg-[var(--background-secondary)] border border-card rounded-lg px-2 py-1 text-xs text-fg mt-0.5 focus:outline-none"
-                            >
-                              <option value="helvetica">Helvetica</option>
-                              <option value="times">Times New Roman</option>
-                              <option value="courier">Courier</option>
-                            </select>
+                            {/* Same reason as the other two dropdowns: Chrome
+                                anchors the native chevron to the border box and
+                                ignores padding-right. Smaller offsets than the
+                                full-size selects because this control is too. */}
+                            <div className="relative mt-0.5">
+                              <select
+                                value={t.fontFamily}
+                                onChange={(e) => handleUpdateTextAnnotation(t.id, { fontFamily: e.target.value })}
+                                className="w-full appearance-none bg-[var(--background-secondary)] border border-card rounded-lg pl-2 pr-6 py-1 text-xs text-fg focus:outline-none cursor-pointer"
+                              >
+                                <option value="helvetica">Helvetica</option>
+                                <option value="times">Times New Roman</option>
+                                <option value="courier">Courier</option>
+                              </select>
+
+                              {/* pointer-events-none so the arrow still opens the menu. */}
+                              <ChevronDown
+                                size={12}
+                                aria-hidden="true"
+                                className="pointer-events-none absolute right-1.5 top-1/2 -translate-y-1/2 text-muted"
+                              />
+                            </div>
                           </div>
                           <div>
                             <label className="text-[10px] text-muted uppercase">Size (pt)</label>
@@ -774,6 +790,10 @@ export default function ImageToPdf(): JSX.Element {
             </div>
           </div>
         )}
+
+        <DownloadNotice message="Images converted and downloaded." />
+
+        <SecureNote />
       </div>
     </div>
   );

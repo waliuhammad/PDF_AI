@@ -2,13 +2,13 @@ import { getAppConfig } from "@/lib/remote-config";
 import { NextRequest, NextResponse } from "next/server";
 import { readFormData } from "@/lib/api";
 import { metered } from "@/lib/metered";
+import { rejectBadUpload } from "@/lib/uploads";
+import { relayToAiService } from "@/lib/ai-service";
 
 // Gemini translates the whole document — measured about 8s,
 // so the platform default is not enough.
 export const maxDuration = 60;
 
-const AI_SERVICE =
-  process.env.AI_SERVICE_URL || "http://localhost:8001";
 
 export const POST = metered(async (req: NextRequest) => {
   try {
@@ -30,25 +30,27 @@ export const POST = metered(async (req: NextRequest) => {
       return NextResponse.json({ error: "No file provided." }, { status: 400 });
     }
 
-    const response = await fetch(`${AI_SERVICE}/api/translate`, {
-      method: "POST",
-      body: formData,
-    });
+    // Checked here rather than relayed unseen: this route forwards the
+    // whole form to the AI service, so an oversized or wrong-typed
+    // upload would otherwise become that service's problem too.
+    const upload = formData.get("file");
+    if (!(upload instanceof File)) {
+      return NextResponse.json({ error: "No file provided." }, { status: 400 });
+    }
 
-    const data = await response.json();
+    const badUpload = rejectBadUpload(upload, "pdf");
+    if (badUpload) return badUpload;
 
-    return NextResponse.json(data, {
-      status: response.status,
-    });
-  } catch {
+    // Every failure mode is separated inside relayToAiService: an unreachable
+    // service, a service that answered with something other than JSON, and a
+    // real error from the service itself all used to arrive here as the same
+    // "Unable to connect" message.
+    return await relayToAiService("/api/translate", formData, "translate");
+  } catch (err) {
+    console.error("[translate] failed before the AI service was called", err);
     return NextResponse.json(
-      {
-        success: false,
-        message: "Unable to connect to AI Service.",
-      },
-      {
-        status: 500,
-      }
+      { success: false, message: "Something went wrong. Please try again." },
+      { status: 500 }
     );
   }
 }, { signInMessage: "Please sign in to use AI features." });

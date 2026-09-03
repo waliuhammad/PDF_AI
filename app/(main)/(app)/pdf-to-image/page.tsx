@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { UploadCard } from "@/components/tools/upload-card";
+import { DownloadNotice } from "@/components/download-notice";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { FormatSelect } from "@/components/tools/format-select";
 import { loadPdfjs, loadJsZip } from "@/lib/pdf-libs";
 import { errorMessage } from "@/lib/errors";
@@ -385,7 +386,7 @@ export default function PdfToImageConverter() {
   };
 
   return (
-    <main className="min-h-screen bg-card text-fg py-6 px-3 sm:py-12 sm:px-6 lg:px-8 transition-colors">
+    <main className="w-full text-fg py-6 px-4 sm:py-10 sm:px-6 transition-colors">
       <div className="max-w-3xl mx-auto space-y-5 sm:space-y-8">
 
         {/* Header Badge & Title */}
@@ -406,10 +407,10 @@ export default function PdfToImageConverter() {
           </p>
         </div>
 
-        {/* Main Card Container — boxed (bg/border/shadow) only from sm: up.
-            On mobile the page (<main>) is already bg-card, so boxing this too
-            stacked a second bordered box directly under the header badge. */}
-        <div className="space-y-5 sm:space-y-6 sm:bg-card sm:rounded-3xl sm:shadow-2xl sm:border sm:border-card sm:p-8 transition-colors">
+        {/* No panel around this: every other tool puts its controls straight
+            on the page, and the extra card read as a second box around the
+            upload area. */}
+        <div className="space-y-5 sm:space-y-6">
 
           {error && (
             <div className="flex items-center gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-800/80 text-red-700 dark:text-red-300 text-sm">
@@ -550,6 +551,10 @@ export default function PdfToImageConverter() {
           )}
 
         </div>
+
+        <DownloadNotice message="Images extracted and downloaded." />
+
+        <SecureNote />
       </div>
     </main>
   );

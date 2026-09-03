@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Reveal } from "@/components/reveal";
+import { CtaRating } from "@/components/cta-rating";
 import {
     ArrowRight,
     Sparkles,
@@ -22,14 +23,14 @@ export function CTA() {
         },
         {
             icon: FileText,
-            text: "50+ PDF tools available"
+            text: "20+ PDF tools available"
         }
     ];
 
 
     return (
 
-        <section className="px-4 sm:px-6 py-12 sm:py-20">
+        <section className="px-4 sm:px-6 py-8 sm:py-12">
 
             <Reveal>
 <div className="relative
@@ -143,34 +144,9 @@ export function CTA() {
 
 
 
-                        {/* Rating */}
+                        {/* Rating — the real average, or nothing at all */}
 
-                        <div
-                            className="
-                                mt-5
-                                flex
-                                items-center
-                                gap-3
-                                text-xs
-                                md:text-sm
-                                text-muted
-                            "
-                        >
-
-                            <div className="flex text-yellow-400">
-
-                                ★★★★★
-
-                            </div>
-
-
-                            <span>
-                                4.9/5 from 50,000+ users
-                            </span>
-
-
-                        </div>
-
+                        <CtaRating />
 
 
 

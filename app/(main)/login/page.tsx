@@ -7,6 +7,7 @@ import { Mail, Lock, Eye, EyeOff, FileText } from "lucide-react";
 import { signInWithEmail, signInWithSocial, type SocialProviderId } from "@/lib/firebase/auth";
 import { SocialAuth } from "@/components/auth/social-auth";
 import { TermsNotice } from "@/components/auth/terms-agreement";
+import { signInErrorMessage, isUserCancelled } from "@/lib/auth-errors";
 
 /**
  * Where to go after signing in.
@@ -44,8 +45,8 @@ export default function LoginPage() {
         try {
             await signInWithEmail(email, password);
             router.push(destinationAfterLogin());
-        } catch {
-            setError("Invalid email or password. Please try again.");
+        } catch (err) {
+            setError(signInErrorMessage(err));
         } finally {
             setLoading(false);
         }
@@ -58,14 +59,8 @@ export default function LoginPage() {
             await signInWithSocial(provider);
             router.push(destinationAfterLogin());
         } catch (err) {
-            const code = (err as { code?: string })?.code;
-            if (code === "auth/popup-closed-by-user" || code === "auth/cancelled-popup-request") {
-                setError(null);
-            } else if (code === "auth/operation-not-allowed") {
-                setError("That sign-in method isn't enabled for this app yet.");
-            } else {
-                setError(err instanceof Error ? err.message : "Sign-in failed. Please try again.");
-            }
+            // A closed popup is the user changing their mind, not a failure.
+            setError(isUserCancelled(err) ? null : signInErrorMessage(err));
         } finally {
             setLoading(false);
         }

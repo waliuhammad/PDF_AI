@@ -18,7 +18,8 @@ import {
   GripVertical,
 } from "lucide-react";
 import { useRef, useState } from "react";
-import { UploadCard } from "@/components/tools/upload-card";
+import { DownloadNotice } from "@/components/download-notice";
+import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { downloadBlob } from "@/lib/download";
 import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
 
@@ -113,7 +114,7 @@ export default function MergePdfPage() {
           });
         }
       } catch (err) {
-      if (wasCancelled(err)) return;
+        if (wasCancelled(err)) return;
         console.error("Error reading PDF:", err);
       }
     }
@@ -283,7 +284,8 @@ export default function MergePdfPage() {
 
       const response = await fetch("/api/merge-pdf", {
         method: "POST",
-        body: formData, signal });
+        body: formData, signal
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -346,14 +348,12 @@ export default function MergePdfPage() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Sidebar Card */}
           <div
-            className={`lg:col-span-5 border border-[#222430]/15 dark:border-white/20 rounded-3xl p-4 shadow-sm flex flex-col bg-[var(--background-secondary)] text-[#222430] dark:text-white transition-all duration-200 ${
-              isCollapsible ? "max-h-[600px]" : "h-auto"
-            }`}
+            className={`lg:col-span-5 border border-[#222430]/15 dark:border-white/20 rounded-3xl p-4 shadow-sm flex flex-col bg-[var(--background-secondary)] text-[#222430] dark:text-white transition-all duration-200 ${isCollapsible ? "max-h-[600px]" : "h-auto"
+              }`}
           >
             <div
-              className={`flex items-center justify-between border-[#222430]/10 dark:border-white/20 ${
-                isListVisible ? "pb-3 mb-3 border-b" : "pb-1"
-              } ${isCollapsible ? "cursor-pointer select-none" : ""}`}
+              className={`flex items-center justify-between border-[#222430]/10 dark:border-white/20 ${isListVisible ? "pb-3 mb-3 border-b" : "pb-1"
+                } ${isCollapsible ? "cursor-pointer select-none" : ""}`}
               onClick={() => {
                 if (isCollapsible) setIsFileListExpanded((prev) => !prev);
               }}
@@ -639,6 +639,10 @@ export default function MergePdfPage() {
           </div>
         </div>
       )}
+
+      <DownloadNotice message="Documents merged and downloaded." />
+
+      <SecureNote />
     </div>
   );
 }
