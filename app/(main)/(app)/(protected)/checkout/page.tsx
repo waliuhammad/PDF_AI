@@ -2,9 +2,9 @@
 
 import { Suspense, useCallback, useEffect, useState } from "react"
 import Link from "next/link"
-import { useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { AlertCircle, Check, Loader2 } from "lucide-react"
-import { getPlan, PLANS, type BillingCycle, type PlanId } from "@/lib/plans"
+import { getPlan, PLANS, planSatisfies, type BillingCycle, type PlanId } from "@/lib/plans"
 import { useAuth } from "@/hooks/useAuth"
 import { resolvePlan } from "@/lib/firebase/users"
 
@@ -39,7 +39,6 @@ function Checkout() {
 
     const requested: PlanId = isPlanId(params.get("plan")) ? (params.get("plan") as PlanId) : "pro"
     const cycle: BillingCycle = params.get("cycle") === "yearly" ? "yearly" : "monthly"
-    const amount = priceFor(requested, cycle)
 
     // Set by Lemon Squeezy's redirect_url. It only means the customer came back
     // from a completed checkout — the plan itself is granted by the webhook, so
@@ -74,25 +73,127 @@ function Checkout() {
         )
     }
 
+    const currentPlan = confirmed ?? resolvePlan(profile)
+
+    // Coming back from Lemon Squeezy, the choice has already been made and
+    // paid for. Leaving the picker on screen would invite a second purchase
+    // while the first is still being confirmed.
+    if (returned) {
+        return (
+            <Shell>
+                <Activating planId={requested} onActive={onActive} />
+            </Shell>
+        )
+    }
+
     return (
         <Shell>
-            <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr] lg:items-start">
-                {returned ? (
-                    <Activating planId={requested} onActive={onActive} />
-                ) : (
-                    <PayPanel planId={requested} cycle={cycle} />
-                )}
-                <OrderSummary
-                    planId={requested}
-                    cycle={cycle}
-                    amount={amount}
-                    currentPlan={confirmed ?? resolvePlan(profile)}
-                />
+            <PlanChoice selected={requested} cycle={cycle} currentPlan={currentPlan} />
+            <div className="mt-5">
+                <PayPanel planId={requested} cycle={cycle} />
             </div>
         </Shell>
     )
 }
+/**
+ * Both paid plans, side by side, with the chosen one selected.
+ *
+ * The page used to show only the plan that was clicked on /pricing, with a
+ * "Compare Business" text link that navigated away and back. That put the one
+ * decision this page exists to support — is this the right plan? — behind a
+ * round trip, and the link disappeared entirely once the visitor was already on
+ * the other plan, which is exactly when an upgrade is worth showing.
+ *
+ * Switching rewrites the query string rather than pushing a new entry, so the
+ * back button still goes to /pricing rather than walking through every card the
+ * visitor tried. `requested` is read from the URL, so the pay panel below
+ * re-checks availability for whichever plan is now selected.
+ */
+function PlanChoice({
+    selected,
+    cycle,
+    currentPlan,
+}: {
+    selected: PlanId
+    cycle: BillingCycle
+    currentPlan: PlanId
+}) {
+    const router = useRouter()
+    const paid = PLANS.filter((p) => p.id !== "free")
 
+    return (
+        <div className="grid gap-4 sm:grid-cols-2">
+            {paid.map((plan) => {
+                const isSelected = plan.id === selected
+                // planSatisfies rather than equality: someone on Business is
+                // not "missing" Pro, so Pro is marked as already covered
+                // instead of offered as an upgrade.
+                const owned = planSatisfies(currentPlan, plan.id)
+                const price = priceFor(plan.id, cycle)
+
+                return (
+                    <button
+                        key={plan.id}
+                        type="button"
+                        onClick={() => router.replace(`/checkout?plan=${plan.id}&cycle=${cycle}`, { scroll: false })}
+                        aria-pressed={isSelected}
+                        className={`${CARD} p-5 text-left transition sm:p-6 ${isSelected
+                            ? "border-[var(--primary)] ring-1 ring-[var(--primary)]"
+                            : "hover:border-[var(--primary)]"
+                            }`}
+                    >
+                        <div className="flex items-start justify-between gap-2">
+                            <div>
+                                <h2 className="text-lg text-fg">{plan.name}</h2>
+                                <p className="mt-0.5 text-sm text-muted">{plan.description}</p>
+                            </div>
+                            {/* One badge, not two: "Current plan" is the more
+                                useful of the pair when both would apply. */}
+                            {owned ? (
+                                <span className="shrink-0 rounded-full bg-[var(--background-secondary)] px-2.5 py-1 text-xs text-muted">
+                                    Current plan
+                                </span>
+                            ) : plan.popular ? (
+                                <span className="shrink-0 rounded-full bg-[var(--primary)] px-2.5 py-1 text-xs text-white">
+                                    Popular
+                                </span>
+                            ) : null}
+                        </div>
+
+                        <div className="mt-4 flex items-baseline gap-1.5 border-b border-card pb-4">
+                            <span className="text-2xl text-fg">${price.toFixed(2)}</span>
+                            <span className="text-sm text-muted">
+                                {cycle === "yearly" ? "per year" : "per month"}
+                            </span>
+                        </div>
+
+                        <ul className="mt-4 space-y-2.5">
+                            {plan.features.map((feature) => (
+                                <li key={feature} className="flex gap-2.5 text-sm text-muted">
+                                    <Check size={16} className="mt-0.5 shrink-0 text-[var(--primary)]" />
+                                    {feature}
+                                </li>
+                            ))}
+                        </ul>
+
+                        <p className="mt-4 text-sm">
+                            {isSelected ? (
+                                <span className="flex items-center gap-1.5 text-[var(--primary)]">
+                                    <Check size={15} className="shrink-0" />
+                                    Selected
+                                </span>
+                            ) : (
+                                <span className="text-muted underline underline-offset-4">
+                                    Choose {plan.name}
+                                </span>
+                            )}
+                        </p>
+                    </button>
+                )
+            })}
+        </div>
+    )
+}
 function Shell({ children }: { children: React.ReactNode }) {
     return (
         <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 sm:py-10">
@@ -325,57 +426,6 @@ function Unavailable() {
             <Link href="/contact" className={`mt-4 ${BUTTON}`}>
                 Contact us
             </Link>
-        </div>
-    )
-}
-
-function OrderSummary({
-    planId,
-    cycle,
-    amount,
-    currentPlan,
-}: {
-    planId: PlanId
-    cycle: BillingCycle
-    amount: number
-    currentPlan: PlanId
-}) {
-    const plan = getPlan(planId)
-    const alternative = PLANS.find((p) => p.id !== planId && p.id !== "free" && p.id !== currentPlan)
-
-    return (
-        <div className={`${CARD} p-5 sm:p-6`}>
-            <h2 className="text-lg text-fg">{plan.name}</h2>
-            <p className="mt-0.5 text-sm text-muted">{plan.description}</p>
-
-            <div className="mt-4 flex items-baseline justify-between border-b border-card pb-4">
-                <span className="text-sm text-muted">{cycle === "yearly" ? "One year" : "One month"}</span>
-                <span className="text-2xl text-fg">${amount.toFixed(2)}</span>
-            </div>
-
-            <ul className="mt-4 space-y-2.5">
-                {plan.features.map((feature) => (
-                    <li key={feature} className="flex gap-2.5 text-sm text-muted">
-                        <Check size={16} className="mt-0.5 shrink-0 text-[var(--primary)]" />
-                        {feature}
-                    </li>
-                ))}
-            </ul>
-
-            <p className="mt-4 text-sm text-muted">
-                You are on the {getPlan(currentPlan).name} plan.
-                {alternative && (
-                    <>
-                        {" "}
-                        <Link
-                            href={`/checkout?plan=${alternative.id}&cycle=${cycle}`}
-                            className="underline underline-offset-4 hover:text-fg"
-                        >
-                            Compare {alternative.name}
-                        </Link>
-                    </>
-                )}
-            </p>
         </div>
     )
 }
