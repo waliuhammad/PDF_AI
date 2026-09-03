@@ -14,8 +14,20 @@ import { hasSessionHint } from "@/lib/session-hint";
  * the component.
  */
 const FREQUENCY = {
-    /** Successful tool runs in this session before the first ask. */
-    afterSuccesses: 1,
+    /**
+     * Successful tool runs before the first ask, drawn at random from this
+     * range the first time someone finishes a file and then kept.
+     *
+     * Somebody who has used three to five tools has actually formed an opinion,
+     * which is the point — asking after the first download interrupts a person
+     * who has barely seen the product and gets an answer worth about as much.
+     * The number is random so the prompt does not arrive at a predictable
+     * moment for everyone, and it is remembered rather than redrawn on each
+     * visit: a threshold that rerolls would show the dialog to someone on their
+     * fourth file, hide it on their fifth, and show it again on their sixth.
+     */
+    minSuccesses: 3,
+    maxSuccesses: 5,
     /** Days to wait after someone closes it without rating. */
     daysAfterDismissal: 30,
     /** Breathing room after the file arrives, so the dialog is not part of the click. */
@@ -25,6 +37,10 @@ const FREQUENCY = {
 const KEY = {
     rated: "pdfai:rating:rated",
     dismissedAt: "pdfai:rating:dismissedAt",
+    /** Tools finished so far, across visits — three of them rarely happen in one. */
+    successes: "pdfai:rating:successes",
+    /** The draw, kept so the target stops moving under the person. */
+    threshold: "pdfai:rating:threshold",
 };
 
 /** Storage throws in private mode and in some embedded browsers. */
@@ -44,11 +60,33 @@ function writeLocal(key: string, value: string): void {
     }
 }
 
+/** How many tools this person has to finish before being asked. Drawn once. */
+function drawThreshold(): number {
+    const { minSuccesses, maxSuccesses } = FREQUENCY;
+
+    const stored = Number(readLocal(KEY.threshold));
+    if (Number.isInteger(stored) && stored >= minSuccesses && stored <= maxSuccesses) {
+        return stored;
+    }
+
+    const picked = minSuccesses + Math.floor(Math.random() * (maxSuccesses - minSuccesses + 1));
+    writeLocal(KEY.threshold, String(picked));
+    return picked;
+}
+
+/** Records a finished tool and returns the running total. */
+function countSuccess(): number {
+    const next = (Number(readLocal(KEY.successes)) || 0) + 1;
+    writeLocal(KEY.successes, String(next));
+    return next;
+}
+
 /**
- * Asks for a rating after a tool has actually produced something.
+ * Asks for a rating once someone has actually used the product — three to five
+ * finished files, drawn at random, counted across visits rather than within one.
  *
- * Mounted once in the tool layout and silent until a tool succeeds, so it costs
- * a listener and nothing else on the pages it sits on.
+ * Mounted once in the tool layout and silent until then, so it costs a listener
+ * and nothing else on the pages it sits on.
  *
  * Whether someone is signed in comes from the session hint cookie rather than
  * Firebase Auth. Loading the SDK on all twenty-one public tool pages to decide
@@ -56,9 +94,10 @@ function writeLocal(key: string, value: string): void {
  * cookie is enough for this decision: the API verifies the real session before
  * writing anything, and a stale cookie costs one dismissed dialog.
  *
- * localStorage records whether someone has rated or recently declined. It is
- * not storing the rating — that lives in Firestore — only whether to ask, which
- * is a per-browser question and belongs in the browser.
+ * localStorage records how many tools have been finished, the threshold drawn
+ * for this browser, and whether someone has already rated or recently declined.
+ * It is not storing the rating — that lives in Firestore — only whether to ask,
+ * which is a per-browser question and belongs in the browser.
  */
 export function RatingPrompt() {
     const [open, setOpen] = useState(false);
@@ -72,7 +111,7 @@ export function RatingPrompt() {
     const dismissedThisSession = useRef(false);
     const shown = useRef(false);
 
-    const eligible = useCallback((): boolean => {
+    const eligible = useCallback((total: number): boolean => {
         if (typeof window === "undefined") return false;
         if (shown.current || dismissedThisSession.current) return false;
         if (!hasSessionHint()) return false;
@@ -84,13 +123,18 @@ export function RatingPrompt() {
             if (Date.now() < waitUntil) return false;
         }
 
-        return successes.current >= FREQUENCY.afterSuccesses;
+        return total >= drawThreshold();
     }, []);
 
     useEffect(() => {
         return onToolSuccess(() => {
+            // The stored count is what carries three tool uses across three
+            // visits. The ref is the fallback for a browser that refuses
+            // storage, where the count would otherwise be stuck at one forever.
             successes.current += 1;
-            if (!eligible()) return;
+            const total = Math.max(successes.current, countSuccess());
+
+            if (!eligible(total)) return;
 
             shown.current = true;
             // Let the download settle first. Opening a dialog in the same frame

@@ -9,8 +9,8 @@ import { RatingPrompt } from "@/components/rating-prompt";
  *
  * RatingPrompt sits here rather than in any one tool: this is the layout all
  * twenty-one of them share, so mounting it once means a tool added tomorrow can
- * ask for a rating without being told to. It renders nothing until a tool
- * actually finishes and produces a file.
+ * ask for a rating without being told to. It renders nothing until someone has
+ * finished several files and is in a position to have an opinion.
  */
 export default function AppLayout({
     children,
