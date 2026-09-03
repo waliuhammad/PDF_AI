@@ -59,7 +59,11 @@ export function DownloadNotice({ message }: { message: string }) {
             // it should not interrupt whatever a screen reader is mid-sentence on.
             role="status"
             aria-live="polite"
-            className="p-3.5 sm:p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 text-[13px] sm:text-sm font-semibold flex items-start sm:items-center justify-center gap-2"
+            // The margin is the component's own rather than the caller's: it
+            // lands directly under a tool's action buttons on twenty-one pages,
+            // and without it the confirmation sits flush against the button
+            // that produced it, reading as part of the control.
+            className="mt-5 sm:mt-6 p-3.5 sm:p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 text-[13px] sm:text-sm font-semibold flex items-start sm:items-center justify-center gap-2"
         >
             <CheckCircle2 size={16} className="shrink-0 mt-0.5 sm:mt-0" />
             <span>{message}</span>

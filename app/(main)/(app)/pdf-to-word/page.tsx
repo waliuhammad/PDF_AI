@@ -17,7 +17,6 @@ import {
   Download,
   Loader2,
   Trash2,
-  CheckCircle2,
 } from "lucide-react";
 import type * as PdfjsLib from "pdfjs-dist";
 import { loadPdfjs } from "@/lib/pdf-libs";
@@ -29,7 +28,6 @@ export default function PdfToWordPage() {
   const { begin, cancel } = useCancellableRun();
   const [processing, setProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState(false);
 
   // Preview State
   const [numPages, setNumPages] = useState<number>(0);
@@ -55,7 +53,6 @@ export default function PdfToWordPage() {
 
     setSelectedFile(file);
     setErrorMessage(null);
-    setSuccessMessage(false);
     setRenderedPages(null);
 
     try {
@@ -130,7 +127,6 @@ export default function PdfToWordPage() {
     cancel();
     setSelectedFile(null);
     setErrorMessage(null);
-    setSuccessMessage(false);
     setPdfDoc(null);
     setNumPages(0);
     setRenderedPages(null);
@@ -163,7 +159,6 @@ export default function PdfToWordPage() {
       const originalNameWithoutExt = selectedFile.name.replace(/\.[^/.]+$/, "");
       downloadBlob(blob, `${originalNameWithoutExt}_converted.docx`);
 
-      setSuccessMessage(true);
     } catch {
       setErrorMessage("An unexpected error occurred during conversion.");
     } finally {
@@ -251,12 +246,6 @@ export default function PdfToWordPage() {
             </div>
           </div>
 
-          {successMessage && (
-            <div className="p-3.5 sm:p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 text-[13px] sm:text-sm font-semibold flex items-start sm:items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 sm:w-[18px] sm:h-[18px] shrink-0 mt-0.5 sm:mt-0" />
-              <span>Conversion complete. Your Word document has been downloaded.</span>
-            </div>
-          )}
 
           {errorMessage && (
             <div className="p-3.5 sm:p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-500 text-[13px] sm:text-sm font-semibold text-center">

@@ -54,6 +54,17 @@ export async function GET() {
         const totalCount = typeof data?.totalCount === "number" ? data.totalCount : 0;
         const avgRating = typeof data?.avgRating === "number" ? data.avgRating : 0;
 
+        // Ratings run from one to five, so an average below one alongside a
+        // non-zero count is not a low score — it is a broken aggregate, and
+        // publishing it would put a nought out of five on the landing page and
+        // call it real. Say nothing instead, and leave a trail.
+        if (totalCount > 0 && avgRating < 1) {
+            console.error(
+                `[rating] aggregate is impossible (avgRating ${avgRating} over ${totalCount}); reporting no ratings`
+            );
+            return NextResponse.json({ avgRating: 0, totalCount: 0 });
+        }
+
         // No ratings yet is not an error; it is the state every project starts in.
         return NextResponse.json({
             avgRating: totalCount > 0 ? round(avgRating) : 0,
