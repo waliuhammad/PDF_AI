@@ -240,6 +240,35 @@ function PayPanel({ planId, cycle }: { planId: PlanId; cycle: BillingCycle }) {
         }
     }, [planId, cycle])
 
+    useEffect(() => {
+        /**
+         * Coming back from Lemon Squeezy with the back button, or after
+         * cancelling, the browser can restore this page from its back/forward
+         * cache with React state exactly as it was left — which means
+         * `starting` is still true and the button is stuck reading "Opening
+         * checkout…", disabled, with no way to try again short of a reload.
+         *
+         * Leaving it on is right on the way out: clearing it there would flash
+         * an enabled button while the browser is already navigating. It is
+         * wrong on the way back, because the navigation it described has
+         * already happened and finished.
+         *
+         * `persisted` is what separates the two — it is only true for a restore
+         * from that cache, so a normal load, which starts false anyway, is left
+         * alone. Deliberately not visibilitychange: tabbing away and back
+         * during a live request would clear a state that is genuinely in
+         * flight.
+         */
+        const onShow = (event: PageTransitionEvent) => {
+            if (!event.persisted) return
+            setStarting(false)
+            setError(null)
+        }
+
+        window.addEventListener("pageshow", onShow)
+        return () => window.removeEventListener("pageshow", onShow)
+    }, [])
+
     const pay = async () => {
         setStarting(true)
         setError(null)
