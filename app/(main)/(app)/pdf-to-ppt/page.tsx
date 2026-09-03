@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, JSX } from "react";
+import { DownloadNotice } from "@/components/download-notice";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { FileText, Trash2, Download, Menu, FileStack } from "lucide-react";
 import { downloadUrl as saveFromUrl } from "@/lib/download";
@@ -185,6 +186,8 @@ export default function PdfToPpt(): JSX.Element {
           )}
 
           <div className="pb-8">
+            <DownloadNotice message="Presentation converted and downloaded." />
+
             <SecureNote />
           </div>
 

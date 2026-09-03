@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useRef, JSX } from "react";
+import { DownloadNotice } from "@/components/download-notice";
+import { notifyToolSuccess } from "@/lib/tool-success";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { FileText, Trash2, Download, Sparkles, FileSpreadsheet } from "lucide-react";
 import { loadXlsx } from "@/lib/pdf-libs";
@@ -75,6 +77,7 @@ export default function PdfToExcel(): JSX.Element {
     const safeName = file ? file.name.replace(/\.[^/.]+$/, "") : "pdf-data";
     const outputName = `${safeName}-extracted.xlsx`;
     XLSX.writeFile(workbook, outputName);
+    notifyToolSuccess();
   };
 
   return (
@@ -177,6 +180,8 @@ export default function PdfToExcel(): JSX.Element {
             <span>Download Extracted Excel (.xlsx)</span>
           </button>
         )}
+
+        <DownloadNotice message="Spreadsheet extracted and downloaded." />
 
         <SecureNote />
 

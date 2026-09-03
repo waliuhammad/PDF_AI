@@ -9,6 +9,7 @@
 
 
 import React, { useState, useRef, useEffect } from "react";
+import { DownloadNotice } from "@/components/download-notice";
 import { FileText, X, Scissors, Download, Loader2 } from "lucide-react";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { loadPdfLib, loadPdfjs } from "@/lib/pdf-libs";
@@ -647,6 +648,8 @@ export default function SplitPdfPage() {
           </div>
         </div>
       )}
+
+      <DownloadNotice message="Document split and downloaded." />
 
       <SecureNote />
     </div>

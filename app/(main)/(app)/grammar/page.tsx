@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { DownloadNotice } from "@/components/download-notice";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { AiRunButton } from "@/components/tools/ai-run-button";
 import { ResultActions } from "@/components/tools/result-actions";
@@ -374,6 +375,8 @@ if (!res.ok) {
                     </div>
                 </div>
             )}
+
+            <DownloadNotice message="Corrected document downloaded." />
 
             <SecureNote />
         </div>

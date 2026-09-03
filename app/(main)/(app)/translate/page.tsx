@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { DownloadNotice } from "@/components/download-notice";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { AiRunButton } from "@/components/tools/ai-run-button";
 import { ResultActions } from "@/components/tools/result-actions";
@@ -225,6 +226,8 @@ export default function PdfTranslatorPage() {
           </div>
         </form>
       )}
+
+      <DownloadNotice message="Translation downloaded." />
 
       <SecureNote />
     </div>

@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useRef, JSX } from "react";
+import { DownloadNotice } from "@/components/download-notice";
+import { notifyToolSuccess } from "@/lib/tool-success";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import {
   FileSpreadsheet,
@@ -174,6 +176,7 @@ export default function ExcelToPdf(): JSX.Element {
         : "spreadsheet-export.pdf";
 
       doc.save(outputName);
+      notifyToolSuccess();
     } catch (err) {
       // The operation was claimed before the work started, so give it back.
       void releaseOperation();
@@ -458,6 +461,8 @@ export default function ExcelToPdf(): JSX.Element {
         )}
 
         {/* Security Notice */}
+        <DownloadNotice message="Spreadsheet converted and downloaded." />
+
         <SecureNote />
 
       </div>

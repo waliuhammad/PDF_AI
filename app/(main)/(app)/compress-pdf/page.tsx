@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { DownloadNotice } from "@/components/download-notice";
 import { FileText, X, FileArchive, Download, Loader2, CheckCircle2, ChevronDown } from "lucide-react";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 // aliased: this component already has state called errorMessage, which would
@@ -330,6 +331,8 @@ export default function CompressPdfPage() {
           </div>
         </div>
       )}
+
+      <DownloadNotice message="Document compressed and downloaded." />
 
       <SecureNote />
     </div>

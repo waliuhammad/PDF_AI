@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { DownloadNotice } from "@/components/download-notice";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { FormatSelect } from "@/components/tools/format-select";
 import { loadPdfjs, loadJsZip } from "@/lib/pdf-libs";
@@ -550,6 +551,8 @@ export default function PdfToImageConverter() {
           )}
 
         </div>
+
+        <DownloadNotice message="Images extracted and downloaded." />
 
         <SecureNote />
       </div>

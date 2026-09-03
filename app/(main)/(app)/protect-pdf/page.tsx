@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef } from "react";
+import { DownloadNotice } from "@/components/download-notice";
 import { FileText, Trash2, Download, Eye, EyeOff, Wand2, Copy, Check, Lock, Loader2 } from "lucide-react";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { loadPdfjs } from "@/lib/pdf-libs";
@@ -352,6 +353,8 @@ export default function ProtectPdfPage() {
 
                 </form>
             )}
+
+            <DownloadNotice message="Document protected and downloaded." />
 
             <SecureNote />
         </div>

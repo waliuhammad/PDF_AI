@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback, JSX } from "react";
+import { DownloadNotice } from "@/components/download-notice";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { FileText, Trash2, RotateCw, Download, Loader2, Layers } from "lucide-react";
 import { errorName } from "@/lib/errors";
@@ -694,6 +695,8 @@ export default function RotatePdfPage(): JSX.Element {
           {error}
         </div>
       )}
+
+      <DownloadNotice message="Document rotated and downloaded." />
 
       <SecureNote />
     </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { DownloadNotice } from "@/components/download-notice";
 import { FileText, Trash2, Download, Eye, EyeOff, LockOpen, Loader2 } from "lucide-react";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { errorMessage } from "@/lib/errors";
@@ -205,6 +206,8 @@ export default function UnlockPdfPage() {
 
                 </form>
             )}
+
+            <DownloadNotice message="Document unlocked and downloaded." />
 
             <SecureNote />
         </div>

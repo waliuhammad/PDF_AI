@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { FileText, Trash2, Download, PenLine, Loader2, CheckCircle2, ChevronDown } from "lucide-react";
+import { DownloadNotice } from "@/components/download-notice";
+import { FileText, Trash2, Download, PenLine, Loader2, ChevronDown } from "lucide-react";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import type * as PdfjsLib from "pdfjs-dist";
 import { loadPdfjs } from "@/lib/pdf-libs";
@@ -184,7 +185,6 @@ export default function SignPdfPage() {
 
   const [processing, setProcessing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const drawCanvasContainerRef = useRef<HTMLDivElement | null>(null);
@@ -277,7 +277,6 @@ export default function SignPdfPage() {
 
     setFile({ name: f.name, size: formatSize(f.size), rawFile: f });
     setErrorMessage(null);
-    setSuccessMessage(false);
 
     try {
       const arrayBuffer = await f.arrayBuffer();
@@ -300,7 +299,6 @@ export default function SignPdfPage() {
     setPdfDocProxy(null);
     setNumPages(0);
     setErrorMessage(null);
-    setSuccessMessage(false);
   };
 
   const redrawPreview = () => {
@@ -501,7 +499,6 @@ export default function SignPdfPage() {
 
     setProcessing(true);
     setErrorMessage(null);
-    setSuccessMessage(false);
 
     try {
       const formData = new FormData();
@@ -542,7 +539,6 @@ export default function SignPdfPage() {
       const blob = await response.blob();
       downloadBlob(blob, `${file.name.replace(/\.[^/.]+$/, "")}-signed.pdf`);
 
-      setSuccessMessage(true);
     } catch {
       setErrorMessage("An error occurred while signing the document.");
     } finally {
@@ -851,12 +847,6 @@ export default function SignPdfPage() {
             </div>
           )}
 
-          {successMessage && (
-            <div className="p-3.5 sm:p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 text-[13px] sm:text-sm font-semibold flex items-start sm:items-center justify-center gap-2">
-              <CheckCircle2 size={16} className="shrink-0 mt-0.5 sm:mt-0" />
-              <span>Document signed and downloaded.</span>
-            </div>
-          )}
 
           <div className="flex flex-col-reverse sm:flex-row sm:items-center gap-3 sm:gap-4 pt-1 sm:pt-2">
             <button
@@ -888,6 +878,8 @@ export default function SignPdfPage() {
           </div>
         </div>
       )}
+
+      <DownloadNotice message="Document signed and downloaded." />
 
       <SecureNote />
     </div>

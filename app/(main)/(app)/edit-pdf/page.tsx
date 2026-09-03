@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { DownloadNotice } from "@/components/download-notice";
 import { FileText, X, Download, Loader2, Type, Bold, Italic, Pencil, Trash2, ChevronLeft, ChevronRight, Eraser, Move, Sparkles } from "lucide-react";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import type * as PdfjsLib from "pdfjs-dist";
@@ -891,6 +892,8 @@ export default function EditPdfPage() {
           </div>
         </div>
       )}
+
+      <DownloadNotice message="Document edited and downloaded." />
 
       <SecureNote />
     </div>

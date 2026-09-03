@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { DownloadNotice } from "@/components/download-notice";
 import { UploadCard, FileChip, SecureNote } from "@/components/tools/upload-card";
 import { Presentation, Download, Loader2 } from "lucide-react";
 import { downloadBlob } from "@/lib/download";
@@ -142,6 +143,8 @@ export default function PptToPdfPage() {
           </div>
         )}
       </form>
+
+      <DownloadNotice message="Presentation converted and downloaded." />
 
       <SecureNote />
     </div>

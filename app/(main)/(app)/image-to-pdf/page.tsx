@@ -9,6 +9,8 @@
 
 
 import React, { useState, useRef, JSX } from "react";
+import { DownloadNotice } from "@/components/download-notice";
+import { notifyToolSuccess } from "@/lib/tool-success";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
 import { Trash2, UploadCloud, Sparkles, Loader2, Image as Plus, Sliders, Type, ChevronDown } from "lucide-react";
 import { loadJsPdf } from "@/lib/pdf-libs";
@@ -381,6 +383,7 @@ export default function ImageToPdf(): JSX.Element {
       }
 
       pdf.save("combined-images-layout.pdf");
+      notifyToolSuccess();
     } catch (err) {
       // The operation was claimed before the work started, so give it back.
       void releaseOperation();
@@ -787,6 +790,8 @@ export default function ImageToPdf(): JSX.Element {
             </div>
           </div>
         )}
+
+        <DownloadNotice message="Images converted and downloaded." />
 
         <SecureNote />
       </div>
