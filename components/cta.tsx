@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Reveal } from "@/components/reveal";
+import { CtaRating } from "@/components/cta-rating";
 import {
     ArrowRight,
     Sparkles,
@@ -140,6 +141,12 @@ export function CTA() {
                             built for modern workflows.
 
                         </p>
+
+
+
+                        {/* Rating — the real average, or nothing at all */}
+
+                        <CtaRating />
 
 
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { notifyToolSuccess } from "./tool-success";
+
 /**
  * Hand a finished file to the browser.
  *
@@ -42,6 +44,12 @@ export function downloadUrl(url: string, filename: string): void {
 }
 
 function triggerDownload(url: string, filename: string): void {
+    // Reaching here means a tool produced a file, which is the only definition
+    // of "it worked" the twenty-one of them share. Anything watching for a
+    // successful run — the rating prompt today — hears about it from one place
+    // rather than from each tool remembering to say so.
+    notifyToolSuccess();
+
     const a = document.createElement("a");
     a.href = url;
     a.download = filename;

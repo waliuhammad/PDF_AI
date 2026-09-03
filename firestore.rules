@@ -1,0 +1,58 @@
+rules_version = '2';
+
+// The project's rules, kept in the repo so a change is reviewable rather than
+// only existing in the console. The two blocks above the catch-all were read
+// back from the deployed ruleset before the ratings rules were added, so
+// deploying this file does not quietly drop anything that was already live.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // A signed-in user owns everything under their own user document:
+    // the profile itself plus the documents and chats subcollections.
+    // The recursive wildcard covers the subcollections; nobody can reach
+    // another user's branch.
+    match /users/{userId}/{path=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // One rating per account, the account's own uid as the document id, which
+    // is what makes "one person one vote" a property of the data rather than
+    // something the server has to police.
+    //
+    // Readable only by its owner. A rating is a small opinion but it is still
+    // attached to a person, and nothing in the product needs to look at
+    // somebody else's — the public number comes from the aggregate below.
+    //
+    // No client writes, not even by the owner to their own rating. Changing a
+    // rating means changing the aggregate in the same breath, and only the
+    // transaction in /api/rating can do both atomically. A client allowed to
+    // write here could move its own star without moving the total, and the
+    // published average would drift away from the ratings it claims to
+    // summarise — quietly, and with no way to tell from the outside. Writes go
+    // through the route, which uses the admin SDK and bypasses these rules.
+    match /ratings/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow write: if false;
+    }
+
+    // The public number on the landing page. Readable by anyone, including
+    // signed-out visitors, because that is where it is shown.
+    //
+    // Writable by nobody: the totals are only correct if every change goes
+    // through the transaction in /api/rating, and a client that could write
+    // here could invent any average it liked. The admin SDK ignores these
+    // rules, so the route still updates it.
+    match /stats/ratings {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Everything else stays server-only (contact messages, usage
+    // counters, billing) — written via the admin SDK, which bypasses
+    // these rules.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
