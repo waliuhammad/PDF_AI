@@ -1,36 +1,234 @@
 "use client";
 
-import React, { useState, useEffect, useRef, JSX } from "react";
+import React, { useState, useEffect, useRef, useCallback, JSX } from "react";
 import { SecureNote, UploadCard } from "@/components/tools/upload-card";
-import { FileText, Trash2, RotateCw, Download, Loader2 } from "lucide-react";
+import { FileText, Trash2, RotateCw, Download, Loader2, Layers } from "lucide-react";
 import { errorName } from "@/lib/errors";
 // Type-only, so it adds nothing to the bundle — the library itself still
 // arrives through the dynamic import below.
 import type * as PdfjsLib from "pdfjs-dist";
 import { downloadBlob } from "@/lib/download";
 import { useCancellableRun, wasCancelled } from "@/hooks/useCancellableRun";
+// Given a rotated rectangle, returns the scale factor needed so its
+// bounding box fits inside a target box (never scales up past 1).
+function getFitScale(
+  contentWidth: number,
+  contentHeight: number,
+  angleDeg: number,
+  boxWidth: number,
+  boxHeight: number
+): number {
+  if (!contentWidth || !contentHeight || !boxWidth || !boxHeight) return 1;
+  const rad = (angleDeg * Math.PI) / 180;
+  const cos = Math.abs(Math.cos(rad));
+  const sin = Math.abs(Math.sin(rad));
+  const rotatedWidth = contentWidth * cos + contentHeight * sin;
+  const rotatedHeight = contentWidth * sin + contentHeight * cos;
+  if (rotatedWidth === 0 || rotatedHeight === 0) return 1;
+  return Math.min(boxWidth / rotatedWidth, boxHeight / rotatedHeight, 1);
+}
+
+function normalizeDeg(v: number): number {
+  return ((Math.round(v) % 360) + 360) % 360;
+}
+
+// Snaps to the nearest cardinal direction when close to one, so it's
+// easy to land exactly on 0/90/180/270 while dragging freely everywhere
+// else.
+function applySnap(deg: number): number {
+  const normalized = normalizeDeg(deg);
+  const cardinals = [0, 90, 180, 270, 360];
+  for (const c of cardinals) {
+    if (Math.abs(normalized - c) <= 4) return normalizeDeg(c);
+  }
+  return normalized;
+}
+
+interface RotationCornerHandleProps {
+  value: number;
+  onChange: (deg: number) => void;
+  frameRef: React.RefObject<HTMLDivElement | null>;
+}
+
+// Steps forward to the next of the 4 main directions (0/90/180/270),
+// wrapping back to 0 after 270 — used for a plain click on the handle.
+function nextCardinal(current: number): number {
+  const c = normalizeDeg(current);
+  if (c < 90) return 90;
+  if (c < 180) return 180;
+  if (c < 270) return 270;
+  return 0;
+}
+
+// A circular handle with a curved rotate arrow, sitting in the empty
+// corner of the preview frame rather than overlapping the page.
+// - A plain click/tap steps through the 4 main directions (0° → 90° →
+//   180° → 270° → 0°), for the common quick-rotate case.
+// - Pressing and dragging instead rotates freely to any custom angle,
+//   tracked as an incremental delta from the drag start so it stays
+//   smooth no matter where on screen it starts.
+function RotationCornerHandle({ value, onChange, frameRef }: RotationCornerHandleProps): JSX.Element {
+  const draggingRef = useRef(false);
+  const [dragging, setDragging] = useState(false);
+  const startAngleRef = useRef(0);
+  const startValueRef = useRef(0);
+  const startPointRef = useRef({ x: 0, y: 0 });
+  const movedRef = useRef(false);
+
+  // Below this pixel distance, a press+release counts as a click (cycle
+  // through cardinals) rather than a drag (free custom angle).
+  const DRAG_THRESHOLD_PX = 6;
+
+  const angleFromCenter = useCallback(
+    (clientX: number, clientY: number): number | null => {
+      const el = frameRef.current;
+      if (!el) return null;
+      const rect = el.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = clientX - cx;
+      const dy = clientY - cy;
+      // 0deg = straight up, positive = clockwise, matches CSS rotate().
+      let deg = (Math.atan2(dx, -dy) * 180) / Math.PI;
+      if (deg < 0) deg += 360;
+      return deg;
+    },
+    [frameRef]
+  );
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const angle = angleFromCenter(e.clientX, e.clientY);
+    if (angle === null) return;
+    draggingRef.current = true;
+    movedRef.current = false;
+    setDragging(true);
+    startAngleRef.current = angle;
+    startValueRef.current = value;
+    startPointRef.current = { x: e.clientX, y: e.clientY };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+  const handlePointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (!draggingRef.current) return;
+    const dxPixels = e.clientX - startPointRef.current.x;
+    const dyPixels = e.clientY - startPointRef.current.y;
+    if (Math.hypot(dxPixels, dyPixels) > DRAG_THRESHOLD_PX) {
+      movedRef.current = true;
+    }
+    if (!movedRef.current) return;
+    const angle = angleFromCenter(e.clientX, e.clientY);
+    if (angle === null) return;
+    const delta = angle - startAngleRef.current;
+    onChange(applySnap(startValueRef.current + delta));
+  };
+  const handlePointerUp = () => {
+    draggingRef.current = false;
+    setDragging(false);
+    if (!movedRef.current) {
+      // A genuine click (no meaningful drag) — step to the next main direction.
+      onChange(nextCardinal(value));
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={handlePointerUp}
+      onPointerCancel={handlePointerUp}
+      title={`Click to step 0°/90°/180°/270° — drag for a custom angle (currently ${value}°)`}
+      aria-label="Click to step through 0, 90, 180, 270 degrees, or drag to rotate to a custom angle"
+      role="slider"
+      aria-valuemin={0}
+      aria-valuemax={359}
+      aria-valuenow={value}
+      onKeyDown={(e) => {
+        const step = e.shiftKey ? 10 : 1;
+        if (e.key === "ArrowRight" || e.key === "ArrowUp") {
+          e.preventDefault();
+          onChange(normalizeDeg(value + step));
+        }
+        if (e.key === "ArrowLeft" || e.key === "ArrowDown") {
+          e.preventDefault();
+          onChange(normalizeDeg(value - step));
+        }
+      }}
+      className={`absolute top-2.5 right-2.5 sm:top-3 sm:right-3 z-10 w-10 h-10 sm:w-11 sm:h-11 rounded-full border-2 flex items-center justify-center cursor-grab active:cursor-grabbing touch-none select-none transition-all ${
+        dragging
+          ? "bg-slate-900 border-slate-900 text-white dark:bg-white dark:border-white dark:text-zinc-900 scale-110 shadow-lg"
+          : "bg-card/95 backdrop-blur border-card text-fg shadow-md hover:scale-105 hover:border-slate-400 dark:hover:border-slate-500"
+      }`}
+    >
+      <RotateCw
+        className="w-4 h-4 sm:w-5 sm:h-5 pointer-events-none"
+        style={{ transform: `rotate(${value}deg)`, transition: dragging ? "none" : "transform 0.2s ease-in-out" }}
+      />
+      {dragging && (
+        <span className="absolute -top-8 right-0 text-[11px] font-bold font-mono px-2 py-1 rounded-md bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-md whitespace-nowrap pointer-events-none">
+          {value}°
+        </span>
+      )}
+    </button>
+  );
+}
 
 export default function RotatePdfPage(): JSX.Element {
   const [file, setFile] = useState<File | null>(null);
   const { begin, cancel } = useCancellableRun();
   const [pdfDoc, setPdfDoc] = useState<PdfjsLib.PDFDocumentProxy | null>(null);
   const [numPages, setNumPages] = useState<number>(0);
-
-  /**
-   * Angles set on individual pages, keyed by 1-based page number.
-   *
-   * A page is only in here once it has been turned on its own. Everything else
-   * follows the document-wide angle above, so the common case — turn the whole
-   * thing — needs no per-page entries at all.
-   */
-  const [pageRotations, setPageRotations] = useState<Record<number, number>>({});
-
+  const [rotation, setRotation] = useState<number>(0);
+  const [mode, setMode] = useState<"all" | "custom">("all");
+  const [pageNumber, setPageNumber] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [libLoading, setLibLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [pdfjsLib, setPdfjsLib] = useState<typeof PdfjsLib | null>(null);
+  const [pageSizes, setPageSizes] = useState<Record<number, { w: number; h: number }>>({});
+  const [boxSize, setBoxSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
+  // The angle field is edited as free-form text so mid-typing states like
+  // "36" (on the way to "360") never get force-normalized. It's kept in
+  // sync with `rotation` whenever the field isn't focused, and only
+  // parsed/clamped back into `rotation` on blur or Enter.
+  const [angleInputValue, setAngleInputValue] = useState<string>("0");
+  const [angleFieldFocused, setAngleFieldFocused] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!angleFieldFocused) setAngleInputValue(String(rotation));
+  }, [rotation, angleFieldFocused]);
+
+  const commitAngleInput = (): void => {
+    const parsed = parseInt(angleInputValue, 10);
+    const next = Number.isNaN(parsed) ? rotation : normalizeDeg(parsed);
+    setRotation(next);
+    setAngleInputValue(String(next));
+  };
 
   const canvasRefs = useRef<{ [key: number]: HTMLCanvasElement | null }>({});
+  const measuredFrameRef = useRef<HTMLDivElement | null>(null);
+
+  // Measures the fixed-size preview frame so we know how much room a
+  // rotated page has to work with, and keeps it current on resize.
+  const frameRefCallback = useCallback((el: HTMLDivElement | null) => {
+    measuredFrameRef.current = el;
+    if (el) {
+      const rect = el.getBoundingClientRect();
+      setBoxSize({ w: rect.width, h: rect.height });
+    }
+  }, []);
+
+  useEffect(() => {
+    const el = measuredFrameRef.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0];
+      if (entry) {
+        setBoxSize({ w: entry.contentRect.width, h: entry.contentRect.height });
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [numPages]);
 
   useEffect(() => {
     let isMounted = true;
@@ -61,8 +259,11 @@ export default function RotatePdfPage(): JSX.Element {
       const selectedFile = fileList[0];
       if (selectedFile.type === "application/pdf" || selectedFile.name.endsWith(".pdf")) {
         setFile(selectedFile);
-        setPageRotations({});
+        setRotation(0);
+        setMode("all");
+        setPageNumber("");
         setError(null);
+        setPageSizes({});
 
         if (!pdfjsLib) {
           setError("PDF engine is still initializing. Please wait and re-upload.");
@@ -111,28 +312,12 @@ export default function RotatePdfPage(): JSX.Element {
     setFile(null);
     setPdfDoc(null);
     setNumPages(0);
-    setPageRotations({});
+    setRotation(0);
+    setMode("all");
+    setPageNumber("");
     setError(null);
+    setPageSizes({});
   };
-
-
-
-  /**
-   * A quarter turn on one page, from its own icon.
-   *
-   * Starts from whatever that page is showing — its own angle if it has one,
-   * otherwise the document-wide one — so the first click continues from what is
-   * on screen rather than jumping back to zero first.
-   */
-  const turnPage = (pageNum: number): void => {
-    setPageRotations((prev) => ({ ...prev, [pageNum]: ((prev[pageNum] ?? 0) + 90) % 360 }));
-  };
-
-  /** What a given page is showing. Untouched pages are simply not in the map. */
-  const angleFor = (pageNum: number): number => pageRotations[pageNum] ?? 0;
-
-  /** True once any page has been turned on its own. */
-  const hasPerPage = Object.values(pageRotations).some((a) => a !== 0);
 
   useEffect(() => {
     if (!pdfDoc || numPages === 0) return;
@@ -140,6 +325,8 @@ export default function RotatePdfPage(): JSX.Element {
     let isMounted = true;
 
     const renderPages = async (): Promise<void> => {
+      const sizes: Record<number, { w: number; h: number }> = {};
+
       for (let i = 1; i <= numPages; i++) {
         try {
           const page = await pdfDoc.getPage(i);
@@ -152,6 +339,7 @@ export default function RotatePdfPage(): JSX.Element {
           const viewport = page.getViewport({ scale: 1.0 });
           canvas.height = viewport.height;
           canvas.width = viewport.width;
+          sizes[i] = { w: viewport.width, h: viewport.height };
 
           const renderContext = {
             canvasContext: context,
@@ -165,6 +353,8 @@ export default function RotatePdfPage(): JSX.Element {
           console.error(`Error rendering page ${i}:`, err);
         }
       }
+
+      if (isMounted) setPageSizes(sizes);
     };
 
     renderPages();
@@ -178,6 +368,22 @@ export default function RotatePdfPage(): JSX.Element {
     const signal = begin();
     if (!file) return;
 
+    // Nothing to save at 0°: the file would come back byte-for-byte as it
+    // went out, having spent one of the day's operations to do it.
+    if (rotation === 0) {
+      setError("Set a rotation angle before saving.");
+      return;
+    }
+
+    let targetPage: number | null = null;
+    if (mode === "custom") {
+      const parsed = parseInt(pageNumber, 10);
+      if (Number.isNaN(parsed) || parsed < 1 || parsed > numPages) {
+        setError(`Please enter a valid page number between 1 and ${numPages}.`);
+        return;
+      }
+      targetPage = parsed;
+    }
 
     setLoading(true);
     setError(null);
@@ -186,13 +392,15 @@ export default function RotatePdfPage(): JSX.Element {
       const formData = new FormData();
       formData.append("file", file);
 
-        // Send exactly what the preview shows: every page's own angle, taken
-      // from angleFor so a page that was never touched still carries the
-      // document-wide turn rather than silently coming back upright.
+      // Whole document: every page gets the same angle. Specific page: only
+      // the chosen page is rotated, everything else stays untouched.
       const angles: Record<number, number> = {};
-      for (let page = 1; page <= numPages; page++) {
-        const angle = angleFor(page);
-        if (angle !== 0) angles[page] = angle;
+      if (mode === "all") {
+        for (let page = 1; page <= numPages; page++) {
+          angles[page] = rotation;
+        }
+      } else if (targetPage !== null) {
+        angles[targetPage] = rotation;
       }
       formData.append("rotations", JSON.stringify(angles));
 
@@ -222,11 +430,6 @@ export default function RotatePdfPage(): JSX.Element {
       setLoading(false);
     }
   };
-
-  // A quarter turn swaps the page's width and height, but the canvas box is
-  // measured before the transform, so a sideways page needs clamping on the
-  // opposite axis or it spills out of its frame.
-  const isQuarterTurn = (deg: number) => deg % 180 !== 0;
 
   return (
     <div className="max-w-2xl mx-auto w-full px-4 sm:px-6 py-6 sm:py-10">
@@ -276,9 +479,58 @@ export default function RotatePdfPage(): JSX.Element {
             </button>
           </div>
 
-          {/* The whole-document controls are gone: every page carries its own
-              rotate icon in the preview below, which covers turning one page and
-              turning all of them without a second way to say it. */}
+          {/* Rotation settings */}
+          <div className="bg-card border border-card rounded-2xl p-4 sm:p-5 shadow-sm space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-card">
+              <RotateCw className="w-4 h-4 text-fg shrink-0" />
+              <span className="text-[13px] sm:text-sm font-extrabold text-fg truncate">Rotation Settings</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setMode("all")}
+                className={`w-full px-4 py-3 sm:py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${mode === "all"
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
+                  : "bg-card border border-card text-muted hover:text-slate-900 dark:hover:text-white"
+                  }`}
+              >
+                <Layers className="w-4 h-4 shrink-0" />
+                <span>Whole Document</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode("custom")}
+                className={`w-full px-4 py-3 sm:py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 ${mode === "custom"
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-zinc-900 shadow-lg"
+                  : "bg-card border border-card text-muted hover:text-slate-900 dark:hover:text-white"
+                  }`}
+              >
+                <FileText className="w-4 h-4 shrink-0" />
+                <span>Specific Page</span>
+              </button>
+            </div>
+
+            {mode === "custom" && (
+              <div className="pt-1">
+                <label className="text-[10px] sm:text-xs uppercase tracking-wider font-semibold text-muted block mb-1">
+                  Target Page (1 – {numPages || 1})
+                </label>
+                <input
+                  type="number"
+                  inputMode="numeric"
+                  min="1"
+                  max={numPages || 1}
+                  placeholder="e.g. 1"
+                  value={pageNumber}
+                  onChange={(e) => setPageNumber(e.target.value)}
+                  className="w-full bg-card border border-card rounded-xl px-3 py-3 sm:py-2.5 text-base sm:text-sm text-fg placeholder-slate-400 focus:outline-none focus:border-slate-900 dark:focus:border-white transition"
+                />
+                <p className="text-[11px] text-muted mt-1.5">Enter the exact page number you wish to rotate.</p>
+              </div>
+            )}
+          </div>
+
           {/* Page preview */}
           {numPages > 0 && (
             <div className="bg-card border border-card rounded-2xl p-3 sm:p-5 shadow-sm">
@@ -286,20 +538,83 @@ export default function RotatePdfPage(): JSX.Element {
                 <span className="text-[10px] sm:text-xs font-extrabold text-fg uppercase tracking-wider">
                   Page Preview ({numPages} Total)
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setPageRotations({})}
-                  disabled={!hasPerPage}
-                  className="text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-1 rounded-md bg-card border border-card text-muted hover:text-fg disabled:opacity-40 disabled:hover:text-muted shrink-0 transition-colors"
-                >
-                  Reset all
-                </button>
+                <div className="flex flex-col items-end gap-0.5 shrink-0">
+                  <span className="text-[9px] sm:text-[10px] font-semibold text-muted uppercase tracking-wider pr-0.5">
+                    Type custom angle
+                  </span>
+                  <div className="flex items-center gap-1 bg-card border border-card rounded-lg px-2.5 py-1.5 focus-within:border-slate-900 dark:focus-within:border-white transition">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={angleInputValue}
+                      onFocus={(e) => {
+                        setAngleFieldFocused(true);
+                        // Select-all on focus so typing a new value doesn't
+                        // require manually clearing the old one first.
+                        e.currentTarget.select();
+                      }}
+                      onChange={(e) => {
+                        // Allow only digits while typing — no normalization
+                        // here, so "3" -> "36" -> "360" never gets clobbered
+                        // mid-entry (e.g. 360 % 360 briefly showing as 0).
+                        const digitsOnly = e.target.value.replace(/[^0-9]/g, "").slice(0, 4);
+                        setAngleInputValue(digitsOnly);
+                        // Update the live preview immediately as the person
+                        // types, using the raw (unwrapped) number — CSS
+                        // rotation handles any value fine, and normalizing
+                        // is deferred to blur/Enter so the display doesn't
+                        // jump mid-entry.
+                        if (digitsOnly === "") {
+                          setRotation(0);
+                        } else {
+                          const parsed = parseInt(digitsOnly, 10);
+                          if (!Number.isNaN(parsed)) setRotation(parsed);
+                        }
+                      }}
+                      onBlur={() => {
+                        setAngleFieldFocused(false);
+                        commitAngleInput();
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.currentTarget.blur();
+                        }
+                        if (e.key === "ArrowUp") {
+                          e.preventDefault();
+                          const step = e.shiftKey ? 10 : 1;
+                          const next = normalizeDeg((parseInt(angleInputValue, 10) || 0) + step);
+                          setRotation(next);
+                          setAngleInputValue(String(next));
+                        }
+                        if (e.key === "ArrowDown") {
+                          e.preventDefault();
+                          const step = e.shiftKey ? 10 : 1;
+                          const next = normalizeDeg((parseInt(angleInputValue, 10) || 0) - step);
+                          setRotation(next);
+                          setAngleInputValue(String(next));
+                        }
+                      }}
+                      aria-label="Type a custom rotation angle in degrees"
+                      placeholder="0"
+                      className="w-12 sm:w-14 bg-transparent text-sm sm:text-base font-bold text-fg text-right focus:outline-none placeholder:text-muted/50"
+                    />
+                    <span className="text-sm sm:text-base font-bold text-fg">°</span>
+                  </div>
+                </div>
               </div>
+              <p className="text-[11px] text-muted -mt-1.5 mb-3 text-center">
+                Type an exact angle above, click the <RotateCw className="inline w-3 h-3 -mt-0.5" /> icon to step through 0°/90°/180°/270°, or drag it for a custom angle.
+              </p>
 
               <div className="w-full max-h-[340px] sm:max-h-[420px] overflow-y-auto space-y-3 sm:space-y-4 pr-1">
-                {Array.from({ length: numPages }, (_, i) => i + 1).map((pageNum) => {
-                  const currentDegrees = angleFor(pageNum);
-                  const ownAngle = pageRotations[pageNum] !== undefined;
+                {Array.from({ length: numPages }, (_, i) => i + 1).map((pageNum, idx) => {
+                  const isTargetRotated = mode === "all" || (mode === "custom" && pageNumber === String(pageNum));
+                  const currentDegrees = isTargetRotated ? rotation : 0;
+                  const natural = pageSizes[pageNum];
+                  const scale = natural
+                    ? getFitScale(natural.w, natural.h, currentDegrees, boxSize.w, boxSize.h)
+                    : 1;
 
                   return (
                     <div
@@ -311,42 +626,31 @@ export default function RotatePdfPage(): JSX.Element {
                           Page {pageNum} of {numPages}
                         </span>
 
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <span className={`px-2 py-0.5 rounded font-mono border ${ownAngle
-                            ? "bg-[var(--primary)]/10 border-[var(--primary)]/30 text-[var(--primary)]"
-                            : "bg-card border-card text-fg"
-                            }`}>
-                            {currentDegrees}°
-                          </span>
-
-                          {/* Turns this page alone. Once used, the page keeps its
-                              own angle and stops following the document-wide
-                              buttons — which is the point of turning it. */}
-                          <button
-                            type="button"
-                            onClick={() => turnPage(pageNum)}
-                            aria-label={`Rotate page ${pageNum} right 90 degrees`}
-                            title={`Rotate page ${pageNum}`}
-                            className="h-7 w-7 flex items-center justify-center rounded-md border border-card bg-card text-fg hover:border-[var(--primary)] hover:text-[var(--primary)] transition-colors"
-                          >
-                            <RotateCw className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
+                        <span className={`px-2 py-0.5 rounded font-mono border ${isTargetRotated && rotation !== 0
+                          ? "bg-[var(--primary)]/10 border-[var(--primary)]/30 text-[var(--primary)]"
+                          : "bg-card border-card text-fg"
+                          }`}>
+                          {currentDegrees}°
+                        </span>
                       </div>
-                      <div className="w-full h-56 sm:h-80 flex items-center justify-center overflow-hidden bg-slate-100 dark:bg-black/60 rounded-lg p-2">
+                      <div
+                        ref={idx === 0 ? frameRefCallback : undefined}
+                        className="relative w-full h-56 sm:h-80 flex items-center justify-center overflow-hidden bg-slate-100 dark:bg-black/60 rounded-lg p-2"
+                      >
                         <canvas
                           ref={(el) => {
                             canvasRefs.current[pageNum] = el;
                           }}
-                          className={`object-contain origin-center shadow-md ${isQuarterTurn(currentDegrees)
-                            ? "max-h-full max-w-[13rem] sm:max-w-[19rem]"
-                            : "max-h-full max-w-full"
-                            }`}
+                          className="object-contain origin-center shadow-md"
                           style={{
-                            transform: `rotate(${currentDegrees}deg)`,
-                            transition: "transform 0.3s ease-in-out",
+                            transform: `rotate(${currentDegrees}deg) scale(${scale})`,
+                            transition: "transform 0.2s ease-in-out",
                           }}
                         />
+                        {/* Rotate handle lives in the empty dark corner of the frame, not over the page */}
+                        {idx === 0 && (
+                          <RotationCornerHandle value={rotation} onChange={setRotation} frameRef={measuredFrameRef} />
+                        )}
                       </div>
                     </div>
                   );
@@ -362,12 +666,10 @@ export default function RotatePdfPage(): JSX.Element {
             </div>
           )}
 
-          {/* Nothing to save at 0°: the file would come back byte-for-byte as it
-              went out, having spent one of the day's operations to do it. */}
           <button
             type="button"
             onClick={handleRotateAndDownload}
-            disabled={loading || !hasPerPage}
+            disabled={loading || rotation === 0}
             className="w-full py-3.5 sm:py-4 px-4 rounded-2xl bg-slate-900 text-white dark:bg-white dark:text-zinc-900 font-bold text-[13px] sm:text-base shadow-lg disabled:opacity-60 flex items-center justify-center gap-2 transition-all hover:bg-slate-800 dark:hover:bg-zinc-200"
           >
             {loading ? (
@@ -378,8 +680,8 @@ export default function RotatePdfPage(): JSX.Element {
             <span>
               {loading
                 ? "Processing document..."
-                : !hasPerPage
-                  ? "Turn a page to save it"
+                : rotation === 0
+                  ? "Set an angle to enable download"
                   : "Save & Download PDF"}
             </span>
           </button>
