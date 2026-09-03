@@ -30,9 +30,27 @@ const FREQUENCY = {
     maxSuccesses: 5,
     /** Days to wait after someone closes it without rating. */
     daysAfterDismissal: 30,
-    /** Breathing room after the file arrives, so the dialog is not part of the click. */
-    delayMs: 1200,
+    /**
+     * How long to wait after the file lands, drawn fresh each time.
+     *
+     * Not immediately: a dialog that opens as the download starts reads as a
+     * reaction to the click, lands while someone is still watching for their
+     * file, and gets closed on reflex before it has been read. Waiting until
+     * they have their file and have looked at it is the difference between
+     * being asked and being interrupted.
+     *
+     * Random rather than a fixed pause so it does not become a beat everyone
+     * learns to expect after every download.
+     */
+    minDelayMs: 6000,
+    maxDelayMs: 18000,
 };
+
+/**
+ * How long the five stars take to finish filling, matching the stagger and
+ * duration in StarRating's animate-star-fill.
+ */
+const FILL_ANIMATION_MS = 800;
 
 const KEY = {
     rated: "pdfai:rating:rated",
@@ -72,6 +90,12 @@ function drawThreshold(): number {
     const picked = minSuccesses + Math.floor(Math.random() * (maxSuccesses - minSuccesses + 1));
     writeLocal(KEY.threshold, String(picked));
     return picked;
+}
+
+/** A fresh pause before each appearance, somewhere in the configured range. */
+function drawDelay(): number {
+    const { minDelayMs, maxDelayMs } = FREQUENCY;
+    return minDelayMs + Math.floor(Math.random() * (maxDelayMs - minDelayMs + 1));
 }
 
 /** Records a finished tool and returns the running total. */
@@ -127,7 +151,11 @@ export function RatingPrompt() {
     }, []);
 
     useEffect(() => {
-        return onToolSuccess(() => {
+        // The wait is long enough now that someone can leave the tools before
+        // it elapses, so the timer has to be cancellable.
+        let timer = 0;
+
+        const stop = onToolSuccess(() => {
             // The stored count is what carries three tool uses across three
             // visits. The ref is the fallback for a browser that refuses
             // storage, where the count would otherwise be stuck at one forever.
@@ -136,12 +164,16 @@ export function RatingPrompt() {
 
             if (!eligible(total)) return;
 
+            // Claimed now rather than when the dialog opens, so a second
+            // download during the wait cannot queue a second one behind it.
             shown.current = true;
-            // Let the download settle first. Opening a dialog in the same frame
-            // as the file arriving reads as a reaction to the click rather than
-            // to the result.
-            window.setTimeout(() => setOpen(true), FREQUENCY.delayMs);
+            timer = window.setTimeout(() => setOpen(true), drawDelay());
         });
+
+        return () => {
+            stop();
+            window.clearTimeout(timer);
+        };
     }, [eligible]);
 
     const close = useCallback(() => {
@@ -170,11 +202,19 @@ export function RatingPrompt() {
         setState("saving");
 
         try {
-            const res = await fetch("/api/rating", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ rating: stars }),
-            });
+            const [res] = await Promise.all([
+                fetch("/api/rating", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ rating: stars }),
+                }),
+                // The stars fill left to right over about three quarters of a
+                // second. A save that returns sooner would replace them with the
+                // thank you mid-animation, so the person never sees the row they
+                // just chose. Waiting for the slower of the two costs nothing:
+                // the request is already in flight.
+                new Promise((done) => window.setTimeout(done, FILL_ANIMATION_MS)),
+            ]);
 
             if (!res.ok) {
                 // Nothing useful to say here — a rating is a courtesy, and an

@@ -14,9 +14,11 @@ const STARS = [1, 2, 3, 4, 5] as const;
  * component into a display — the CTA and the popup then cannot drift apart in
  * how a filled star looks.
  *
- * Hover is tracked here and only here. Lifting it to the caller would mean
- * every user of this component reimplementing "light up this star and the ones
- * before it", which is the whole behaviour people recognise a star rating by.
+ * The row stays empty until it is clicked. It deliberately does not preview on
+ * hover: the fill means "this is your rating", and lighting stars up under a
+ * passing pointer would spend that meaning on someone who has not chosen yet —
+ * and say nothing at all on a touchscreen, where there is no hover to have.
+ * What a star will do is in its label; the pointer gets a lift, not a fill.
  */
 export function StarRating({
     value,
@@ -31,17 +33,14 @@ export function StarRating({
     onSelect?: (rating: number) => void;
     /** Submitting: the choice still shows, but cannot be changed. */
     disabled?: boolean;
-    /** Display only — no hover, no clicking, not focusable. */
+    /** Display only — no clicking, not focusable. */
     readOnly?: boolean;
     size?: number;
     label?: string;
 }) {
-    const [hovered, setHovered] = useState(0);
-
-    // While the pointer is over the row, the stars follow the pointer rather
-    // than the stored value — that preview is what makes the control feel like
-    // it is responding before anything is committed.
-    const shown = !readOnly && hovered > 0 ? hovered : value;
+    // The last star clicked. Only these animate: the fill marks the moment a
+    // choice was made, so anything that fills without a click must not use it.
+    const [picked, setPicked] = useState(0);
 
     if (readOnly) {
         return (
@@ -51,7 +50,7 @@ export function StarRating({
                         key={star}
                         size={size}
                         aria-hidden="true"
-                        className={star <= Math.round(value) ? "fill-yellow-400 text-yellow-400" : "text-muted/40"}
+                        className={star <= Math.round(value) ? "fill-yellow-400 text-yellow-400" : "fill-muted-foreground/15 text-muted-foreground/45"}
                     />
                 ))}
             </div>
@@ -59,35 +58,45 @@ export function StarRating({
     }
 
     return (
-        <div
-            className="flex items-center gap-1"
-            role="radiogroup"
-            aria-label={label}
-            onMouseLeave={() => setHovered(0)}
-        >
-            {STARS.map((star) => (
-                <button
-                    key={star}
-                    type="button"
-                    role="radio"
-                    aria-checked={value === star}
-                    aria-label={`${star} ${star === 1 ? "star" : "stars"}`}
-                    disabled={disabled}
-                    onMouseEnter={() => setHovered(star)}
-                    // Focus previews too, so someone tabbing through sees the
-                    // same thing a mouse user sees.
-                    onFocus={() => setHovered(star)}
-                    onBlur={() => setHovered(0)}
-                    onClick={() => onSelect?.(star)}
-                    className="rounded-md p-1 transition-transform hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--primary)] disabled:cursor-not-allowed disabled:hover:scale-100"
-                >
-                    <Star
-                        size={size}
-                        className={`transition-colors ${star <= shown ? "fill-yellow-400 text-yellow-400" : "text-muted/40"
-                            }`}
-                    />
-                </button>
-            ))}
+        <div className="flex items-center gap-1" role="radiogroup" aria-label={label}>
+            {STARS.map((star) => {
+                const filled = star <= value;
+                // Stars up to the click fill in turn rather than together, so
+                // the row reads left to right the way it was chosen.
+                const animating = picked > 0 && star <= picked;
+
+                return (
+                    <button
+                        key={star}
+                        type="button"
+                        role="radio"
+                        aria-checked={value === star}
+                        aria-label={`${star} ${star === 1 ? "star" : "stars"}`}
+                        disabled={disabled}
+                        onClick={() => {
+                            setPicked(star);
+                            onSelect?.(star);
+                        }}
+                        className="rounded-md p-1 transition-transform hover:scale-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--primary)] disabled:cursor-not-allowed disabled:hover:scale-100"
+                    >
+                        {/* The empty star is always there and the gold one lands
+                            on top of it. That is what makes the fill animatable
+                            at all — there is nothing to animate between on a
+                            single icon that merely changes colour. */}
+                        <span className="relative block">
+                            <Star size={size} className="fill-muted-foreground/15 text-muted-foreground/45" />
+                            {filled && (
+                                <Star
+                                    size={size}
+                                    className={`absolute inset-0 fill-yellow-400 text-yellow-400 ${animating ? "animate-star-fill" : ""
+                                        }`}
+                                    style={animating ? { animationDelay: `${(star - 1) * 90}ms` } : undefined}
+                                />
+                            )}
+                        </span>
+                    </button>
+                );
+            })}
         </div>
     );
 }
