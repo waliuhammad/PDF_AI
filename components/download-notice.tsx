@@ -63,7 +63,13 @@ export function DownloadNotice({ message }: { message: string }) {
             // lands directly under a tool's action buttons on twenty-one pages,
             // and without it the confirmation sits flush against the button
             // that produced it, reading as part of the control.
-            className="mt-5 sm:mt-6 p-3.5 sm:p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 text-[13px] sm:text-sm font-semibold flex items-start sm:items-center justify-center gap-2"
+            //
+            // Sized for the worst case rather than the typical one. Most tools
+            // put the notice below a single column, but a few sit under a two
+            // column grid whose taller side ends much lower than the button
+            // does — on image-to-pdf that left only eight pixels between the
+            // annotation controls and the notice.
+            className="mt-8 sm:mt-10 p-3.5 sm:p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 text-[13px] sm:text-sm font-semibold flex items-start sm:items-center justify-center gap-2"
         >
             <CheckCircle2 size={16} className="shrink-0 mt-0.5 sm:mt-0" />
             <span>{message}</span>
