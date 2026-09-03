@@ -44,6 +44,24 @@ const FREQUENCY = {
      */
     minDelayMs: 6000,
     maxDelayMs: 18000,
+    /**
+     * The pause when the wait ran out while the person was somewhere else.
+     *
+     * Shorter than the first draw, and still not instant: arriving on a page
+     * that immediately throws up a dialog is the thing this is trying to avoid,
+     * whether or not the download it refers to happened on this page.
+     */
+    minResumeMs: 2500,
+    maxResumeMs: 6000,
+    /**
+     * How long after opening a close is assumed to be an accident.
+     *
+     * The dialog can now appear while somebody is working rather than only
+     * while they are idle, so a click already travelling towards the page can
+     * land on the backdrop instead. That must not count as "no thanks" for the
+     * next month.
+     */
+    reflexGuardMs: 600,
 };
 
 /**
@@ -59,6 +77,16 @@ const KEY = {
     successes: "pdfai:rating:successes",
     /** The draw, kept so the target stops moving under the person. */
     threshold: "pdfai:rating:threshold",
+    /**
+     * When an owed prompt is due, as a timestamp.
+     *
+     * A timer alone cannot do this job. It lives on the page that scheduled it,
+     * and a tool page is usually left within a second or two of the download —
+     * so the wait was being cancelled every single time and the prompt, though
+     * owed, was never shown. Writing down when it is due lets the next page
+     * pick it up where the last one left off.
+     */
+    dueAt: "pdfai:rating:dueAt",
 };
 
 /** Storage throws in private mode and in some embedded browsers. */
@@ -98,6 +126,20 @@ function drawDelay(): number {
     return minDelayMs + Math.floor(Math.random() * (maxDelayMs - minDelayMs + 1));
 }
 
+/** The shorter pause used when picking up a prompt that came due elsewhere. */
+function drawResumeDelay(): number {
+    const { minResumeMs, maxResumeMs } = FREQUENCY;
+    return minResumeMs + Math.floor(Math.random() * (maxResumeMs - minResumeMs + 1));
+}
+
+function clearLocal(key: string): void {
+    try {
+        window.localStorage.removeItem(key);
+    } catch {
+        // Same as writeLocal: never worth throwing over.
+    }
+}
+
 /** Records a finished tool and returns the running total. */
 function countSuccess(): number {
     const next = (Number(readLocal(KEY.successes)) || 0) + 1;
@@ -134,8 +176,12 @@ export function RatingPrompt() {
     const successes = useRef(0);
     const dismissedThisSession = useRef(false);
     const shown = useRef(false);
+    /** When the dialog appeared, to tell a real refusal from a click already on its way. */
+    const openedAt = useRef(0);
+    const timer = useRef(0);
 
-    const eligible = useCallback((total: number): boolean => {
+    /** Whether this person may be asked at all, ignoring how many tools they have used. */
+    const mayAsk = useCallback((): boolean => {
         if (typeof window === "undefined") return false;
         if (shown.current || dismissedThisSession.current) return false;
         if (!hasSessionHint()) return false;
@@ -147,13 +193,39 @@ export function RatingPrompt() {
             if (Date.now() < waitUntil) return false;
         }
 
-        return total >= drawThreshold();
+        return true;
+    }, []);
+
+    /**
+     * Arrange for the dialog to appear in `ms`.
+     *
+     * A ref rather than a variable inside the effect because closing an
+     * accidentally dismissed prompt has to be able to arrange the next one
+     * without waiting for a navigation to remount the component.
+     */
+    const openIn = useCallback((ms: number) => {
+        // Claimed now rather than when the dialog opens, so a second download
+        // during the wait cannot queue a second one behind it.
+        shown.current = true;
+        window.clearTimeout(timer.current);
+        timer.current = window.setTimeout(() => {
+            // The debt is settled the moment it is shown; leaving it would
+            // reopen the dialog on the next page load.
+            clearLocal(KEY.dueAt);
+            openedAt.current = Date.now();
+            setOpen(true);
+        }, ms);
     }, []);
 
     useEffect(() => {
-        // The wait is long enough now that someone can leave the tools before
-        // it elapses, so the timer has to be cancellable.
-        let timer = 0;
+        // A prompt that came due while the person was on another page, or was
+        // still counting down when they navigated away from the one that
+        // scheduled it. Either way it is owed, and this is where it gets paid.
+        const dueAt = Number(readLocal(KEY.dueAt));
+        if (mayAsk() && Number.isFinite(dueAt) && dueAt > 0) {
+            const remaining = dueAt - Date.now();
+            openIn(remaining > 0 ? remaining : drawResumeDelay());
+        }
 
         const stop = onToolSuccess(() => {
             // The stored count is what carries three tool uses across three
@@ -162,29 +234,52 @@ export function RatingPrompt() {
             successes.current += 1;
             const total = Math.max(successes.current, countSuccess());
 
-            if (!eligible(total)) return;
+            if (!mayAsk()) return;
+            if (total < drawThreshold()) return;
 
-            // Claimed now rather than when the dialog opens, so a second
-            // download during the wait cannot queue a second one behind it.
-            shown.current = true;
-            timer = window.setTimeout(() => setOpen(true), drawDelay());
+            const wait = drawDelay();
+            // Written down before the timer starts, so the wait survives the
+            // page being left — which, on a tool page just after a download,
+            // is what almost always happens.
+            writeLocal(KEY.dueAt, String(Date.now() + wait));
+            openIn(wait);
         });
 
+        const pending = timer;
         return () => {
             stop();
-            window.clearTimeout(timer);
+            window.clearTimeout(pending.current);
         };
-    }, [eligible]);
+    }, [mayAsk, openIn]);
 
     const close = useCallback(() => {
         setOpen(false);
+
+        // A close inside the first moment is almost certainly a click that was
+        // already on its way to the page underneath when the dialog appeared —
+        // the person never saw it, let alone refused it. Treating that as a
+        // refusal would silently cost them the ask for a month, so it closes
+        // but stays owed and comes back after another tool.
+        const deliberate = Date.now() - openedAt.current > FREQUENCY.reflexGuardMs;
+
         // Only a close without a rating counts as a refusal. Closing the thank
         // you afterwards must not schedule another ask a month out.
-        if (state !== "done") {
+        if (state !== "done" && deliberate) {
             dismissedThisSession.current = true;
             writeLocal(KEY.dismissedAt, String(Date.now()));
         }
-    }, [state]);
+
+        if (deliberate || state === "done") {
+            clearLocal(KEY.dueAt);
+        } else {
+            // Owed again, shortly, so an accidental dismissal is not the end of
+            // it — scheduled here and now rather than waiting for a navigation
+            // or another download to notice the debt.
+            const wait = drawDelay();
+            writeLocal(KEY.dueAt, String(Date.now() + wait));
+            openIn(wait);
+        }
+    }, [state, openIn]);
 
     // Escape closes it, like any other dialog.
     useEffect(() => {
@@ -227,6 +322,7 @@ export function RatingPrompt() {
             }
 
             writeLocal(KEY.rated, "1");
+            clearLocal(KEY.dueAt);
             setState("done");
             window.setTimeout(() => setOpen(false), 1800);
         } catch {
