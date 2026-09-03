@@ -22,7 +22,7 @@ export function CTA() {
         },
         {
             icon: FileText,
-            text: "50+ PDF tools available"
+            text: "20+ PDF tools available"
         }
     ];
 
@@ -140,37 +140,6 @@ export function CTA() {
                             built for modern workflows.
 
                         </p>
-
-
-
-                        {/* Rating */}
-
-                        <div
-                            className="
-                                mt-5
-                                flex
-                                items-center
-                                gap-3
-                                text-xs
-                                md:text-sm
-                                text-muted
-                            "
-                        >
-
-                            <div className="flex text-yellow-400">
-
-                                ★★★★★
-
-                            </div>
-
-
-                            <span>
-                                4.9/5 from 50,000+ users
-                            </span>
-
-
-                        </div>
-
 
 
 
