@@ -45,4 +45,4 @@ export const POST = metered(async (req: NextRequest) => {
     console.error("PDF Encryption Error:", err);
     return NextResponse.json({ error: "Failed to protect PDF document." }, { status: 500 });
   }
-});
+}, { category: "advanced" });

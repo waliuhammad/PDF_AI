@@ -78,4 +78,4 @@ export const POST = metered(async (req: NextRequest) => {
             { status: 500 }
         );
     }
-});
+}, { category: "advanced" });

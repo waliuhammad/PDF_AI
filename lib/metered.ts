@@ -2,7 +2,12 @@ import "server-only";
 import { NextRequest, NextResponse } from "next/server";
 import { readDevPlanFromRequest } from "@/lib/dev-plan";
 import { getRequestUid } from "@/lib/server-auth";
-import { checkAndCountUsage, refundOperation, type UsageResult } from "@/lib/usage";
+import {
+    checkAndCountUsage,
+    refundOperation,
+    type UsageCategory,
+    type UsageResult,
+} from "@/lib/usage";
 
 /**
  * The shared gate for every metered tool route.
@@ -14,13 +19,14 @@ import { checkAndCountUsage, refundOperation, type UsageResult } from "@/lib/usa
  * client's Remote Config, inside checkAndCountUsage.
  */
 export async function requireUsageAllowance(
-    req: NextRequest
+    req: NextRequest,
+    category: UsageCategory = "basic"
 ): Promise<NextResponse | null> {
     const uid = await getRequestUid(req);
     if (!uid) return signInRefusal();
 
     const devPlan = readDevPlanFromRequest(req);
-    const usage = await checkAndCountUsage(uid, devPlan ?? undefined);
+    const usage = await checkAndCountUsage(uid, devPlan ?? undefined, category);
     if (!usage.allowed) return limitRefusal(usage);
 
     return null;
@@ -33,18 +39,49 @@ function signInRefusal(message = "Please sign in to use the tools."): NextRespon
     );
 }
 
+/** What each category is called when a refusal has to name it. */
+const CATEGORY_LABEL: Record<string, string> = {
+    advanced: "advanced PDF",
+    ocr: "OCR",
+    summary: "AI summary",
+    grammar: "AI grammar & writing",
+    translate: "AI translation",
+};
+
 function limitRefusal(usage: UsageResult): NextResponse {
     // Capped for the same reason the meter caps it: the day's counter can
     // outlive a larger allowance, and "12/5" reads as a fault rather than
     // a limit.
-    const spent = Math.min(usage.used, usage.limit);
-    const message = `Daily limit reached (${spent}/${usage.limit} operations on the ${usage.plan} plan). Upgrade for a higher daily allowance, or come back tomorrow.`;
+    const cap = (used: number, limit: number) => Math.min(used, limit);
+
+    // Which ceiling stopped this matters to the person reading it. Someone told
+    // "10 of 10 operations" when their single daily OCR is what ran out would
+    // upgrade expecting more of the wrong thing.
+    const hitCategory =
+        usage.blockedBy !== "all" &&
+        usage.blockedBy !== null &&
+        usage.categoryLimit !== null &&
+        usage.categoryUsed !== null;
+
+    const message = hitCategory
+        ? `Daily ${CATEGORY_LABEL[usage.blockedBy as string] ?? usage.blockedBy} limit reached ` +
+        `(${cap(usage.categoryUsed!, usage.categoryLimit!)}/${usage.categoryLimit} on the ${usage.plan} plan). ` +
+        `Upgrade for a higher allowance, or come back tomorrow.`
+        : `Daily limit reached (${cap(usage.used, usage.limit)}/${usage.limit} operations on the ${usage.plan} plan). ` +
+        `Upgrade for a higher daily allowance, or come back tomorrow.`;
+
     return NextResponse.json({ success: false, error: message, message }, { status: 429 });
 }
 
 interface MeteredOptions {
     /** Wording for the 401, so the AI tools can name themselves. */
     signInMessage?: string;
+    /**
+     * Which allowance this route spends. Defaults to "basic", so a route that
+     * says nothing keeps costing one from the daily total and nothing more —
+     * the behaviour every route had before categories existed.
+     */
+    category?: UsageCategory;
 }
 
 /**
@@ -71,20 +108,21 @@ export function metered(
         const uid = await getRequestUid(req);
         if (!uid) return signInRefusal(options.signInMessage);
 
+        const category = options.category ?? "basic";
         const devPlan = readDevPlanFromRequest(req);
-        const usage = await checkAndCountUsage(uid, devPlan ?? undefined);
+        const usage = await checkAndCountUsage(uid, devPlan ?? undefined, category);
         if (!usage.allowed) return limitRefusal(usage);
 
         let response: Response;
         try {
             response = await handler(req);
         } catch (err) {
-            await refundOperation(uid);
+            await refundOperation(uid, category);
             throw err;
         }
 
         // 4xx and 5xx mean no file was delivered, whatever the reason.
-        if (!response.ok) await refundOperation(uid);
+        if (!response.ok) await refundOperation(uid, category);
 
         return response;
     };

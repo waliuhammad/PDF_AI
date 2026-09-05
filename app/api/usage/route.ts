@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { readDevPlanFromRequest } from "@/lib/dev-plan";
 import { getRequestUid } from "@/lib/server-auth";
 import { requireUsageAllowance } from "@/lib/metered";
-import { peekUsage, refundOperation } from "@/lib/usage";
+import { peekUsageBreakdown, refundOperation, type UsageCategory } from "@/lib/usage";
 
 /**
  * Reports the signed-in user's tool usage for today without consuming any:
@@ -24,14 +24,31 @@ export async function GET(req: NextRequest) {
     // tester to pro or business changed what the tools enforced while the
     // card still read "free plan".
     const devPlan = readDevPlanFromRequest(req);
-    const usage = await peekUsage(uid, devPlan ?? undefined);
+    const usage = await peekUsageBreakdown(uid, devPlan ?? undefined);
 
     return NextResponse.json({
         success: true,
         used: usage.used,
         limit: usage.limit,
         plan: usage.plan,
+        // Added alongside the three fields above rather than replacing them:
+        // the meter, the checkout wait and the plan provider all read
+        // used/limit/plan, and none of them need the breakdown.
+        categories: usage.categories,
     });
+}
+
+/**
+ * Which category a browser-side tool may spend from.
+ *
+ * The body is a claim from the page, so it decides nothing on its own. Only
+ * these two are accepted: the three tools that convert in the browser are all
+ * PDF tools, and an unchecked value would let a crafted request draw down —
+ * or reserve — an AI allowance no browser tool can reach.
+ */
+function readCategory(body: unknown): UsageCategory {
+    const value = (body as { category?: unknown } | null)?.category;
+    return value === "advanced" ? "advanced" : "basic";
 }
 
 /**
@@ -52,7 +69,8 @@ export async function GET(req: NextRequest) {
  * client-side work can be policed.
  */
 export async function POST(req: NextRequest) {
-    const refusal = await requireUsageAllowance(req);
+    const body = await req.json().catch(() => null);
+    const refusal = await requireUsageAllowance(req, readCategory(body));
     if (refusal) return refusal;
 
     return NextResponse.json({ success: true });
@@ -72,6 +90,7 @@ export async function DELETE(req: NextRequest) {
         return NextResponse.json({ success: false, message: "Not signed in." }, { status: 401 });
     }
 
-    await refundOperation(uid);
+    const body = await req.json().catch(() => null);
+    await refundOperation(uid, readCategory(body));
     return NextResponse.json({ success: true });
 }

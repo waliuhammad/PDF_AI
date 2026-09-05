@@ -53,4 +53,4 @@ export const POST = metered(async (req: NextRequest) => {
       { status: 500 }
     );
   }
-}, { signInMessage: "Please sign in to use AI features." });
+}, { signInMessage: "Please sign in to use AI features.", category: "grammar" });

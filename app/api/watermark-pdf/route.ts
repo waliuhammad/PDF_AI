@@ -234,4 +234,4 @@ export const POST = metered(async (req: NextRequest) => {
     console.error("Watermark generation error:", error);
     return NextResponse.json({ error: "Failed to apply watermark to PDF." }, { status: 500 });
   }
-});
+}, { category: "advanced" });

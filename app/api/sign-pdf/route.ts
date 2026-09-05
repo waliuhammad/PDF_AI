@@ -178,8 +178,9 @@ export const POST = metered(async (req: NextRequest) => {
     console.error("PDF Signing Error:", err);
     return NextResponse.json({ error: "Failed to sign document." }, { status: 500 });
   }
-});
+}, { category: "advanced" });
 /** Keeps a placement inside the page whatever arrives from the browser. */
 function clamp(value: number, min: number, max: number): number {
-    return Math.min(Math.max(value, min), max);
+  return Math.min(Math.max(value, min), max);
 }
+

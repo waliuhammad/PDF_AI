@@ -1,6 +1,17 @@
 "use client";
 
 /**
+ * The categories a browser-side tool may claim.
+ *
+ * Deliberately narrower than the server's full set: these three tools do PDF
+ * work, so letting the page name an AI category would let anyone spend from —
+ * or, worse, claim against — an allowance no browser tool can use. The server
+ * validates this list again on arrival; this type only stops the mistake at
+ * the call site.
+ */
+export type BrowserToolCategory = "basic" | "advanced";
+
+/**
  * Claim one operation from today's allowance before doing work in the browser.
  *
  * The tools that convert in the page never touched a metered route, so they
@@ -11,10 +22,16 @@
  * tools." or the daily-limit wording with the real counts — so these tools say
  * exactly what the metered ones say rather than inventing their own phrasing.
  */
-export async function claimOperation(): Promise<{ ok: true } | { ok: false; message: string }> {
+export async function claimOperation(
+    category: BrowserToolCategory = "basic"
+): Promise<{ ok: true } | { ok: false; message: string }> {
     let res: Response;
     try {
-        res = await fetch("/api/usage", { method: "POST" });
+        res = await fetch("/api/usage", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ category }),
+        });
     } catch {
         // Offline or the request never landed. Refusing here would break a
         // tool that runs perfectly well in the browser, so the work proceeds
@@ -46,9 +63,15 @@ export async function claimOperation(): Promise<{ ok: true } | { ok: false; mess
  * Best effort: if the release does not land, the user has lost one operation,
  * which is not worth a second error message on top of the one they already saw.
  */
-export async function releaseOperation(): Promise<void> {
+export async function releaseOperation(category: BrowserToolCategory = "basic"): Promise<void> {
     try {
-        await fetch("/api/usage", { method: "DELETE" });
+        await fetch("/api/usage", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            // The category has to match the claim, or the refund credits the
+            // total while leaving the category counter spent.
+            body: JSON.stringify({ category }),
+        });
     } catch {
         // Nothing useful to do, and nothing worth telling the user about.
     }

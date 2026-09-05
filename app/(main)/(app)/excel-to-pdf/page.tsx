@@ -117,7 +117,7 @@ export default function ExcelToPdf(): JSX.Element {
 
     // Converting happens in the browser, so no route meters this tool. Claim
     // the operation first, and stop if the plan says no.
-    const claim = await claimOperation();
+    const claim = await claimOperation("advanced");
     if (!claim.ok) {
       setError(claim.message);
       return;
@@ -179,7 +179,7 @@ export default function ExcelToPdf(): JSX.Element {
       notifyToolSuccess();
     } catch (err) {
       // The operation was claimed before the work started, so give it back.
-      void releaseOperation();
+      void releaseOperation("advanced");
       setError(errorMessage(err, "Failed to generate PDF."));
     } finally {
       setLoading(false);
@@ -277,11 +277,10 @@ export default function ExcelToPdf(): JSX.Element {
                     <button
                       key={s.name}
                       onClick={() => setSelectedSheetIndex(idx)}
-                      className={`py-2 px-4 rounded-xl text-xs font-semibold tracking-wide transition shrink-0 cursor-pointer border ${
-                        selectedSheetIndex === idx
-                          ? "bg-slate-900 border-slate-900 text-white shadow-sm dark:bg-slate-900 dark:border-slate-700"
-                          : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-[var(--background-secondary)] dark:border-slate-700/60 dark:text-slate-400 dark:hover:bg-slate-800"
-                      }`}
+                      className={`py-2 px-4 rounded-xl text-xs font-semibold tracking-wide transition shrink-0 cursor-pointer border ${selectedSheetIndex === idx
+                        ? "bg-slate-900 border-slate-900 text-white shadow-sm dark:bg-slate-900 dark:border-slate-700"
+                        : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-[var(--background-secondary)] dark:border-slate-700/60 dark:text-slate-400 dark:hover:bg-slate-800"
+                        }`}
                     >
                       {s.name}
                     </button>
@@ -414,7 +413,7 @@ export default function ExcelToPdf(): JSX.Element {
                                 className="p-2.5 truncate max-w-[120px]"
                               >
                                 {cell !== null &&
-                                cell !== undefined
+                                  cell !== undefined
                                   ? String(cell)
                                   : ""}
                               </td>

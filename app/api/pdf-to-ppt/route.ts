@@ -12,9 +12,9 @@ export const maxDuration = 60;
 export const POST = metered(async (req: NextRequest) => {
   try {
     const formData = await readFormData(req);
-        if (!formData) {
-            return NextResponse.json({ error: "No file provided." }, { status: 400 });
-        }
+    if (!formData) {
+      return NextResponse.json({ error: "No file provided." }, { status: 400 });
+    }
     const file = formData.get("file") as File | null;
 
     if (!file) {
@@ -75,7 +75,7 @@ export const POST = metered(async (req: NextRequest) => {
       for (let i = 0; i < pageLines.length; i += chunkSize) {
         chunks.push(pageLines.slice(i, i + chunkSize));
       }
-      
+
       if (chunks.length === 0) {
         chunks.push(pageLines);
       }
@@ -101,13 +101,13 @@ export const POST = metered(async (req: NextRequest) => {
         });
 
         // Format chunk lines cleanly while preserving exact original spacing behavior
-        const processedChunkText = chunk.length > 0 
+        const processedChunkText = chunk.length > 0
           ? chunk.map(line => {
-              if (/^(\?\s*|\uFFFD\s*|\[\?\]\s*)/.test(line)) {
-                return line.replace(/^(\?\s*|\uFFFD\s*|\[\?\]\s*)+/, "■ ");
-              }
-              return line;
-            }).join("\n\n") 
+            if (/^(\?\s*|\uFFFD\s*|\[\?\]\s*)/.test(line)) {
+              return line.replace(/^(\?\s*|\uFFFD\s*|\[\?\]\s*)+/, "■ ");
+            }
+            return line;
+          }).join("\n\n")
           : "---";
 
         // Main content text box preserving exact original spacing behavior
@@ -141,4 +141,4 @@ export const POST = metered(async (req: NextRequest) => {
       { status: 500 }
     );
   }
-});
+}, { category: "advanced" });
