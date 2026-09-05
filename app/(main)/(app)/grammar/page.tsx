@@ -243,7 +243,7 @@ if (!res.ok) {
 
             {locked && (
                 <div className="mb-6">
-                    <FeatureLockNotice feature="AI grammar & writing" />
+                    <FeatureLockNotice />
                 </div>
             )}
 

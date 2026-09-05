@@ -136,7 +136,7 @@ export default function PdfTranslatorPage() {
 
       {locked && (
         <div className="mb-6">
-          <FeatureLockNotice feature="AI translation" />
+          <FeatureLockNotice />
         </div>
       )}
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Lock } from "lucide-react";
+import { hasSessionHint } from "@/lib/session-hint";
 
 /**
  * Whether a tool is closed on the plan the person is actually on.
@@ -24,6 +25,12 @@ export function useFeatureLock(category: string): { locked: boolean; plan: strin
     });
 
     useEffect(() => {
+        // Signed out, there is no plan to be locked out of — the tool refuses
+        // for a different reason and says so. Asking anyway would mean a
+        // guaranteed 401 on every visit to these two pages, which is a real
+        // error in the console for a question that did not need asking.
+        if (!hasSessionHint()) return;
+
         const controller = new AbortController();
 
         fetch("/api/usage", { signal: controller.signal, cache: "no-store" })
@@ -51,19 +58,16 @@ export function useFeatureLock(category: string): { locked: boolean; plan: strin
  * finding out a feature is not on your plan after choosing a file and pressing
  * the button is the worst moment to be told.
  */
-export function FeatureLockNotice({ feature }: { feature: string }) {
+export function FeatureLockNotice() {
     return (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-[var(--primary)]/25 bg-[var(--primary)]/5 p-4 text-center sm:flex-row sm:text-left">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[var(--primary)]/10 text-[var(--primary)]">
                 <Lock size={18} />
             </div>
 
-            <div className="flex-1">
-                <p className="text-sm font-semibold text-fg">{feature} is a Pro feature</p>
-                <p className="mt-0.5 text-xs text-muted">
-                    This feature requires the Pro or Business plan.
-                </p>
-            </div>
+            <p className="flex-1 text-sm font-semibold text-fg">
+                This feature requires Pro or Business
+            </p>
 
             <Link
                 href="/pricing"
