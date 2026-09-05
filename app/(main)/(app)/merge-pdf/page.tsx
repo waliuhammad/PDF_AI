@@ -518,9 +518,16 @@ export default function MergePdfPage() {
 
                     {activePage && (
                       <div className="mt-4 text-center space-y-1">
-                        <p className="text-sm font-bold max-w-xs text-[#222430] dark:text-white">
+                        {/* A filename wraps onto as many lines as it needs.
+                            It used to be an inline-block with sm:truncate and
+                            sm:max-w-none, and truncate does nothing without a
+                            width to truncate against — so from sm up a long
+                            name ran straight out of the card. overflow-wrap
+                            anywhere breaks at the spaces and hyphens first and
+                            only mid-word when a name has neither. */}
+                        <p className="mx-auto max-w-full text-sm font-bold text-[#222430] dark:text-white [overflow-wrap:anywhere]">
                           <span className="hidden sm:inline">Source File: </span>
-                          <span className="inline-block text-[#222430]/70 dark:text-white/80 break-all max-w-[220px] sm:max-w-none sm:truncate">
+                          <span className="text-[#222430]/70 dark:text-white/80">
                             {activePage.fileName}
                           </span>
                         </p>
